@@ -47,6 +47,10 @@ jobs:
           from pathlib import Path
           import re
           html = Path('index.html').read_text(encoding='utf-8')
+          method = re.search(r'<div class="method">(.*?)</div>\\s*<div class="sectionhead">', html, re.S)
+          minutes = [int(v) for v in re.findall(r'<span class="minutes">(\\d+)\\s+МИН</span>', method.group(1) if method else '')]
+          if minutes != [5, 10, 15, 10, 10] or sum(minutes) != 50:
+              raise SystemExit('Daily schedule must add up to 50 minutes; got ' + repr(minutes))
           ids = re.findall(r'\bid="([^"]+)"', html)
           dupes = sorted({x for x in ids if ids.count(x) > 1})
           if dupes:
