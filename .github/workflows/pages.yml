@@ -55,35 +55,99 @@ jobs:
           missing = sorted(refs - set(ids))
           if missing:
               raise SystemExit('Missing DOM IDs: ' + ', '.join(missing))
-          for token in ['function renderImageTask()', 'function loadImageChoices(l)', 'function renderExamPractice()', 'function checkExam()', 'id="examQuestions"', 'id="readerLens"']:
+          for token in ['function renderImageTask()', 'function loadImageChoices(l)', 'function renderExamPractice()', 'function checkExam()', 'function quickQuizSet(l)', 'function toggleVisibleWeeks()', 'id="examQuestions"', 'id="readerLens"', 'id="collapseWeeks"', 'data-week-toggle']:
               if token not in html:
                   raise SystemExit('Missing application feature: ' + token)
-          if 'id="examAnswer"' in html or 'el("examAnswer")' in html:
-              raise SystemExit('Written exam-answer field should have been removed')
-          print('Validated HTML ids and selectable activity handlers.')
+          for stale in ['выполните письменное экзаменационное задание ниже', 'id="examAnswer"', 'el("examAnswer")']:
+              if stale in html:
+                  raise SystemExit('Stale or removed exam UI still referenced: ' + stale)
+          if not all(x in html for x in ['aria-expanded', 'aria-controls="nav"', '.week-lessons', 'max-height:38vh']):
+              raise SystemExit('Collapsible and scrollable navigation markup/styles are incomplete')
+          print('Validated HTML IDs, selectable activities, copy and collapsible navigation.')
           PY
           node <<'NODE'
+          const fs = require('fs');
           global.window = {};
           require('./curriculum.js');
           const course = window.HISTORY_CURRICULUM;
-          if (!course || course.weeks.length !== 26) throw new Error('Expected 26 course units');
-          if (course.lessons.length !== 182) throw new Error('Expected 182 lessons; got ' + course.lessons.length);
+          const html = fs.readFileSync('index.html', 'utf8');
+          const assert = (condition, message) => { if (!condition) throw new Error(message); };
+          assert(course && course.weeks.length === 26, 'Expected 26 course units');
+          assert(course.lessons.length === 182, 'Expected 182 lessons; got ' + course.lessons.length);
+          const lessons = course.lessons.map((r, i) => ({
+            day: i + 1, week: Math.floor(i / 7) + 1, title: r[0], period: r[1],
+            question: r[2], summary: r[3], facts: r[4], wiki: r[5], meta: r[6]
+          }));
+          const unique = values => new Set(values).size === values.length;
+          assert(unique(lessons.map(l => l.title)), 'Lesson titles must be unique');
           for (let w = 0; w < course.weeks.length; w++) {
             const unit = course.weeks[w];
-            const lessons = course.lessons.slice(w * 7, w * 7 + 7);
-            if (lessons.length !== 7) throw new Error('Unit ' + (w + 1) + ' does not have 7 lessons');
-            for (let d = 0; d < lessons.length; d++) {
-              const l = lessons[d];
-              const day = w * 7 + d + 1;
-              if (!l[0] || !l[1] || !l[2] || !l[3]) throw new Error('Missing title/period/question/summary on day ' + day);
-              if (!Array.isArray(l[4]) || l[4].length !== 3 || l[4].some(x => !x)) throw new Error('Expected three facts on day ' + day);
-              if (!l[5] || !l[6] || !l[6].imageSearch || !l[6].examPrompt || !l[6].rubric) throw new Error('Missing image or exam metadata on day ' + day);
+            const weekLessons = lessons.slice(w * 7, w * 7 + 7);
+            assert(weekLessons.length === 7, 'Unit ' + (w + 1) + ' must have 7 lessons');
+            assert(unit[0] && unit[1] && unit[3] && unit[3].length >= 3 && unit[4] && unit[5], 'Incomplete metadata in unit ' + (w + 1));
+            for (const l of weekLessons) {
+              assert(l.title && l.period && l.question && l.question.endsWith('?') && l.summary, 'Missing or malformed lesson text on day ' + l.day);
+              assert(l.summary.length >= 180, 'Lesson summary is unexpectedly short on day ' + l.day);
+              assert(Array.isArray(l.facts) && l.facts.length === 3 && l.facts.every(Boolean), 'Expected three facts on day ' + l.day);
+              assert(l.meta && l.meta.imageSearch && l.meta.examPrompt && l.meta.rubric, 'Missing activity/source metadata on day ' + l.day);
             }
-            if (!unit[0] || !unit[1] || !unit[3] || unit[3].length < 3 || !unit[4] || !unit[5]) throw new Error('Incomplete metadata for unit ' + (w + 1));
           }
-          const sapiens = course.lessons.slice(7, 14);
-          if (sapiens.some(l => !l[6].harariLens)) throw new Error('Sapiens lens missing from the human-belief unit');
-          console.log('Validated ' + course.weeks.length + ' units, ' + course.lessons.length + ' lessons, Sapiens lens, and required activity metadata.');
+          assert(course.weeks[3][0] === 'Ранние общества Азии, Африки и Америк', 'Week 4 heading should match its regional scope');
+          const expectedSources = [
+            [7, 'world-history-volume-1/pages/5-introduction'],
+            [8, 'world-history-volume-1/pages/5-introduction'],
+            [9, 'world-history-volume-1/pages/15-introduction'],
+            [10, 'world-history-volume-1/pages/8-introduction'],
+            [11, 'world-history-volume-1/pages/13-introduction'],
+            [12, 'world-history-volume-1/pages/14-introduction'],
+            [13, 'world-history-volume-1/pages/14-introduction'],
+            [14, 'world-history-volume-2/pages/2-introduction'],
+            [15, 'world-history-volume-2/pages/4-introduction'],
+            [16, 'world-history-volume-2/pages/5-introduction'],
+            [17, 'world-history-volume-2/pages/7-introduction'],
+            [18, 'world-history-volume-2/pages/6-introduction'],
+            [19, 'world-history-volume-2/pages/9-introduction'],
+            [20, 'world-history-volume-2/pages/9-introduction'],
+            [21, 'world-history-volume-2/pages/11-introduction'],
+            [22, 'world-history-volume-2/pages/12-introduction'],
+            [23, 'world-history-volume-2/pages/13-introduction'],
+            [24, 'world-history-volume-2/pages/14-introduction'],
+            [25, 'world-history-volume-2/pages/15-introduction']
+          ];
+          for (const [week, path] of expectedSources) {
+            assert(course.weeks[week - 1][4].includes(path), 'Source mapping mismatch for week ' + week + ': expected ' + path);
+          }
+          assert(course.lessons.slice(7, 14).every(l => l[6].harariLens), 'Sapiens lens missing from the human-belief unit');
+          const between = (name, nextName) => {
+            const begin = html.indexOf('function ' + name + '(');
+            const end = html.indexOf('\nfunction ' + nextName + '(', begin);
+            assert(begin >= 0 && end > begin, 'Could not extract tested function ' + name);
+            return html.slice(begin, end).trim();
+          };
+          const rotateChoices = (list, shift) => list.slice(shift % list.length).concat(list.slice(0, shift % list.length));
+          const examQuestionSet = new Function('L', 'rotateChoices', 'return (' + between('examQuestionSet', 'renderExamPractice') + ')')(lessons, rotateChoices);
+          const quickQuizSet = new Function('L', 'rotateChoices', 'return (' + between('quickQuizSet', 'renderQuiz') + ')')(lessons, rotateChoices);
+          const examPositionCounts = [0, 0, 0];
+          for (const l of lessons) {
+            const examQuestions = examQuestionSet(l);
+            assert(examQuestions.length === 3, 'Expected three exam-practice questions on day ' + l.day);
+            for (const [qi, q] of examQuestions.entries()) {
+              assert(q.options.length === 3, 'Expected 3 options for day ' + l.day + ', question ' + (qi + 1));
+              assert(unique(q.options.map(o => o.text)), 'Duplicate options for day ' + l.day + ', question ' + (qi + 1));
+              const right = q.options.filter(o => o.correct);
+              assert(right.length === 1, 'Expected exactly one correct answer for day ' + l.day + ', question ' + (qi + 1));
+              examPositionCounts[q.options.findIndex(o => o.correct)]++;
+            }
+            const quiz = quickQuizSet(l);
+            assert(quiz.length === 3, 'Expected 3 quick quiz questions on day ' + l.day);
+            for (const [qi, q] of quiz.entries()) {
+              assert(q.options.length === 3 && unique(q.options), 'Duplicate quick quiz options on day ' + l.day + ', question ' + (qi + 1));
+              assert(q.correct >= 0 && q.options[q.correct] === q.fact, 'Incorrect answer key on day ' + l.day + ', question ' + (qi + 1));
+            }
+          }
+          assert(examPositionCounts.every(n => n > 0), 'Correct exam answers should not always occupy the same position');
+          assert(!html.includes('выполните письменное экзаменационное задание ниже'), 'Obsolete written-task copy remains');
+          console.log('Validated ' + course.weeks.length + ' modules, ' + course.lessons.length + ' lessons, source mapping, and ' + (lessons.length * 6) + ' generated three-choice questions without duplicate options.');
           NODE
       - name: Upload site files
         uses: actions/upload-pages-artifact@v3
