@@ -28,6 +28,18 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Check inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script>(.*?)</script>', html, re.S)
+          if not scripts:
+              raise SystemExit('No inline JavaScript block found')
+          Path('/tmp/site-inline.js').write_text(scripts[-1], encoding='utf-8')
+          PY
+          node --check /tmp/site-inline.js
       - name: Upload site files
         uses: actions/upload-pages-artifact@v3
         with:
