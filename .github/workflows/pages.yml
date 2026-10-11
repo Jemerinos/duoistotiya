@@ -43,15 +43,34 @@ jobs:
           PY
           node --check /tmp/site-inline.js
           node --check curriculum.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path('index.html').read_text(encoding='utf-8')
+          ids = re.findall(r'\bid="([^"]+)"', html)
+          dupes = sorted({x for x in ids if ids.count(x) > 1})
+          if dupes:
+              raise SystemExit('Duplicate HTML IDs: ' + ', '.join(dupes))
+          refs = set(re.findall(r'el\("([A-Za-z0-9_-]+)"\)', html))
+          missing = sorted(refs - set(ids))
+          if missing:
+              raise SystemExit('Missing DOM IDs: ' + ', '.join(missing))
+          for token in ['function renderImageTask()', 'function loadImageChoices(l)', 'function renderExamPractice()', 'function checkExam()', 'id="examQuestions"', 'id="readerLens"']:
+              if token not in html:
+                  raise SystemExit('Missing application feature: ' + token)
+          if 'id="examAnswer"' in html or 'el("examAnswer")' in html:
+              raise SystemExit('Written exam-answer field should have been removed')
+          print('Validated HTML ids and selectable activity handlers.')
+          PY
           node <<'NODE'
           global.window = {};
           require('./curriculum.js');
-          const c = window.HISTORY_CURRICULUM;
-          if (!c || c.weeks.length !== 26) throw new Error('Expected 26 course units');
-          if (c.lessons.length !== 182) throw new Error('Expected 182 lessons; got ' + c.lessons.length);
-          for (let w = 0; w < c.weeks.length; w++) {
-            const unit = c.weeks[w];
-            const lessons = c.lessons.slice(w * 7, w * 7 + 7);
+          const course = window.HISTORY_CURRICULUM;
+          if (!course || course.weeks.length !== 26) throw new Error('Expected 26 course units');
+          if (course.lessons.length !== 182) throw new Error('Expected 182 lessons; got ' + course.lessons.length);
+          for (let w = 0; w < course.weeks.length; w++) {
+            const unit = course.weeks[w];
+            const lessons = course.lessons.slice(w * 7, w * 7 + 7);
             if (lessons.length !== 7) throw new Error('Unit ' + (w + 1) + ' does not have 7 lessons');
             for (let d = 0; d < lessons.length; d++) {
               const l = lessons[d];
@@ -60,11 +79,11 @@ jobs:
               if (!Array.isArray(l[4]) || l[4].length !== 3 || l[4].some(x => !x)) throw new Error('Expected three facts on day ' + day);
               if (!l[5] || !l[6] || !l[6].imageSearch || !l[6].examPrompt || !l[6].rubric) throw new Error('Missing image or exam metadata on day ' + day);
             }
-            if (!unit[0] || !unit[1] || !unit[3] || unit[3].length < 3 || !unit[4] || !unit[5]) {
-              throw new Error('Incomplete metadata for unit ' + (w + 1));
-            }
+            if (!unit[0] || !unit[1] || !unit[3] || unit[3].length < 3 || !unit[4] || !unit[5]) throw new Error('Incomplete metadata for unit ' + (w + 1));
           }
-          console.log('Validated ' + c.weeks.length + ' units and ' + c.lessons.length + ' lessons.');
+          const sapiens = course.lessons.slice(7, 14);
+          if (sapiens.some(l => !l[6].harariLens)) throw new Error('Sapiens lens missing from the human-belief unit');
+          console.log('Validated ' + course.weeks.length + ' units, ' + course.lessons.length + ' lessons, Sapiens lens, and required activity metadata.');
           NODE
       - name: Upload site files
         uses: actions/upload-pages-artifact@v3
