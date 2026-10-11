@@ -144,9 +144,9 @@ main{padding-top:36px}
 (function(){
 "use strict";
 var W=window.HISTORY_CURRICULUM.weeks; var R=window.HISTORY_CURRICULUM.lessons;
-var roman=["I","II","III","IV","V"],slideMins=[2,2,3,3,2],state={day:1,slide:0,done:new Set(read("hd.done.v2",[])),notes:read("hd.notes",{}),imgTasks:read("hd.imgTasks.v2",{}),examAnswers:read("hd.examAnswers.v2",{}),imgStep:0,imageChoices:[],imageChoicesDay:0,secs:3000,running:false,handle:null};
+var roman=["I","II","III","IV","V"],slideMins=[2,2,3,3,2],state={day:1,slide:0,done:new Set(read("hd.done.v2",[])),notes:read("hd.notes.v2",{}),imgTasks:read("hd.imgTasks.v2",{}),examAnswers:read("hd.examAnswers.v2",{}),imgStep:0,imageChoices:[],imageChoicesDay:0,secs:3000,running:false,handle:null};
 function read(k,f){try{var x=JSON.parse(localStorage.getItem(k));return x===null?f:x}catch(e){return f}}
-function save(){localStorage.setItem("hd.done.v2",JSON.stringify(Array.from(state.done)));localStorage.setItem("hd.notes",JSON.stringify(state.notes));localStorage.setItem("hd.imgTasks.v2",JSON.stringify(state.imgTasks));localStorage.setItem("hd.examAnswers.v2",JSON.stringify(state.examAnswers))}
+function save(){localStorage.setItem("hd.done.v2",JSON.stringify(Array.from(state.done)));localStorage.setItem("hd.notes.v2",JSON.stringify(state.notes));localStorage.setItem("hd.imgTasks.v2",JSON.stringify(state.imgTasks));localStorage.setItem("hd.examAnswers.v2",JSON.stringify(state.examAnswers))}
 function el(id){return document.getElementById(id)}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 var L=R.map(function(r,i){var wi=Math.floor(i/7),meta=r[6]||{};return{day:i+1,week:wi+1,weekTitle:W[wi][0],title:r[0],period:r[1],question:r[2],summary:r[3],facts:r[4],wiki:r[5],reading:meta,imageQuery:meta.imageSearch||r[0],examPrompt:meta.examPrompt||"Сформулируйте тезис, приведите точное доказательство и объясните, как оно поддерживает вывод.",examRubric:meta.rubric||"Убедительный ответ содержит тезис, конкретный факт или источник, объяснение связи и оговорку об ограничениях.",source:meta.source||W[wi][4],terms:meta.terms||W[wi][3],skill:meta.skill||W[wi][2],example:meta.example||W[wi][6],overview:meta.weekOverview||W[wi][5],harariLens:meta.harariLens||""}});
