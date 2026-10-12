@@ -265,6 +265,31 @@
     row[6] = meta;
   });
 
+  /* Every lesson receives two explicit research starting points, while curated packs stay authoritative. */
+  course.lessons.forEach(function (row, index) {
+    var meta = row[6] || {};
+    if (!Array.isArray(meta.researchSources) || meta.researchSources.length === 0) {
+      meta.researchSources = [
+        {
+          type: "СПРАВОЧНЫЙ ОБЗОР · ПОИСК ПО ТЕМЕ",
+          title: "Найти справочные материалы: " + row[0],
+          url: "https://en.wikipedia.org/w/index.php?search=" + encodeURIComponent(row[0]),
+          desc: "Это поисковая отправная точка, а не конечное доказательство. Сверьте датировки, авторство и библиографию с музейными каталогами, университетскими изданиями или академическими исследованиями.",
+          lang: "Преимущественно английский"
+        },
+        {
+          type: "ПЕРВОИСТОЧНИКИ · КОЛЛЕКЦИЯ ДОКУМЕНТОВ",
+          title: "Fordham University — Internet History Sourcebooks",
+          url: "https://sourcebooks.fordham.edu/",
+          desc: "Коллекция переведённых исторических документов по разным эпохам. Ищите текст по периоду, месту и участникам; для доисторических тем, где письменных источников нет, используйте археологические и музейные каталоги.",
+          lang: "Английский"
+        }
+      ];
+    }
+    meta.lessonContentVersion = 2;
+    row[6] = meta;
+  });
+
   window.HISTORY_RESEARCH_CONTENT_STATS = {
     version: 2,
     lessons: Object.keys(packs).length,
