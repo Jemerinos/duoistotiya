@@ -77,7 +77,10 @@ async function retry(label, fn) {
     try { return await fn(); }
     catch (error) {
       last = error;
-      if (attempt < 3) await new Promise(resolve => setTimeout(resolve, attempt * 700));
+      if (attempt < 3) {
+        const delay = Number(error && error.retryAfterMs) || attempt * 1500;
+        await new Promise(resolve => setTimeout(resolve, Math.min(delay, 20000)));
+      }
     }
   }
   throw new Error(label + " failed after 3 attempts: " + String(last && last.message || last));
@@ -93,50 +96,58 @@ async function checkBackgroundQueries() {
       queries: [...new Set([entry.query, row[6] && row[6].imageSearch, row[0]].filter(Boolean))]
     });
   }
-  let nextIndex = 0;
-  const results = new Array(items.length);
-  async function worker() {
-    while (true) {
-      const index = nextIndex++;
-      if (index >= items.length) return;
-      const item = items[index];
-      let found = null;
-      for (let queryIndex = 0; queryIndex < item.queries.length; queryIndex++) {
-        const query = item.queries[queryIndex];
-        const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
-          encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=200&format=json&origin=*";
-        const payload = await retry("Commons background search for module " + item.week, async () => {
+  const results = [];
+  const missing = [];
+  for (const item of items) {
+    let found = null;
+    for (let queryIndex = 0; queryIndex < item.queries.length; queryIndex++) {
+      const query = item.queries[queryIndex];
+      const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
+        encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=200&format=json&origin=*";
+      let payload;
+      try {
+        payload = await retry("Commons background search for module " + item.week, async () => {
           const response = await withTimeout(url);
+          if (response.status === 429 || response.status === 503) {
+            const header = Number(response.headers.get("retry-after"));
+            const error = new Error("Commons background query returned HTTP " + response.status);
+            error.retryAfterMs = Number.isFinite(header) && header > 0 ? header * 1000 : 5000;
+            throw error;
+          }
           assert(response.ok, "Commons background query returned HTTP " + response.status);
           return await response.json();
         });
-        const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
-        const candidate = pages.find(page => {
-          const info = page.imageinfo && page.imageinfo[0];
-          return info && (info.thumburl || info.url) && info.descriptionurl;
-        });
-        if (candidate) {
-          found = { week: item.week, label: item.label, query, fallbackUsed: queryIndex > 0, file: candidate.title };
-          break;
+      } catch (error) {
+        if (/HTTP 429|HTTP 503/.test(String(error && error.message || error))) {
+          console.log("Live background image audit inconclusive: " + results.length +
+            "/26 modules verified before Wikimedia rate limiting at module " + item.week +
+            ". Remaining modules are unverified, not classified as missing.");
+          return;
         }
+        throw error;
       }
-      results[index] = found;
+      const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
+      const candidate = pages.find(page => {
+        const info = page.imageinfo && page.imageinfo[0];
+        return info && (info.thumburl || info.url) && info.descriptionurl;
+      });
+      if (candidate) {
+        found = { week: item.week, label: item.label, query, fallbackUsed: queryIndex > 0, file: candidate.title };
+        break;
+      }
     }
+    if (found) results.push(found);
+    else missing.push(item.week + " (" + item.label + "; queries: " + item.queries.join(" / ") + ")");
+    await new Promise(resolve => setTimeout(resolve, 450));
   }
-  await Promise.all(Array.from({length: 4}, () => worker()));
-  const missing = results.filter(item => !item);
   if (missing.length) {
-    throw new Error("No live Commons image result for module(s): " +
-      items.filter(item => !results.find(result => result && result.week === item.week))
-        .map(item => item.week + " (" + item.label + "; queries: " + item.queries.join(" / ") + ")").join("; "));
+    throw new Error("No live Commons image result for module(s): " + missing.join("; "));
   }
   const fallbacks = results.filter(item => item.fallbackUsed).map(item => item.week);
   console.log("Live background search OK: 26/26 modules have a usable image candidate. Fallback query used for module(s): " +
     (fallbacks.length ? fallbacks.join(", ") : "none") + ".");
 }
-
-async function onlineCheck() {
-  await checkBackgroundQueries();
+async function onlineCheck() {async function onlineCheck() {
   const wikiUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages%7Cinfo&piprop=name%7Cthumbnail%7Coriginal&pithumbsize=600&inprop=url&titles=Hammurabi&format=json&origin=*";
   const wikiData = await retry("Wikipedia Action API", async () => {
     const response = await withTimeout(wikiUrl);
@@ -174,6 +185,7 @@ async function onlineCheck() {
     return { status: response.status, type };
   });
   console.log("Live image smoke test OK: Wikipedia Action API returned page data; Commons returned \"" + candidate.title + "\"; thumbnail returned " + imageResponse.status + " (" + imageResponse.type + ").");
+  await checkBackgroundQueries();
 }
 
 if (process.argv.includes("--online")) {
