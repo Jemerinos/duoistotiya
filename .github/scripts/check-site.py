@@ -3,9 +3,19 @@ import re
 
 root = Path(".")
 html = (root / "index.html").read_text(encoding="utf-8")
-for script in ("curriculum.js", "curriculum-depth.js", "curriculum-research.js"):
+for script in ("curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js", "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js", "curriculum-details-apply.js", "curriculum-research.js", "curriculum-participants.js", "curriculum-glossary.js"):
     if f'<script src="{script}"></script>' not in html:
         raise SystemExit(f"index.html must load {script}")
+
+script_order = [
+    "curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js",
+    "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js",
+    "curriculum-details-apply.js", "curriculum-visuals.js", "curriculum-research.js",
+    "curriculum-participants.js", "curriculum-glossary.js"
+]
+script_positions = [html.index(f'<script src="{name}"></script>') for name in script_order]
+if script_positions != sorted(script_positions):
+    raise SystemExit("Course scripts are loaded in the wrong dependency order")
 
 inline_scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
 if not inline_scripts:
@@ -29,6 +39,9 @@ if minutes != [5, 10, 15, 10, 10] or sum(minutes) != 50:
 
 required = [
     'id="epochBackgroundImage"', 'function loadEpochBackground(l)',
+    'id="openGlossary"', 'id="glossaryOverlay"', 'id="glossaryDialog"',
+    'aria-modal="true"', 'data-glossary-term', 'Открыть в глоссарии',
+    'curriculum-glossary.js', 'curriculum-participants.js',
     'id="lessonDepth"', 'id="depthPeople"', 'id="depthCausality"', 'id="depthChronology"',
     'id="knowledgeCheck"', 'Проверка знаний · 5 вопросов',
     'function describeHistoricalImage(l,rawTitle,metadata,kind)', 'Фукидид',
@@ -46,5 +59,8 @@ for stale in ['Название файла в каталоге', 'Названи
 
 if html.index('id="knowledgeCheck"') < html.index('id="reader"'):
     raise SystemExit("Knowledge check must follow the lesson reading")
+
+if "glossary-dialog" not in html or "@media(max-width:700px)" not in html:
+    raise SystemExit("Glossary dialog or mobile layout is missing")
 
 print(f"Site structure OK: {len(ids)} unique IDs; 50-minute lesson; epoch banner, depth blocks and one five-question check.")
