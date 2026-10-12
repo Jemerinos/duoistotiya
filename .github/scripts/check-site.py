@@ -3,7 +3,7 @@ import re
 
 root = Path(".")
 html = (root / "index.html").read_text(encoding="utf-8")
-for script in ("curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js", "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js", "curriculum-details-apply.js", "curriculum-research.js", "curriculum-participants.js", "curriculum-glossary.js"):
+for script in ("curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js", "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js", "curriculum-details-apply.js", "curriculum-research.js", "curriculum-participants.js", "curriculum-participant-sources.js", "curriculum-glossary.js"):
     if f'<script src="{script}"></script>' not in html:
         raise SystemExit(f"index.html must load {script}")
 
@@ -11,7 +11,7 @@ script_order = [
     "curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js",
     "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js",
     "curriculum-details-apply.js", "curriculum-visuals.js", "curriculum-research.js",
-    "curriculum-participants.js", "curriculum-glossary.js"
+    "curriculum-participants.js", "curriculum-participant-sources.js", "curriculum-glossary.js"
 ]
 script_positions = [html.index(f'<script src="{name}"></script>') for name in script_order]
 if script_positions != sorted(script_positions):
@@ -41,7 +41,8 @@ required = [
     'id="epochBackgroundImage"', 'function loadEpochBackground(l)',
     'id="openGlossary"', 'id="glossaryOverlay"', 'id="glossaryDialog"',
     'aria-modal="true"', 'data-glossary-term', 'Открыть в глоссарии',
-    'curriculum-glossary.js', 'curriculum-participants.js',
+    'curriculum-glossary.js', 'curriculum-participants.js', 'curriculum-participant-sources.js',
+    'participant-sources-title', 'participant-source-note', 'Источники к биографическим сведениям',
     'id="lessonDepth"', 'id="depthPeople"', 'id="depthCausality"', 'id="depthChronology"',
     'id="knowledgeCheck"', 'Проверка знаний · 5 вопросов',
     'function describeHistoricalImage(l,rawTitle,metadata,kind)', 'Фукидид',
