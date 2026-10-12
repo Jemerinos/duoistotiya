@@ -2,6 +2,8 @@ name: Publish site to GitHub Pages
 
 on:
   push:
+    branches: [main, "content-*"]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -48,6 +50,7 @@ jobs:
         run: node .github/scripts/check-activities.js
 
   deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     name: Publish validated site
     needs: [validate-site, validate-course, validate-activities]
     environment:
