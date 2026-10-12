@@ -243,7 +243,8 @@ var WEEK_CHAINS={
     var meta=row[6] || {};
     var weekIndex=Math.floor(index/7),week=course.weeks[weekIndex];
     var title=row[0],period=row[1],summary=row[3],facts=row[4]||[],wiki=row[5]||"";
-    var text=[title,period,summary].concat(facts).concat([wiki]).join(" ");
+    var detailText=(window.HISTORY_LESSON_DETAILS||{})[index+1]||"";
+    var text=[title,period,summary].concat(facts).concat([wiki,detailText]).join(" ");
     var detailedTerms=TERMS.filter(function(t){return t.re.test(text)}).map(function(t){return [t.name,t.definition]});
     var existingTerms=Array.isArray(meta.terms)?meta.terms:(Array.isArray(week[3])?week[3]:[]);
     var weeklyTerms=WEEK_TERMS[weekIndex+1]||[];
@@ -257,7 +258,7 @@ var WEEK_CHAINS={
       people.unshift({name:"Фукидид",role:"Афинский историк и полководец V века до н. э.; автор «Истории Пелопоннесской войны».",why:"На его примере видно, как автор проверяет свидетельства и объясняет причины войны, одновременно оставаясь человеком своей эпохи."});
     }
     var groups=GROUP_RULES.filter(function(g){return g.re.test(text)}).slice(0,3).map(function(g){return {name:g.name,description:g.description}});
-    var allSentences=sentences(summary).concat(facts.reduce(function(acc,f){return acc.concat(sentences(f))},[]));
+    var allSentences=sentences(detailText).concat(sentences(summary)).concat(facts.reduce(function(acc,f){return acc.concat(sentences(f))},[]));
     var cause=allSentences.find(function(s){return CAUSE_RE.test(s)&&s.length>40});
     var effect=allSentences.find(function(s){return s!==cause&&EFFECT_RE.test(s)&&s.length>35});
     var mechanism=allSentences.find(function(s){return s!==cause&&s!==effect&&/через|посредств|за сч[её]т|использовал|организовал|включал|управлял|зависел|обеспеч|сочетал|создавал|расширил|строил|мобилиз|торгов|передавал/i.test(s)});
@@ -281,12 +282,19 @@ var WEEK_CHAINS={
       mechanismCard={label:"Механизм и действия",text:chain[1]};
       effectCard={label:"Результат и историческое значение",text:chain[2]};
     }
-    var datedFacts=unique([period].concat(facts.filter(function(f){return /\d{2,4}|век|тысячелет|столет|до н\.?\s*э\.?/i.test(f)})),function(x){return x}).slice(0,4);
+    var datePattern=/\d{3,4}|\b(?:I{1,3}|IV|V?I{0,3}|IX|X{1,3}|XXI)\s*(?:век|столет)|тысячелет|столет|до н\.?\s*э\.?/i;
+    var datedFacts=unique([period].concat(sentences(detailText).filter(function(f){return datePattern.test(f)}),facts.filter(function(f){return datePattern.test(f)}),facts),function(x){return x}).slice(0,6);
+    var causeStatements=unique(allSentences.filter(function(s){return CAUSE_RE.test(s)&&s.length>45&&s.length<420}),function(x){return x}).slice(0,4);
+    var developmentStatements=unique(allSentences.filter(function(s){return s!==cause&&s.length>45&&s.length<420&&/затем|постепенн|в ходе|на протяжении|в ответ|начал[аиось]?|происходил|продолжал|подписал|объявил|объединил|завоевал|заключил|создал|расширил|вступил|переш[её]л|организовал|мобилизовал|провозгласил|выступил/i.test(s)}),function(x){return x}).slice(0,4);
+    var consequenceStatements=unique(allSentences.filter(function(s){return EFFECT_RE.test(s)&&s.length>45&&s.length<420}),function(x){return x}).slice(0,4);
     meta.depth={
       terms:combined,
       people:people,
       groups:groups,
       chronology:datedFacts,
+      causes:causeStatements.length?causeStatements:[causeCard.text],
+      development:developmentStatements.length?developmentStatements:[mechanismCard.text],
+      consequences:consequenceStatements.length?consequenceStatements:[effectCard.text],
       cause:causeCard,
       mechanism:mechanismCard,
       effect:effectCard,
