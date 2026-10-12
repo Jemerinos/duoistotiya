@@ -199,6 +199,16 @@ body{background:var(--paper);color:var(--ink);font-size:17px;line-height:1.78}.t
 .quiz-explanation{line-height:1.7}
 @media(max-width:700px){.reader-gallery-card{display:block}.reader-gallery-card img{height:210px}.reader-gallery-copy{padding:11px}.image-footnote strong{font-size:18px}.quiz{padding:16px 12px}.quizitem{padding:12px}}
 
+
+/* Keep the reading and image explanations compact; reference links remain available on demand. */
+.supplemental-panel{margin:14px 0;border:1px solid #D1D5DB;border-radius:12px;background:#FFF;overflow:hidden}
+.supplemental-panel>summary{cursor:pointer;list-style:none;padding:13px 16px;color:#4B5563;font-size:13px;font-weight:700}
+.supplemental-panel>summary::-webkit-details-marker{display:none}
+.supplemental-panel>summary:after{content:"＋";float:right;color:#6D28D9;font-size:16px}
+.supplemental-panel[open]>summary:after{content:"−"}
+.supplemental-panel[open]>summary{border-bottom:1px solid #E5E7EB;background:#FAFAFF}
+.supplemental-panel .sources,.supplemental-panel .lesson-connections{margin:0;border:0;border-radius:0}
+
 </style></head>
 <body><div class="shell">
 <header class="top"><a class="brand" href="#" id="brand"><span class="mark">И</span><span><b>История вдвоём</b><small>учиться понимать прошлое</small></span></a><div class="topright"><span class="savehint">Прогресс сохраняется на этом устройстве</span><button class="btn quiet" id="export">Экспорт заметок ↗</button></div></header>
@@ -266,8 +276,10 @@ body{background:var(--paper);color:var(--ink);font-size:17px;line-height:1.78}.t
 </section>
 <div class="extras"><section class="panel"><div class="eyebrow">После чтения и заданий</div><h3>Вопросы для разговора</h3><p class="muted">Сначала ответьте по памяти, затем сравните свои объяснения.</p><div id="discussion"></div><button class="reveal" id="reveal">Показать ориентир для ответа ＋</button><div class="answer hidden" id="answer"></div></section><section class="panel"><div class="eyebrow">Ваша тетрадь</div><h3>Заметки на двоих</h3><p class="muted">Необязательно: сохраните мысль или вопрос, к которому захотите вернуться.</p><textarea class="notes" id="notes" placeholder="Что запомнили? С чем не согласны? Какой вопрос остался?"></textarea><div class="muted" id="notesstatus">Сохраняется автоматически</div></section></div>
 
+<details class="supplemental-panel"><summary>Источники и соседние занятия</summary>
 <section class="sources"><div class="eyebrow">Читать дальше</div><h3 style="font:500 25px Georgia,serif;margin:6px 0">Источники и проверка</h3><p class="muted">Начните со справочных материалов, затем поищите свидетельства эпохи. Ссылки ведут на тематические страницы или поиск по теме, а не заменяют критическую проверку.</p><div class="sourcegrid" id="sources"></div></section>
 <section class="lesson-connections" id="lessonConnections"><div class="eyebrow">Маршрут обучения</div><h3>Связь с соседними уроками</h3><p class="connection-bridge" id="connectionBridge"></p><div class="connection-grid" id="connectionGrid"></div></section>
+</details>
 <section class="quiz" id="knowledgeCheck"><div class="quizhead"><div><div class="eyebrow">Проверка знаний · 5 вопросов</div><h3>Что ты понял из урока?</h3><p class="muted">Пять коротких вопросов с выбором ответа. После проверки появятся правильные ответы и объяснения.</p></div><div class="score" id="score">— / 5</div></div><div id="quiz"></div><button class="btn primary" id="checkQuiz">Проверить ответы</button><span id="quizFeedback" class="muted"></span></section>
 <div class="finish"><div><b>Занятие завершено?</b><div class="muted">Отметка сохраняется в этом браузере.</div></div><button class="btn primary" id="complete">Отметить пройденным ✓</button></div><div class="endnav"><button class="exportlink" id="prevLesson">← Предыдущее</button><button class="exportlink" id="nextLesson">Следующее →</button></div></section>
 </main></div></div>
