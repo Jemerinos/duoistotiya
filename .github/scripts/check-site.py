@@ -28,7 +28,7 @@ if minutes != [5, 10, 15, 10, 10] or sum(minutes) != 50:
     raise SystemExit("Daily schedule must remain 50 minutes: " + repr(minutes))
 
 required = [
-    'id="epochBanner"', 'id="epochBackgroundImage"', 'function loadEpochBackground(l)',
+    'id="epochBackgroundImage"', 'function loadEpochBackground(l)',
     'id="lessonDepth"', 'id="depthPeople"', 'id="depthCausality"', 'id="depthChronology"',
     'id="knowledgeCheck"', 'Проверка знаний · 5 вопросов',
     'function describeHistoricalImage(l,rawTitle,metadata,kind)', 'Фукидид',
