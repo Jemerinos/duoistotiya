@@ -41,7 +41,7 @@ assert(/id="taskImage"[^>]*alt="[^"]+"/.test(html), "Image-task photo needs non-
 assert(/id="imageViewerImage"/.test(html) && /id="imageViewerClose"/.test(html), "Image viewer controls are missing");
 assert(/img.dataset.sourcePage=source/.test(html), "Displayed lesson images must keep their own source URL");
 assert(/source=img.dataset.sourcePage||el("taskPhotoLink").href/.test(html), "Viewer must open the source belonging to the clicked image");
-assert(/function handleTopicImageError(l,fromCommons)/.test(html), "Image error fallback handler is missing");
+assert(/function handleTopicImageError\(l,fromCommons\)/.test(html), "Image error fallback handler is missing");
 assert(/imageLoadGuard.fallbackStarted/.test(html), "Image fallback must be limited to one Commons retry");
 assert(/piprop=name%7Cthumbnail%7Coriginal/.test(html), "Primary image request should use the MediaWiki Action API with filename/original metadata");
 assert(!html.includes("api/rest_v1/page/summary/"), "Legacy summary-only image request should not be the sole primary image path");
