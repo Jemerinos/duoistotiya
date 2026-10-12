@@ -27,6 +27,7 @@ jobs:
           node --check /tmp/site-inline.js
           node --check curriculum.js
           node --check curriculum-depth.js
+          node --check curriculum-research.js
 
   validate-course:
     name: "2/3 — Данные курса и детализация"
