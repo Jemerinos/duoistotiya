@@ -1,8 +1,15 @@
 "use strict";
 global.window = {};
 require("../../curriculum.js");
+require("../../curriculum-details-01.js");
+require("../../curriculum-details-02.js");
+require("../../curriculum-details-03.js");
+require("../../curriculum-details-04.js");
 require("../../curriculum-depth.js");
+require("../../curriculum-details-apply.js");
 require("../../curriculum-research.js");
+require("../../curriculum-participants.js");
+require("../../curriculum-glossary.js");
 const course = window.HISTORY_CURRICULUM;
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 assert(course && course.weeks.length === 26, "Expected 26 course modules");
@@ -21,7 +28,14 @@ for (let i = 0; i < course.lessons.length; i++) {
   assert(d && d.terms && d.people && d.groups && d.chronology && d.cause && d.mechanism && d.effect, "Missing depth fields on lesson " + day);
   assert(d.terms.length >= 3, "Too few terms on lesson " + day);
   assert(d.cause.text && d.mechanism.text && d.effect.text, "Incomplete cause/effect scaffold on lesson " + day);
-  assert(Array.isArray(d.checkPoints) && d.checkPoints.length >= 3, "Missing retrieval goals on lesson " + day);
+  assert(Array.isArray(d.causes) && d.causes.length >= 1, "Missing causal evidence on lesson " + day);
+  assert(Array.isArray(d.development) && d.development.length >= 1, "Missing event development notes on lesson " + day);
+  assert(Array.isArray(d.consequences) && d.consequences.length >= 1, "Missing consequence notes on lesson " + day);
+  assert(Array.isArray(d.chronology) && d.chronology.length >= 3, "Incomplete chronology on lesson " + day);
+  assert(row[6].detailedText && row[6].detailedText.length >= 220, "Missing expanded reading on lesson " + day);
+  assert(row[6].lessonContentVersion === 2, "Missing content coverage layer on lesson " + day);
+  assert(Array.isArray(row[6].researchSources) && row[6].researchSources.length >= 2, "Missing topic/source starting points on lesson " + day);
+  assert(row[6].researchSources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc), "Invalid source card on lesson " + day);
   depths.push(d);
 }
 assert(course.weeks[3][0] === "Ранние общества Азии, Африки и Америк", "Unexpected module 4 title");
@@ -35,5 +49,12 @@ for (const day of researchStats.days) {
   assert(meta.researchSources && meta.researchSources.length >= 2, "Missing curated sources on day " + day);
   assert(meta.researchSources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc), "Invalid source card on day " + day);
 }
+const participantStats = window.HISTORY_PARTICIPANT_STATS;
+assert(participantStats && participantStats.lessons >= 25 && participantStats.addedPeople >= 40, "Curated participant data missing");
+const glossary = window.HISTORY_GLOSSARY;
+assert(glossary && glossary.entries.length >= 200 && glossary.stats.clickableTerms >= 100, "Glossary index is unexpectedly incomplete");
+assert(glossary.find("Первичный источник") && glossary.find("Фукидид") && glossary.find("Деколонизация"), "Core glossary lookups failed");
 const avgTerms = depths.reduce((sum, d) => sum + d.terms.length, 0) / depths.length;
-console.log("Course data OK: 26 modules, 182 lessons, complete depth layer, and 7 curated research packs. Average terms per lesson: " + avgTerms.toFixed(1) + ".");
+const peopleCoverage = depths.filter(d => d.people.length > 0).length;
+const groupsCoverage = depths.filter(d => d.groups.length > 0).length;
+console.log("Course data OK: 26 modules, 182 readings, 182 chronology/causality/source frameworks, " + participantStats.lessons + " curated participant lessons, " + participantStats.addedPeople + " added people entries, and " + glossary.entries.length + " glossary entries. Actor coverage: " + peopleCoverage + "/182; social-group coverage: " + groupsCoverage + "/182. Average terms per lesson: " + avgTerms.toFixed(1) + ".");
