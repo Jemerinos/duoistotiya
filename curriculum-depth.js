@@ -284,7 +284,8 @@ var WEEK_CHAINS={
     }
     var datePattern=/\d{3,4}|\b(?:I{1,3}|IV|V?I{0,3}|IX|X{1,3}|XXI)\s*(?:век|столет)|тысячелет|столет|до н\.?\s*э\.?/i;
     var datedFacts=unique([period].concat(sentences(detailText).filter(function(f){return datePattern.test(f)}),facts.filter(function(f){return datePattern.test(f)}),facts),function(x){return x}).slice(0,6);
-    var causeStatements=unique(allSentences.filter(function(s){return CAUSE_RE.test(s)&&s.length>45&&s.length<420}),function(x){return x}).slice(0,4);
+    var causeEvidencePattern=/причин|фактор|потому|поскольку|из-за|услови|на фоне|способств|зависел|экономическ|политическ|социальн|военн|идеолог|религиоз|ресурс|торгов|налог|конфликт|сопернич|интерес|необходим|угроз|климат|миграц|рост насел|давлен|кризис|конкуренц|неравенств|стремил|потребност|повинност|монопол|урожай|экспанси|реформ|мотив|союз|противореч|нестабильн/i;
+    var causeStatements=unique(allSentences.filter(function(s){return (CAUSE_RE.test(s)||causeEvidencePattern.test(s))&&s.length>55&&s.length<420}),function(x){return x}).slice(0,4);
     var developmentStatements=unique(allSentences.filter(function(s){return s!==cause&&s.length>45&&s.length<420&&/затем|постепенн|в ходе|на протяжении|в ответ|начал[аиось]?|происходил|продолжал|подписал|объявил|объединил|завоевал|заключил|создал|расширил|вступил|переш[её]л|организовал|мобилизовал|провозгласил|выступил/i.test(s)}),function(x){return x}).slice(0,4);
     var consequenceStatements=unique(allSentences.filter(function(s){return EFFECT_RE.test(s)&&s.length>45&&s.length<420}),function(x){return x}).slice(0,4);
     meta.depth={
