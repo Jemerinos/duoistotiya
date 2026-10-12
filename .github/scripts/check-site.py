@@ -45,7 +45,7 @@ if minutes != [5, 10, 15, 10, 10] or sum(minutes) != 50:
 
 required = [
     'id="epochBackgroundImage"', 'function loadEpochBackground(l)', 'function handleTopicImageError(l,fromCommons)',
-    'img.dataset.sourcePage=source', 'items=items.slice(0,3)', 'reader-gallery-meta',
+    'img.dataset.sourcePage=source', 'collected.slice(0,3)', 'reader-gallery-meta',
     'id="imageViewerImage"', 'id="imageViewerClose"', 'data-source-page',
     'id="openGlossary"', 'id="glossaryOverlay"', 'id="glossaryDialog"',
     'aria-modal="true"', 'data-glossary-term', 'Открыть в глоссарии',
