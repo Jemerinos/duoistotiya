@@ -31,6 +31,7 @@ jobs:
           node --check curriculum-depth.js
           node --check curriculum-research.js
           node --check curriculum-participants.js
+          node --check curriculum-participant-sources.js
           node --check curriculum-glossary.js
 
   validate-course:
