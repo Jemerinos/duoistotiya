@@ -265,9 +265,62 @@ body{background-color:#FFFFFF;background-image:linear-gradient(rgba(255,255,255,
 .image-viewer-source{display:inline-block;margin-top:5px;color:#C4B5FD;text-decoration:underline;text-underline-offset:3px;font-size:12px}
 @media(max-width:700px){body{background-attachment:scroll}.image-viewer{padding:10px;gap:8px}.image-viewer-stage{max-height:75vh}#imageViewerImage{max-width:96vw;max-height:72vh}.image-viewer-title{font-size:12px}.image-viewer-btn{padding:7px 9px}}
 
+
+
+/* Course glossary and inline term help */
+.glossary-open{white-space:nowrap;border-color:#D1D5DB;background:#fffdf8;color:#345b48}
+.glossary-overlay{position:fixed;inset:0;z-index:1500;background:rgba(17,24,39,.72);display:flex;align-items:center;justify-content:center;padding:20px}
+.glossary-dialog{width:min(960px,97vw);max-height:91vh;display:flex;flex-direction:column;overflow:hidden;background:#fffdf8;border:1px solid #D1D5DB;border-radius:18px;box-shadow:0 30px 90px #11182755;color:#202b26}
+.glossary-head{display:flex;gap:14px;justify-content:space-between;align-items:flex-start;padding:20px 22px 13px;border-bottom:1px solid #e5e7eb}
+.glossary-head h2{font:500 28px/1.1 Georgia,serif;margin:3px 0 7px}
+.glossary-head p{font-size:12px;color:#68756d;margin:0}
+.glossary-close{border:1px solid #D1D5DB;background:#fff;border-radius:9px;padding:8px 11px;color:#374151;font-size:12px}
+.glossary-search-wrap{padding:13px 22px 8px}
+.glossary-search{width:100%;border:1px solid #D1D5DB;border-radius:10px;background:#fff;padding:12px 13px;font-size:14px;outline:0;color:#111827}
+.glossary-search:focus{border-color:#6D28D9;box-shadow:0 0 0 3px #6D28D91A}
+.glossary-count{font-size:11px;color:#6B7280;padding:0 22px 9px;margin:0}
+.glossary-layout{display:grid;grid-template-columns:minmax(220px,.82fr) minmax(0,1.18fr);gap:0;min-height:0;flex:1;border-top:1px solid #E5E7EB}
+.glossary-results{overflow:auto;min-height:100px;max-height:58vh;padding:8px;border-right:1px solid #E5E7EB}
+.glossary-item{display:block;width:100%;border:1px solid transparent;background:transparent;text-align:left;border-radius:9px;padding:10px 11px;color:#111827}
+.glossary-item:hover{background:#F3F4F6}
+.glossary-item.active{background:#EDE9FE;border-color:#C4B5FD}
+.glossary-item b{display:block;font-size:13px;line-height:1.4}
+.glossary-item small{display:block;margin-top:3px;font-size:10px;color:#6B7280}
+.glossary-empty{padding:16px 12px;font-size:12px;color:#6B7280}
+.glossary-definition{padding:21px 23px;overflow:auto;min-height:180px}
+.glossary-category{font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:800;color:#6D28D9}
+.glossary-definition h3{font:500 25px/1.2 Georgia,serif;margin:8px 0 14px}
+.glossary-definition p{font-size:14px;line-height:1.8;color:#374151;white-space:pre-line}
+.glossary-related{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+.glossary-related button{background:#F3F4F6;border:1px solid #E5E7EB;color:#374151;border-radius:8px;padding:7px 9px;font-size:10px;text-align:left}
+.glossary-foot{padding:11px 22px;border-top:1px solid #E5E7EB;color:#6B7280;font-size:10px}
+.glossary-inline{display:inline;border:0;border-bottom:1px dashed #91A997;background:transparent;color:#345b48;font:inherit;font-weight:650;padding:0;border-radius:0;text-decoration:none;cursor:help}
+.glossary-inline:hover{color:#6D28D9;border-bottom-color:#6D28D9;background:#EDE9FE}
+.glossary-inline:focus-visible,.glossary-term-card:focus-visible{outline:2px solid #6D28D9;outline-offset:3px}
+.term-card.glossary-term-card{display:block;width:100%;font:inherit;text-align:left;color:inherit;cursor:pointer;border:1px solid transparent;transition:border-color .15s,background .15s}
+.term-card.glossary-term-card:hover{border-color:#C4B5FD;background:#F5F3FF}
+.glossary-term-card small{display:block;margin-top:7px;font-size:10px;color:#6D28D9;font-weight:700}
+.depth-evidence{margin:11px 0 15px}
+.depth-evidence h5{font-size:11px;line-height:1.5;color:#4C1D95;margin:0 0 7px}
+.depth-evidence ul{margin:0 0 13px;padding-left:17px}
+.depth-evidence li{font-size:12px;line-height:1.65;color:#374151;margin-bottom:7px}
+@media(max-width:700px){
+ .glossary-overlay{padding:8px;align-items:flex-end}
+ .glossary-dialog{width:100%;max-height:94vh;border-radius:16px 16px 10px 10px}
+ .glossary-head{padding:15px 15px 11px}.glossary-head h2{font-size:24px}
+ .glossary-search-wrap{padding:10px 15px 6px}.glossary-count{padding:0 15px 8px}
+ .glossary-layout{grid-template-columns:1fr;grid-template-rows:minmax(100px,34vh) minmax(140px,1fr)}
+ .glossary-results{max-height:34vh;border-right:0;border-bottom:1px solid #E5E7EB;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:3px;padding:6px}
+ .glossary-item{padding:8px 9px}.glossary-item b{font-size:12px}
+ .glossary-definition{padding:15px;min-height:0}
+ .glossary-definition h3{font-size:22px;margin:6px 0 10px}.glossary-definition p{font-size:13px}
+ .glossary-foot{padding:9px 15px}
+ .topright{gap:6px}.glossary-open{padding:8px 9px}.topright #export{padding:8px 9px}
+}
+
 </style></head>
 <body><div class="shell">
-<header class="top"><a class="brand" href="#" id="brand"><span class="mark">И</span><span><b>История вдвоём</b><small>учиться понимать прошлое</small></span></a><div class="topright"><span class="savehint">Прогресс сохраняется на этом устройстве</span><button class="btn quiet" id="export">Экспорт заметок ↗</button></div></header>
+<header class="top"><a class="brand" href="#" id="brand"><span class="mark">И</span><span><b>История вдвоём</b><small>учиться понимать прошлое</small></span></a><div class="topright"><button class="btn quiet glossary-open" id="openGlossary" type="button" aria-haspopup="dialog" aria-controls="glossaryDialog">Глоссарий</button><span class="savehint">Прогресс сохраняется на этом устройстве</span><button class="btn quiet" id="export">Экспорт заметок ↗</button></div></header>
 <div class="layout"><aside class="side"><div class="side-head"><div class="eyebrow">Ваш маршрут</div><div class="progress-line"><strong id="doneCount">0 из 182</strong><span id="percent">0%</span></div><div class="track"><span id="bar"></span></div><input class="search" id="search" placeholder="Найти тему или главу…" aria-label="Найти тему или главу"><button class="btn quiet mobile-nav-toggle" id="mobileNavToggle" type="button" aria-controls="nav" aria-expanded="false">Показать темы курса ＋</button></div><button class="btn quiet nav-collapse-all" id="collapseWeeks" type="button" aria-controls="nav" aria-expanded="true">Свернуть главы</button><nav class="nav mobile-nav-closed" id="nav" aria-label="Темы курса"></nav><div class="sidefoot"><b>Около 50 минут в день</b><br>Сначала читаем и смотрим, затем закрепляем выбором ответа.</div></aside>
 <main><section id="home"><div class="hero"><div class="hero-copy"><div class="eyebrow">Ваш совместный курс · 26 недель</div><h1>Понимать историю,<br><em>а не зубрить даты.</em></h1><p>Мир и Россия в одном маршруте: учебные рассказы, исторические изображения, задания с выбором ответа и источники для проверки фактов.</p><div class="hero-actions"><button class="btn primary" id="continue">Начать первое занятие →</button><span class="muted">182 занятия · около 152 часов</span></div></div><div class="heroart"><div class="orb"></div><div class="globe"><span class="land one"></span><span class="land two"></span></div><span class="stamp">ИСТОРИЯ · КУРС</span></div></div>
 <div class="method"><div><span class="minutes">05 МИН</span><b>Вспоминаем</b><small>Вчерашняя тема</small></div><div><span class="minutes">10 МИН</span><b>Читаем</b><small>Учебный рассказ</small></div><div><span class="minutes">15 МИН</span><b>Разбираем источник</b><small>Карта, фото, документ</small></div><div><span class="minutes">10 МИН</span><b>Выбираем ответ</b><small>Тезис и факт</small></div><div><span class="minutes">10 МИН</span><b>Закрепляем</b><small>Термины и итог</small></div></div>
@@ -349,11 +402,11 @@ body{background-color:#FFFFFF;background-image:linear-gradient(rgba(255,255,255,
 <div class="finish"><div><b>Занятие завершено?</b><div class="muted">Отметка сохраняется в этом браузере.</div></div><button class="btn primary" id="complete">Отметить пройденным ✓</button></div><div class="endnav"><button class="exportlink" id="prevLesson">← Предыдущее</button><button class="exportlink" id="nextLesson">Следующее →</button></div></section>
 </main></div></div>
 <script src="curriculum.js"></script>
-<script src="curriculum-depth.js"></script>
 <script src="curriculum-details-01.js"></script>
 <script src="curriculum-details-02.js"></script>
 <script src="curriculum-details-03.js"></script>
 <script src="curriculum-details-04.js"></script>
+<script src="curriculum-depth.js"></script>
 <script src="curriculum-details-apply.js"></script>
 <script src="curriculum-visuals.js"></script>
 <script src="curriculum-research.js"></script>
@@ -365,6 +418,24 @@ body{background-color:#FFFFFF;background-image:linear-gradient(rgba(255,255,255,
   <div class="image-viewer-stage" id="imageViewerStage"><img id="imageViewerImage" alt="" src=""></div>
   <div class="image-viewer-caption"><div id="imageViewerDescription"></div><a class="image-viewer-source" id="imageViewerSource" href="#" target="_blank" rel="noopener noreferrer">Источник, авторство и дата ↗</a></div>
 </div>
+<div class="glossary-overlay hidden" id="glossaryOverlay">
+  <section class="glossary-dialog" id="glossaryDialog" role="dialog" aria-modal="true" aria-labelledby="glossaryHeading" tabindex="-1">
+    <div class="glossary-head">
+      <div><div class="eyebrow">История вдвоём · справочник</div><h2 id="glossaryHeading">Глоссарий истории</h2><p>Ищи термин или имя. Нажатие на выделенное слово в уроке откроет это объяснение.</p></div>
+      <button class="glossary-close" id="glossaryClose" type="button" aria-label="Закрыть глоссарий">Закрыть ✕</button>
+    </div>
+    <div class="glossary-search-wrap"><label class="hidden" for="glossarySearch">Найти термин</label><input class="glossary-search" id="glossarySearch" type="search" placeholder="Например: полис, феодализм, деколонизация…" autocomplete="off"></div>
+    <p class="glossary-count" id="glossaryCount" aria-live="polite">Загружаем словарь…</p>
+    <div class="glossary-layout">
+      <nav class="glossary-results" id="glossaryResults" aria-label="Результаты поиска по глоссарию"></nav>
+      <article class="glossary-definition" id="glossaryDefinition" aria-live="polite">
+        <span class="glossary-category" id="glossaryType">Термин курса</span><h3 id="glossaryTermHeading">Выбери понятие</h3><p id="glossaryDefinitionText">Здесь появится понятное объяснение, контекст и уроки, где встречается термин.</p><div class="glossary-related" id="glossaryRelated"></div>
+      </article>
+    </div>
+    <div class="glossary-foot">Определения помогают начать разбор понятия. Для спорных терминов и исторических оценок сверяй контекст урока и указанные источники.</div>
+  </section>
+</div>
+<script src="curriculum-glossary.js"></script>
 <script>
 (function(){
 "use strict";
