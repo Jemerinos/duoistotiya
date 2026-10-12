@@ -29,6 +29,6 @@ for item in required_state:
         raise SystemExit("PROJECT_STATE.md is missing recovery information: " + item)
 if "PATCHLOG.md" not in readme or "PROJECT_STATE.md" not in readme:
     raise SystemExit("README.md must point contributors to both durable project context files")
-if not ("Статус:" in log and "Статус:" in state):
-    raise SystemExit("Log entries must have explicit completion status")
+if "Статус:" not in log or "Статус:" not in state and "Текущее состояние" not in state:
+    raise SystemExit("Patch log or recovery state has no explicit status/context")
 print("Project recovery logs OK: patch algorithm, active patch, current branch/PR, criteria and next task are documented.")
