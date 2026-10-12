@@ -8,15 +8,50 @@ on:
 permissions:
   contents: read
 
+# Don't cancel a running validation/deploy because another small content commit arrived.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
+  validate-site:
+    name: "1/3 — Структура и синтаксис"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Validate HTML structure and app references
+        run: python .github/scripts/check-site.py
+      - name: Validate JavaScript syntax
+        run: |
+          node --check /tmp/site-inline.js
+          node --check curriculum.js
+          node --check curriculum-depth.js
+
+  validate-course:
+    name: "2/3 — Данные курса и детализация"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check all 182 lessons and their depth layer
+        run: node .github/scripts/check-course.js
+
+  validate-activities:
+    name: "3/3 — Проверка вопросов и интерактивных заданий"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check quizzes, answer keys and image questions
+        run: node .github/scripts/check-activities.js
+
   deploy:
+    name: Publish validated site
+    needs: [validate-site, validate-course, validate-activities]
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: \${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -28,158 +63,6 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Validate app and course data
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          html = Path('index.html').read_text(encoding='utf-8')
-          if 'curriculum.js' not in html:
-              raise SystemExit('index.html does not load curriculum.js')
-          scripts = re.findall(r'<script>(.*?)</script>', html, re.S)
-          if not scripts:
-              raise SystemExit('No inline JavaScript block found')
-          Path('/tmp/site-inline.js').write_text(scripts[-1], encoding='utf-8')
-          PY
-          node --check /tmp/site-inline.js
-          node --check curriculum.js
-          python - <<'PY'
-          from pathlib import Path
-          import re
-          html = Path('index.html').read_text(encoding='utf-8')
-          method = re.search(r'<div class="method">(.*?)</div>\s*<div class="sectionhead">', html, re.S)
-          minutes = [int(v) for v in re.findall(r'<span class="minutes">(\d+)\s+МИН</span>', method.group(1) if method else '')]
-          if minutes != [5, 10, 15, 10, 10] or sum(minutes) != 50:
-              raise SystemExit('Daily schedule must add up to 50 minutes; got ' + repr(minutes))
-          ids = re.findall(r'\bid="([^"]+)"', html)
-          dupes = sorted({x for x in ids if ids.count(x) > 1})
-          if dupes:
-              raise SystemExit('Duplicate HTML IDs: ' + ', '.join(dupes))
-          refs = set(re.findall(r'el\("([A-Za-z0-9_-]+)"\)', html))
-          missing = sorted(refs - set(ids))
-          if missing:
-              raise SystemExit('Missing DOM IDs: ' + ', '.join(missing))
-          for token in ['function renderImageTask()', 'function loadImageChoices(l)', 'function loadTopicImageChoice(l)', 'function imageFileLabel(s)', 'function describeHistoricalImage(l,rawTitle,metadata,kind)', 'Фукидид', 'function readableParagraphs(text)', 'function loadMapStudy(l)', 'function renderLessonConnections(l)', 'function renderExamPractice()', 'function checkExam()', 'function quickQuizSet(l)', 'function toggleVisibleWeeks()', 'data-image-retry', 'image-choice-source', 'Почему это важно для урока:', 'id="knowledgeCheck"', 'Проверка знаний · 5 вопросов', 'id="mapStudy"', 'id="lessonConnections"', 'id="connectionGrid"', 'id="mobileNavToggle"', 'source-type', 'quiz-explanation', 'id="examQuestions"', 'id="readerLens"', 'id="collapseWeeks"', 'data-week-toggle', '.image-lab,.exam-practice,.extras{display:none!important}']:
-            if token not in html:
-                raise SystemExit('Missing application feature: ' + token)
-
-          for stale in ['выполните письменное экзаменационное задание ниже', 'id="examAnswer"', 'el("examAnswer")']:
-              if stale in html:
-                  raise SystemExit('Stale or removed exam UI still referenced: ' + stale)
-          if not all(x in html for x in ['aria-expanded', 'aria-controls="nav"', '.week-lessons', 'max-height:38vh', '#nav.mobile-nav-closed', '--green:#6D28D9', '--ink:#111827', '@media(max-width:760px)']):
-              raise SystemExit('Collapsible navigation, mobile layout, or purple high-contrast theme is incomplete')
-          print('Validated HTML IDs, selectable activities, copy and collapsible navigation.')
-          PY
-          node <<'NODE'
-          const fs = require('fs');
-          global.window = {};
-          require('./curriculum.js');
-          const course = window.HISTORY_CURRICULUM;
-          const html = fs.readFileSync('index.html', 'utf8');
-          const assert = (condition, message) => { if (!condition) throw new Error(message); };
-          assert(course && course.weeks.length === 26, 'Expected 26 course units');
-          assert(course.lessons.length === 182, 'Expected 182 lessons; got ' + course.lessons.length);
-          const lessons = course.lessons.map((r, i) => ({
-            day: i + 1, week: Math.floor(i / 7) + 1, title: r[0], period: r[1],
-            question: r[2], summary: r[3], facts: r[4], wiki: r[5], meta: r[6]
-          }));
-          const unique = values => new Set(values).size === values.length;
-          assert(unique(lessons.map(l => l.title)), 'Lesson titles must be unique');
-          for (let w = 0; w < course.weeks.length; w++) {
-            const unit = course.weeks[w];
-            const weekLessons = lessons.slice(w * 7, w * 7 + 7);
-            assert(weekLessons.length === 7, 'Unit ' + (w + 1) + ' must have 7 lessons');
-            assert(unit[0] && unit[1] && unit[3] && unit[3].length >= 3 && unit[4] && unit[5], 'Incomplete metadata in unit ' + (w + 1));
-            for (const l of weekLessons) {
-              assert(l.title && l.period && l.question && l.question.endsWith('?') && l.summary, 'Missing or malformed lesson text on day ' + l.day);
-              assert(l.summary.length >= 180, 'Lesson summary is unexpectedly short on day ' + l.day);
-              assert(Array.isArray(l.facts) && l.facts.length === 3 && l.facts.every(Boolean), 'Expected three facts on day ' + l.day);
-              assert(l.meta && l.meta.imageSearch && l.meta.examPrompt && l.meta.rubric, 'Missing activity/source metadata on day ' + l.day);
-            }
-          }
-          assert(course.weeks[3][0] === 'Ранние общества Азии, Африки и Америк', 'Week 4 heading should match its regional scope');
-          const expectedSources = [
-            [7, 'world-history-volume-1/pages/5-introduction'],
-            [8, 'world-history-volume-1/pages/5-introduction'],
-            [9, 'world-history-volume-1/pages/15-introduction'],
-            [10, 'world-history-volume-1/pages/8-introduction'],
-            [11, 'world-history-volume-1/pages/13-introduction'],
-            [12, 'world-history-volume-1/pages/14-introduction'],
-            [13, 'world-history-volume-1/pages/14-introduction'],
-            [14, 'world-history-volume-2/pages/2-introduction'],
-            [15, 'khanacademy.org/humanities/world-history-project-ap/'],
-            [16, 'world-history-volume-2/pages/5-introduction'],
-            [17, 'world-history-volume-2/pages/7-introduction'],
-            [18, 'world-history-volume-2/pages/6-introduction'],
-            [19, 'world-history-volume-2/pages/9-introduction'],
-            [20, 'world-history-volume-2/pages/9-introduction'],
-            [21, 'world-history-volume-2/pages/11-introduction'],
-            [22, 'world-history-volume-2/pages/12-introduction'],
-            [23, 'world-history-volume-2/pages/13-introduction'],
-            [24, 'world-history-volume-2/pages/14-introduction'],
-            [25, 'world-history-volume-2/pages/15-introduction']
-          ];
-          for (const [week, path] of expectedSources) {
-            assert(course.weeks[week - 1][4].includes(path), 'Source mapping mismatch for week ' + week + ': expected ' + path);
-          }
-          assert(course.lessons.slice(7, 14).every(l => l[6].harariLens), 'Sapiens lens missing from the human-belief unit');
-          const between = (name, nextName) => {
-            const begin = html.indexOf('function ' + name + '(');
-            const end = html.indexOf('\nfunction ' + nextName + '(', begin);
-            assert(begin >= 0 && end > begin, 'Could not extract tested function ' + name);
-            return html.slice(begin, end).trim();
-          };
-          const rotateChoices = (list, shift) => list.slice(shift % list.length).concat(list.slice(0, shift % list.length));
-          const examQuestionSet = new Function('L', 'rotateChoices', 'return (' + between('examQuestionSet', 'renderExamPractice') + ')')(lessons, rotateChoices);
-          const quickQuizSet = new Function('L', 'rotateChoices', 'return (' + between('quickQuizSet', 'renderQuiz') + ')')(lessons, rotateChoices);
-          const examPositionCounts = [0, 0, 0];
-          for (const l of lessons) {
-            const examQuestions = examQuestionSet(l);
-            assert(examQuestions.length === 3, 'Expected three exam-practice questions on day ' + l.day);
-            for (const [qi, q] of examQuestions.entries()) {
-              assert(q.options.length === 3, 'Expected 3 options for day ' + l.day + ', question ' + (qi + 1));
-              assert(unique(q.options.map(o => o.text)), 'Duplicate options for day ' + l.day + ', question ' + (qi + 1));
-              const right = q.options.filter(o => o.correct);
-              assert(right.length === 1, 'Expected exactly one correct answer for day ' + l.day + ', question ' + (qi + 1));
-              examPositionCounts[q.options.findIndex(o => o.correct)]++;
-            }
-            const quiz = quickQuizSet(l);
-            assert(quiz.length === 5, 'Expected exactly five knowledge-check questions on day ' + l.day);
-            for (const [qi, q] of quiz.entries()) {
-              assert(q.options.length === 3 && unique(q.options), 'Duplicate quick quiz options on day ' + l.day + ', question ' + (qi + 1));
-              assert(q.correct >= 0 && q.options[q.correct] === q.fact, 'Incorrect answer key on day ' + l.day + ', question ' + (qi + 1));
-            }
-          }
-          assert(examPositionCounts.every(n => n > 0), 'Correct exam answers should not always occupy the same position');
-          assert(!html.includes('выполните письменное экзаменационное задание ниже'), 'Obsolete written-task copy remains');
-          const imageTaskState = {
-            imageChoicesDay: 1,
-            imageChoices: [
-              {title: 'Topic illustration', src: 'https://example.test/a.jpg', href: 'https://example.test/a', correct: true},
-              {title: 'Distractor illustration B', src: 'https://example.test/b.jpg', href: 'https://example.test/b', correct: false},
-              {title: 'Distractor illustration C', src: 'https://example.test/c.jpg', href: 'https://example.test/c', correct: false}
-            ]
-          };
-          const imageTaskConfig = new Function('state', 'rotateChoices', 'return (' + between('imageTaskConfig', 'renderImageTask') + ')')(imageTaskState, rotateChoices);
-          const mockLesson = {day: 1, title: 'Проверка иллюстраций'};
-          for (const step of [0, 1]) {
-            const cfg = imageTaskConfig(mockLesson, step);
-            assert(cfg.type === 'choice' && cfg.options.length === 3, 'Image-analysis text task ' + (step + 1) + ' must have three choices');
-            assert(cfg.options.filter(o => o.correct).length === 1, 'Image-analysis text task ' + (step + 1) + ' must have exactly one correct answer');
-          }
-          const imageConfig = imageTaskConfig(mockLesson, 2);
-          assert(imageConfig.type === 'image' && imageConfig.options.length === 3, 'Image matching task must expose three images for the active lesson');
-          assert(imageConfig.options.filter(o => o.correct).length === 1, 'Image matching task must have exactly one correct image');
-          assert(html.includes('data-image-retry') && html.includes('Открыть страницу источника ↗'), 'Image activity must provide retry and contextual source links');
-          const readableParagraphs = new Function('esc', 'return (' + between('readableParagraphs', 'loadMapStudy') + ')')(s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'));
-          const formattedText = readableParagraphs('Первое предложение. Второе предложение. Третье предложение. Четвёртое предложение.');
-          assert((formattedText.match(/<p>/g) || []).length === 2, 'Long reading copy must be split into shorter paragraphs');
-          assert(html.includes('source-type') && html.includes('source-language') && html.includes('Открыть материал'), 'Source links must have category, title, description, and language labels');
-          assert(html.includes('КАРТА И ГЕОГРАФИЯ') && html.includes('Открыть карту и проверить дату и легенду'), 'Lesson map module must explain why map context matters');
-          assert(html.includes('Связь с соседними уроками') && html.includes('data-connection-day'), 'Lesson-to-lesson connection cards are missing');
-          assert(html.includes('mobileNavToggle') && html.includes('Показать темы курса'), 'Mobile topic menu toggle is missing');
-          console.log('Validated ' + course.weeks.length + ' modules, ' + course.lessons.length + ' lessons, source mapping, image-task answer keys, readable paragraph splitting, map/source labels, lesson connections, and ' + (lessons.length * 6) + ' generated three-choice questions without duplicate options.');
-          NODE
       - name: Upload site files
         uses: actions/upload-pages-artifact@v3
         with:
