@@ -9,6 +9,7 @@ require("../../curriculum-depth.js");
 require("../../curriculum-details-apply.js");
 require("../../curriculum-research.js");
 require("../../curriculum-participants.js");
+require("../../curriculum-participant-sources.js");
 require("../../curriculum-glossary.js");
 const course = window.HISTORY_CURRICULUM;
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -51,10 +52,23 @@ for (const day of researchStats.days) {
 }
 const participantStats = window.HISTORY_PARTICIPANT_STATS;
 assert(participantStats && participantStats.lessons >= 25 && participantStats.addedPeople >= 40, "Curated participant data missing");
+const participantSourceStats = window.HISTORY_PARTICIPANT_SOURCE_STATS;
+assert(participantSourceStats && participantSourceStats.people >= 100, "Participant source layer missing or incomplete");
+assert(participantSourceStats.withDirectSource >= 10, "Expected individually curated person references");
+assert(participantSourceStats.withSearch + participantSourceStats.withDirectSource === participantSourceStats.people, "Some participant cards lack a source pathway");
+for (const row of course.lessons) {
+  for (const person of (row[6].depth.people || [])) {
+    assert(person.sourceSearch && /^https:\/\//.test(person.sourceSearch.url), "Missing transparent source-search link for " + person.name);
+    assert(Array.isArray(person.sources), "Missing direct-source field for " + person.name);
+    assert(person.sources.every(source => /^https:\/\//.test(source.url) && source.title && source.note), "Invalid direct reference for " + person.name);
+  }
+}
+assert(course.lessons.some(row => row[6].depth.people.some(person => person.sources.some(source => /louvre\.fr/.test(source.url)))), "Louvre reference missing from participant layer");
+assert(course.lessons.some(row => row[6].depth.people.some(person => person.sources.some(source => /archives\.gov/.test(source.url)))), "National Archives reference missing from participant layer");
 const glossary = window.HISTORY_GLOSSARY;
 assert(glossary && glossary.entries.length >= 200 && glossary.stats.clickableTerms >= 100, "Glossary index is unexpectedly incomplete");
 assert(glossary.find("Первичный источник") && glossary.find("Фукидид") && glossary.find("Деколонизация"), "Core glossary lookups failed");
 const avgTerms = depths.reduce((sum, d) => sum + d.terms.length, 0) / depths.length;
 const peopleCoverage = depths.filter(d => d.people.length > 0).length;
 const groupsCoverage = depths.filter(d => d.groups.length > 0).length;
-console.log("Course data OK: 26 modules, 182 readings, 182 chronology/causality/source frameworks, " + participantStats.lessons + " curated participant lessons, " + participantStats.addedPeople + " added people entries, and " + glossary.entries.length + " glossary entries. Actor coverage: " + peopleCoverage + "/182; social-group coverage: " + groupsCoverage + "/182. Average terms per lesson: " + avgTerms.toFixed(1) + ".");
+console.log("Course data OK: 26 modules, 182 readings, 182 chronology/causality/source frameworks, " + participantStats.lessons + " curated participant lessons, " + participantStats.addedPeople + " added people entries, " + participantSourceStats.withDirectSource + " with individually curated references / " + participantSourceStats.people + " with source pathways, and " + glossary.entries.length + " glossary entries. Actor coverage: " + peopleCoverage + "/182; social-group coverage: " + groupsCoverage + "/182. Average terms per lesson: " + avgTerms.toFixed(1) + ".");
