@@ -3,7 +3,7 @@ import re
 
 root = Path(".")
 html = (root / "index.html").read_text(encoding="utf-8")
-for script in ("curriculum.js", "curriculum-depth.js"):
+for script in ("curriculum.js", "curriculum-depth.js", "curriculum-research.js"):
     if f'<script src="{script}"></script>' not in html:
         raise SystemExit(f"index.html must load {script}")
 
