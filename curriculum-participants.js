@@ -8,6 +8,7 @@
     31: {
       title: "Персидские войны и Афины",
       people: [
+        {name:"Дарий I",role:"Царь державы Ахеменидов в 522–486 гг. до н. э.; при нём начался поход против греческих полисов, завершившийся Марафонской битвой 490 г. до н. э.",why:"Его экспансия показывает, что Персидские войны включали несколько кампаний и были шире одного вторжения Ксеркса."},
         {name:"Ксеркс I",role:"Царь державы Ахеменидов в 486–465 гг. до н. э.; возглавил вторжение в Грецию в 480 г. до н. э.",why:"Его поход показывает, как решения имперского центра и действия греческих союзов повлияли на исход войны."},
         {name:"Фемистокл",role:"Афинский политик и военный руководитель начала V века до н. э.",why:"Он отстаивал развитие афинского флота; морская стратегия сыграла существенную роль в сражении при Саламине в 480 г. до н. э."}
       ]
@@ -248,6 +249,19 @@
       ]
     }
   };
+
+  /* Remove a common regex false positive: the place name Constantinople must not imply emperor Constantine. */
+  course.lessons.forEach(function (row) {
+    var meta = row[6] || {}, depth = meta.depth || {};
+    var text = [row[0], row[1], row[3], meta.detailedText || ""].join(" ");
+    depth.people = (depth.people || []).filter(function (person) {
+      if (person.name !== "Константин") return true;
+      var explicit = /(?:император(?:а|ом)?\s+Константин|Константин\s+(?:I|Великий|первый))/i.test(text);
+      return explicit || !/Константинополь/i.test(text);
+    });
+    meta.depth = depth;
+    row[6] = meta;
+  });
 
   var added = 0, mapped = [];
   Object.keys(byDay).forEach(function (key) {
