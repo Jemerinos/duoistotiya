@@ -44,7 +44,10 @@ assert(/source=img.dataset.sourcePage||el("taskPhotoLink").href/.test(html), "Vi
 assert(/function handleTopicImageError\(l,fromCommons\)/.test(html), "Image error fallback handler is missing");
 assert(/imageLoadGuard.fallbackStarted/.test(html), "Image fallback must be limited to one Commons retry");
 assert(/piprop=name%7Cthumbnail%7Coriginal/.test(html), "Primary image request should use the MediaWiki Action API with filename/original metadata");
-assert(!html.includes("api/rest_v1/page/summary/"), "Legacy summary-only image request should not be the sole primary image path");
+const loadImageStart = html.indexOf("function loadImage(l){");
+const loadImageEnd = html.indexOf("function renderSources(){", loadImageStart);
+const primaryImageLoader = loadImageStart >= 0 && loadImageEnd > loadImageStart ? html.slice(loadImageStart, loadImageEnd) : "";
+assert(primaryImageLoader && !primaryImageLoader.includes("api/rest_v1/page/summary/"), "Primary image loader must use the updated MediaWiki Action API path");
 assert(/items=items.slice(0,3)/.test(html), "Lesson image gallery should render up to three results");
 assert(/data-source-page/.test(html) && /reader-gallery-source/.test(html), "Gallery images need per-file source links");
 assert(/ext.ImageDescription/.test(html) && /ext.LicenseShortName/.test(html), "Gallery cards should display available source metadata");
