@@ -147,7 +147,7 @@ async function checkBackgroundQueries() {
   console.log("Live background search OK: 26/26 modules have a usable image candidate. Fallback query used for module(s): " +
     (fallbacks.length ? fallbacks.join(", ") : "none") + ".");
 }
-async function onlineCheck() {async function onlineCheck() {
+async function onlineCheck() {
   const wikiUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages%7Cinfo&piprop=name%7Cthumbnail%7Coriginal&pithumbsize=600&inprop=url&titles=Hammurabi&format=json&origin=*";
   const wikiData = await retry("Wikipedia Action API", async () => {
     const response = await withTimeout(wikiUrl);
