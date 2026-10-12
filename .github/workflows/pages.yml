@@ -59,14 +59,14 @@ jobs:
           missing = sorted(refs - set(ids))
           if missing:
               raise SystemExit('Missing DOM IDs: ' + ', '.join(missing))
-          for token in ['function renderImageTask()', 'function loadImageChoices(l)', 'function loadTopicImageChoice(l)', 'function imageFileLabel(s)', 'function renderExamPractice()', 'function checkExam()', 'function quickQuizSet(l)', 'function toggleVisibleWeeks()', 'data-image-retry', 'image-choice-source', 'Что это:</b> иллюстрация', 'id="examQuestions"', 'id="readerLens"', 'id="collapseWeeks"', 'data-week-toggle']:
+          for token in ['function renderImageTask()', 'function loadImageChoices(l)', 'function loadTopicImageChoice(l)', 'function imageFileLabel(s)', 'function readableParagraphs(text)', 'function loadMapStudy(l)', 'function renderLessonConnections(l)', 'function renderExamPractice()', 'function checkExam()', 'function quickQuizSet(l)', 'function toggleVisibleWeeks()', 'data-image-retry', 'image-choice-source', 'Что это:</b> иллюстрация', 'id="mapStudy"', 'id="lessonConnections"', 'id="connectionGrid"', 'id="mobileNavToggle"', 'source-type', 'quiz-explanation', 'id="examQuestions"', 'id="readerLens"', 'id="collapseWeeks"', 'data-week-toggle']:
               if token not in html:
                   raise SystemExit('Missing application feature: ' + token)
           for stale in ['выполните письменное экзаменационное задание ниже', 'id="examAnswer"', 'el("examAnswer")']:
               if stale in html:
                   raise SystemExit('Stale or removed exam UI still referenced: ' + stale)
-          if not all(x in html for x in ['aria-expanded', 'aria-controls="nav"', '.week-lessons', 'max-height:38vh']):
-              raise SystemExit('Collapsible and scrollable navigation markup/styles are incomplete')
+          if not all(x in html for x in ['aria-expanded', 'aria-controls="nav"', '.week-lessons', 'max-height:38vh', '#nav.mobile-nav-closed', '--green:#6D28D9', '--ink:#111827', '@media(max-width:760px)']):
+              raise SystemExit('Collapsible navigation, mobile layout, or purple high-contrast theme is incomplete')
           print('Validated HTML IDs, selectable activities, copy and collapsible navigation.')
           PY
           node <<'NODE'
@@ -170,7 +170,14 @@ jobs:
           assert(imageConfig.type === 'image' && imageConfig.options.length === 3, 'Image matching task must expose three images for the active lesson');
           assert(imageConfig.options.filter(o => o.correct).length === 1, 'Image matching task must have exactly one correct image');
           assert(html.includes('data-image-retry') && html.includes('Оригинал, авторство и лицензия'), 'Image activity must provide retry and source/attribution links');
-          console.log('Validated ' + course.weeks.length + ' modules, ' + course.lessons.length + ' lessons, source mapping, image-task answer keys, and ' + (lessons.length * 6) + ' generated three-choice questions without duplicate options.');
+          const readableParagraphs = new Function('esc', 'return (' + between('readableParagraphs', 'loadMapStudy') + ')')(s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+          const formattedText = readableParagraphs('Первое предложение. Второе предложение. Третье предложение. Четвёртое предложение.');
+          assert((formattedText.match(/<p>/g) || []).length === 2, 'Long reading copy must be split into shorter paragraphs');
+          assert(html.includes('source-type') && html.includes('source-language') && html.includes('Открыть материал'), 'Source links must have category, title, description, and language labels');
+          assert(html.includes('КАРТА И ГЕОГРАФИЯ') && html.includes('Проверить оригинал и подпись'), 'Lesson map module must explain checking map metadata');
+          assert(html.includes('Связь с соседними уроками') && html.includes('data-connection-day'), 'Lesson-to-lesson connection cards are missing');
+          assert(html.includes('mobileNavToggle') && html.includes('Показать темы курса'), 'Mobile topic menu toggle is missing');
+          console.log('Validated ' + course.weeks.length + ' modules, ' + course.lessons.length + ' lessons, source mapping, image-task answer keys, readable paragraph splitting, map/source labels, lesson connections, and ' + (lessons.length * 6) + ' generated three-choice questions without duplicate options.');
           NODE
       - name: Upload site files
         uses: actions/upload-pages-artifact@v3
