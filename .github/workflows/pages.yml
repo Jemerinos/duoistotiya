@@ -30,6 +30,8 @@ jobs:
           node --check curriculum.js
           node --check curriculum-depth.js
           node --check curriculum-research.js
+          node --check curriculum-participants.js
+          node --check curriculum-glossary.js
 
   validate-course:
     name: "2/3 — Данные курса и детализация"
