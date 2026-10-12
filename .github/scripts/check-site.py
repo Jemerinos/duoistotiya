@@ -54,7 +54,7 @@ required = [
     'id="lessonDepth"', 'id="depthPeople"', 'id="depthCausality"', 'id="depthChronology"',
     'id="knowledgeCheck"', 'Проверка знаний · 5 вопросов',
     'function describeHistoricalImage(l,rawTitle,metadata,kind)', 'Фукидид',
-    'Значение:</b>', '<details class="supplemental-panel"',
+'<details class="supplemental-panel"',
     '--green:#6D28D9', '--ink:#111827', 'mobileNavToggle',
     'function quickQuizSet(l)', 'function examQuestionSet(l)'
 ]
