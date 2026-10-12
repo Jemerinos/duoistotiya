@@ -2,6 +2,7 @@
 global.window = {};
 require("../../curriculum.js");
 require("../../curriculum-depth.js");
+require("../../curriculum-research.js");
 const course = window.HISTORY_CURRICULUM;
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 assert(course && course.weeks.length === 26, "Expected 26 course modules");
@@ -25,5 +26,14 @@ for (let i = 0; i < course.lessons.length; i++) {
 }
 assert(course.weeks[3][0] === "Ранние общества Азии, Африки и Америк", "Unexpected module 4 title");
 assert(course.lessons[0][6].depth.people.some(p => p.name === "Фукидид"), "Thucydides example missing from first lesson");
+const researchStats = window.HISTORY_RESEARCH_CONTENT_STATS;
+assert(researchStats && researchStats.version === 2 && researchStats.lessons === 7, "Expected seven researched content packs");
+for (const day of researchStats.days) {
+  const meta = course.lessons[day - 1][6];
+  assert(meta.detailedText && meta.detailedText.length >= 700, "Expanded research text too short on day " + day);
+  assert(meta.depthVersion === 2 && meta.depth.chronology.length >= 3, "Missing curated chronology on day " + day);
+  assert(meta.researchSources && meta.researchSources.length >= 2, "Missing curated sources on day " + day);
+  assert(meta.researchSources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc), "Invalid source card on day " + day);
+}
 const avgTerms = depths.reduce((sum, d) => sum + d.terms.length, 0) / depths.length;
-console.log("Course data OK: 26 modules, 182 lessons, complete depth layer. Average terms per lesson: " + avgTerms.toFixed(1) + ".");
+console.log("Course data OK: 26 modules, 182 lessons, complete depth layer, and 7 curated research packs. Average terms per lesson: " + avgTerms.toFixed(1) + ".");
