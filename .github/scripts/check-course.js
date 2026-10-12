@@ -39,6 +39,21 @@ for (let i = 0; i < course.lessons.length; i++) {
   assert(row[6].researchSources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc), "Invalid source card on lesson " + day);
   depths.push(d);
 }
+for (const field of ["causes", "development", "consequences"]) {
+  const byStatement = new Map();
+  for (let i = 0; i < course.lessons.length; i++) {
+    for (const value of (course.lessons[i][6].depth[field] || [])) {
+      const statement = String(value).trim();
+      if (statement.length < 55) continue;
+      if (!byStatement.has(statement)) byStatement.set(statement, []);
+      byStatement.get(statement).push(i + 1);
+    }
+  }
+  const repeatedBoilerplate = [...byStatement].filter(([, days]) => days.length >= 4);
+  assert(repeatedBoilerplate.length === 0,
+    "Repeated generic " + field + " statements: " +
+    repeatedBoilerplate.map(([statement, days]) => days.join(",") + " → " + statement).join(" | "));
+}
 assert(course.weeks[3][0] === "Ранние общества Азии, Африки и Америк", "Unexpected module 4 title");
 assert(course.lessons[0][6].depth.people.some(p => p.name === "Фукидид"), "Thucydides example missing from first lesson");
 const researchStats = window.HISTORY_RESEARCH_CONTENT_STATS;
