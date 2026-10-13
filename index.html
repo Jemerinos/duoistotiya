@@ -260,7 +260,7 @@ body{background-color:#FFFFFF;background-image:linear-gradient(rgba(255,255,255,
 .image-viewer-stage{width:100%;max-height:80vh;overflow:auto;display:flex;align-items:center;justify-content:center}
 #imageViewerImage{display:block;max-width:min(95vw,1500px);max-height:78vh;object-fit:contain;border-radius:3px;cursor:zoom-in}
 .image-viewer.zoomed .image-viewer-stage{justify-content:flex-start;align-items:flex-start}
-.image-viewer.zoomed #imageViewerImage{max-width:none;max-height:none;width:auto;height:auto;min-width:105vw;cursor:zoom-out}
+.image-viewer.zoomed #imageViewerImage{max-width:none;max-height:none;width:auto;height:auto;min-width:105vw;cursor:grab;touch-action:none}.image-viewer.zoomed #imageViewerStage{cursor:grab;overscroll-behavior:contain}.image-viewer.zoomed #imageViewerStage.is-panning,.image-viewer.zoomed #imageViewerImage.is-panning{cursor:grabbing}.reader-gallery-status{grid-column:1/-1;font-size:13px;color:#4B5563;margin:0 0 8px}
 .image-viewer-caption{width:min(96vw,1200px);font-size:13px;line-height:1.6;color:#D1D5DB}
 .image-viewer-source{display:inline-block;margin-top:5px;color:#C4B5FD;text-decoration:underline;text-underline-offset:3px;font-size:12px}
 @media(max-width:700px){body{background-attachment:scroll}.image-viewer{padding:10px;gap:8px}.image-viewer-stage{max-height:75vh}#imageViewerImage{max-width:96vw;max-height:72vh}.image-viewer-title{font-size:12px}.image-viewer-btn{padding:7px 9px}}
@@ -494,8 +494,8 @@ function slideContent(l,s){if(s===0)return{kick:"Главный вопрос",ti
 function renderSlide(){var l=current(),s=state.slide,c=slideContent(l,s);el("slide").dataset.num=roman[s];el("slide").innerHTML='<div class="slidekicker">'+c.kick+' · '+slideMins[s]+' МИН</div><h2>'+esc(c.title)+'</h2>'+(c.lead?'<p class="slidelead">'+esc(c.lead)+'</p>':'')+(c.items.length?'<ul class="facts">'+c.items.map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul>':'')+(c.call?'<div class="callout">'+esc(c.call)+'</div>':'')+'<div class="tags">'+c.tags.map(function(t){return '<span>'+esc(t)+'</span>'}).join("")+'</div>';el("slideCounter").textContent="Слайд "+(s+1)+" / 5";el("slidebar").style.width=((s+1)*20)+"%";el("dots").innerHTML=roman.map(function(r,i){return '<button class="dot '+(i===s?"active":"")+'" data-slide="'+i+'" aria-label="Слайд '+(i+1)+'"></button>'}).join("");el("prev").disabled=s===0;el("next").textContent=s===4?"К вопросам →":"Дальше →"}
 var imageLoadGuard={day:-1,source:"",fallbackStarted:false};
 function handleTopicImageError(l,fromCommons){if(state.day!==l.day)return;if(!fromCommons&&imageLoadGuard.day===l.day&&!imageLoadGuard.fallbackStarted){imageLoadGuard.fallbackStarted=true;loadCommonsImage(l);return}el("readerImage").hidden=true;el("image").hidden=true;el("taskImage").hidden=true;el("readerPlaceholder").hidden=false;el("taskPlaceholder").hidden=false;el("emoji").hidden=false;el("credit").textContent="Изображение не загрузилось";var small=el("taskPlaceholder").querySelector("small");if(small)small.textContent="Автоматическая загрузка не удалась. Откройте источники урока или выполните поиск изображения вручную."}
-function setTopicImage(l,src,page,title,credit,original,fromCommons){if(state.day!==l.day)return;imageLoadGuard={day:l.day,source:fromCommons?"commons":"article",fallbackStarted:!!fromCommons};var source=page||"https://commons.wikimedia.org/",raw=String(title||"")+" "+imageTitleFromUrl(src),n=describeHistoricalImage(l,raw,credit,"image");if(source==="https://commons.wikimedia.org/"&&src)source="https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search="+encodeURIComponent(n.title);el("taskPhotoLink").href=source;el("taskCaption").textContent=n.title+". "+n.description+" Откройте карточку файла, чтобы проверить подпись и датировку.";["readerImage","image","taskImage"].forEach(function(id){var img=el(id);img.alt=n.title;img.dataset.originalImage=original||src;img.dataset.sourcePage=source;img.dataset.sourceTitle=title||l.title});el("readerCaption").innerHTML=imageCaptionMarkup(l,raw,source,credit,"image");el("readerImage").onload=function(){if(state.day!==l.day)return;el("readerImage").hidden=false;el("readerPlaceholder").hidden=true};el("readerImage").onerror=function(){handleTopicImageError(l,!!fromCommons)};el("image").onload=function(){if(state.day!==l.day)return;el("image").hidden=false;el("emoji").hidden=true;el("credit").textContent=n.title};el("image").onerror=function(){handleTopicImageError(l,!!fromCommons)};el("taskImage").onload=function(){if(state.day!==l.day)return;el("taskImage").hidden=false;el("taskPlaceholder").hidden=true};el("taskImage").onerror=function(){handleTopicImageError(l,!!fromCommons)};el("image").src=src;el("taskImage").src=src;el("readerImage").src=src}
-function loadCommonsImage(l){var specific=l.wiki==="Historical_method"?"Thucydides bust ancient Greek historian":String(l.wiki||"").replace(/_/g," "),queries=[l.imageSearch||"",specific,l.title||""].filter(function(q,i,a){return q&&a.indexOf(q)===i});function attempt(i){if(i>=queries.length){if(state.day===l.day){handleTopicImageError(l,true);var small=el("taskPlaceholder").querySelector("small");if(small)small.textContent="Не удалось загрузить изображение. Используйте проверенные ссылки в источниках урока или поиск файлов вручную."}return}var api="https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch="+encodeURIComponent(queries[i])+"&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=1000&format=json&origin=*";fetch(api).then(function(r){if(!r.ok)throw new Error("Commons search failed");return r.json()}).then(function(d){if(state.day!==l.day)return;var pages=d.query&&d.query.pages?Object.keys(d.query.pages).map(function(k){return d.query.pages[k]}):[],p=pages.find(function(x){var info=x.imageinfo&&x.imageinfo[0];return info&&(info.thumburl||info.url)&&info.descriptionurl&&info.url});if(!p){attempt(i+1);return}var info=p.imageinfo[0],ext=info.extmetadata||{},src=info.thumburl||info.url,artist=cleanAttribution(ext.Artist&&ext.Artist.value),lic=cleanAttribution(ext.LicenseShortName&&ext.LicenseShortName.value),credit=[artist?"Автор: "+artist:"",lic?"Лицензия: "+lic:""].filter(Boolean).join(" · ");setTopicImage(l,src,info.descriptionurl,p.title.replace(/^File:/,""),credit,info.url||src,true)}).catch(function(){attempt(i+1)})}attempt(0)}
+function setTopicImage(l,src,page,title,credit,original,fromCommons){if(state.day!==l.day)return;imageLoadGuard={day:l.day,source:fromCommons?"commons":"article",fallbackStarted:!!fromCommons};var source=page||"https://commons.wikimedia.org/",raw=String(title||"")+" "+imageTitleFromUrl(src),n=localizedGalleryImage(l,raw);if(source==="https://commons.wikimedia.org/"&&src)source="https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search="+encodeURIComponent(n.title);el("taskPhotoLink").href=source;el("taskCaption").textContent=n.title+". "+n.description+" Откройте карточку файла, чтобы проверить подпись и датировку.";["readerImage","image","taskImage"].forEach(function(id){var img=el(id);img.alt=n.title;img.dataset.originalImage=original||src;img.dataset.sourcePage=source;img.dataset.sourceTitle=n.title;img.dataset.captionTitle=n.title});el("readerCaption").innerHTML=imageCaptionMarkup(l,raw,source,credit,"image");el("readerImage").onload=function(){if(state.day!==l.day)return;el("readerImage").hidden=false;el("readerPlaceholder").hidden=true};el("readerImage").onerror=function(){handleTopicImageError(l,!!fromCommons)};el("image").onload=function(){if(state.day!==l.day)return;el("image").hidden=false;el("emoji").hidden=true;el("credit").textContent=n.title};el("image").onerror=function(){handleTopicImageError(l,!!fromCommons)};el("taskImage").onload=function(){if(state.day!==l.day)return;el("taskImage").hidden=false;el("taskPlaceholder").hidden=true};el("taskImage").onerror=function(){handleTopicImageError(l,!!fromCommons)};el("image").src=src;el("taskImage").src=src;el("readerImage").src=src}
+function loadCommonsImage(l){var specific=l.wiki==="Historical_method"?"Thucydides bust ancient Greek historian":String(l.wiki||"").replace(/_/g," "),queries=[l.imageSearch||"",specific,l.title||""].filter(function(q,i,a){return q&&a.indexOf(q)===i});function attempt(i){if(i>=queries.length){if(state.day===l.day){handleTopicImageError(l,true);var small=el("taskPlaceholder").querySelector("small");if(small)small.textContent="Не удалось загрузить изображение. Используйте проверенные ссылки в источниках урока или поиск файлов вручную."}return}var api="https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch="+encodeURIComponent(queries[i])+"&gsrnamespace=6&gsrlimit=12&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=1000&format=json&origin=*";fetch(api).then(function(r){if(!r.ok)throw new Error("Commons search failed");return r.json()}).then(function(d){if(state.day!==l.day)return;var pages=d.query&&d.query.pages?Object.keys(d.query.pages).map(function(k){return d.query.pages[k]}):[],p=pages.find(function(x){var info=x.imageinfo&&x.imageinfo[0];return info&&(info.thumburl||info.url)&&info.descriptionurl&&info.url});if(!p){attempt(i+1);return}var info=p.imageinfo[0],ext=info.extmetadata||{},src=info.thumburl||info.url,artist=cleanAttribution(ext.Artist&&ext.Artist.value),lic=cleanAttribution(ext.LicenseShortName&&ext.LicenseShortName.value),credit=[artist?"Автор: "+artist:"",lic?"Лицензия: "+localizedLicenseLabel(lic):""].filter(Boolean).join(" · ");setTopicImage(l,src,info.descriptionurl,p.title.replace(/^File:/,""),credit,info.url||src,true)}).catch(function(){attempt(i+1)})}attempt(0)}
 function cleanAttribution(s){return String(s||"").replace(/<[^>]*>/g," ").replace(/&amp;/g,"&").replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&#\d+;/g,"").replace(/\s+/g," ").trim()}
 function imageFileLabel(s){return String(s||"Изображение без названия").replace(/^File:/i,"").replace(/\.(jpe?g|png|svg|webp|gif|tiff?)$/i,"").replace(/[_]+/g," ").replace(/\s+/g," ").trim()}
 var HISTORICAL_IMAGE_NOTES=[
@@ -534,11 +534,224 @@ var HISTORICAL_IMAGE_NOTES=[
 ];
 function imageTitleFromUrl(src){try{var p=new URL(src).pathname.split("/").filter(Boolean),i=p.indexOf("thumb"),names=i>=0?[p[i+3],p[p.length-1]]:[p[p.length-1]];for(var n=0;n<names.length;n++){var s=decodeURIComponent(names[n]||"").replace(/^\d+px-/,"").replace(/\.(jpe?g|png|svg|webp|gif|tiff?)$/i,"").replace(/_/g," ").trim();if(s&&/[a-zа-я]/i.test(s))return s}return""}catch(e){return""}}
 function describeHistoricalImage(l,rawTitle,metadata,kind){var raw=String(rawTitle||""),meta=String(metadata||""),text=(raw+" "+meta).toLowerCase().replace(/[_-]+/g," "),known=HISTORICAL_IMAGE_NOTES.find(function(x){return x.re.test(raw+" "+meta)});if(known&&kind!=="map")return{title:known.title,description:known.description,why:known.why};if(kind==="map"||/\b(map|carte|karte|mapa|atlas|карта|план города)\b/i.test(text))return{title:"Историческая карта",description:"Карта показывает территории, маршруты или представления о географии в определённый период. Границы не всегда означают одинаково прочный контроль над местностью.",why:"карта помогает соотнести события с местом и расстояниями. Проверьте дату, легенду, регион и цель, с которой её создавали."};if(/\b(manuscript|codex|scroll|tablet|inscription|letter|charter|chronicle|document|papyrus|рукопис|летопис|папирус|надпис|таблич|хартия|документ)\b/i.test(text))return{title:"Письменный исторический источник",description:"Это письменное свидетельство. Его смысл зависит от автора, времени создания, аудитории и цели; документ может умалчивать о важных вещах или отражать интересы создателя.",why:"источник помогает понять, как люди описывали события и правила своего времени. Его стоит сопоставить с другими свидетельствами."};if(/\b(coin|currency|denarius|drachma|монет|денар|драхм|денежн)\b/i.test(text))return{title:"Монета как исторический источник",description:"Монеты дают сведения о денежном обращении, торговле и символах власти. Изображение правителя или надпись могли служить политическим сообщением.",why:"монета соединяет историю экономики с государством и повседневной жизнью; точную дату и происхождение проверяют по музейному описанию."};if(/\b(bust|statue|sculpture|portrait|effigy|бюст|портрет|скульптур|статуя|изваяние)\b/i.test(text))return{title:"Портрет или скульптурный образ",description:"Портрет показывает, как художник или заказчик хотел представить человека. Он мог быть создан после жизни изображённого и не обязательно является точным сходством.",why:"образ помогает обсудить, как запоминали и прославляли деятелей прошлого. Имя и роль нужно сверять с подписью и другими источниками."};if(/\b(ruin|temple|church|mosque|cathedral|palace|castle|fortress|amphitheatre|amphitheater|храм|церковь|мечет|собор|дворец|крепост|замок|амфитеатр|руин)\b/i.test(text))return{title:"Историческое сооружение",description:"Архитектурный памятник сохраняет следы строительных технологий, религиозных практик, организации общества и вложенных ресурсов. Его нынешний вид может отличаться от первоначального.",why:"сооружение помогает связать исторический процесс с реальным местом и материальными возможностями общества."};if(/\b(vase|pottery|ceramic|artifact|artefact|tool|spear|sword|керамик|сосуд|артефакт|орудие|оружие|предмет)\b/i.test(text))return{title:"Археологический предмет",description:"Материальная находка может рассказать о технологиях, повседневной жизни, торговле и ремесле. Её значение зависит от места и слоя находки.",why:"предмет дополняет письменные источники и помогает увидеть жизнь людей, которые могли не оставить собственных текстов."};return{title:"Историческое свидетельство",description:"По одному изображению нельзя надёжно определить все детали. Важно выяснить, что изображено, когда создана работа и что сообщает музейная или архивная подпись.",why:"изображение служит отправной точкой для наблюдения. Используйте его вместе с текстом и не делайте выводов, которых оно само по себе не подтверждает."}}
-function imageCaptionMarkup(l,rawTitle,href,metadata,kind){var n=describeHistoricalImage(l,rawTitle,metadata,kind),fileName=imageFileLabel(rawTitle),generic=n.title==="Историческое свидетельство",title=generic?(fileName||"Изображение без названия"):n.title,description=generic?"Автоматическое описание не определило сюжет. Сверьте подпись, дату и регион на странице файла.":n.description;return'<span class="image-footnote"><strong>'+esc(title)+'</strong><p>'+esc(description)+'</p>'+(metadata?'<p class="image-credit-meta">'+esc(metadata)+'</p>':'')+'<a href="'+esc(href||"#")+'" target="_blank" rel="noopener noreferrer">Карточка файла, подпись и авторство ↗</a></span>'}
+function localizedLicenseLabel(value) {
+  var raw = String(value || "").toLowerCase();
+  if (/cc0|creative commons zero|public domain dedication/.test(raw)) return "CC0 — отказ от большинства авторских ограничений";
+  if (/public domain|publicdomain|общественное достояние/.test(raw)) return "Общественное достояние (проверьте условия на странице источника)";
+  if (/cc.?by.?nc.?sa/.test(raw)) return "Creative Commons: указание автора, некоммерческое использование и сохранение условий (CC BY-NC-SA)";
+  if (/cc.?by.?sa|attribution.?share.?alike/.test(raw)) return "Creative Commons: указание автора и сохранение условий (CC BY-SA)";
+  if (/cc.?by.?nc/.test(raw)) return "Creative Commons: указание автора, некоммерческое использование (CC BY-NC)";
+  if (/cc.?by|creative commons attribution/.test(raw)) return "Creative Commons: указание автора (CC BY)";
+  if (/gfdl|gnu free documentation/.test(raw)) return "GNU FDL — лицензия свободной документации";
+  return "Полные условия указаны на странице источника";
+}
+function localizedGalleryImage(l, rawTitle) {
+  var raw = String(rawTitle || "");
+  var known = HISTORICAL_IMAGE_NOTES.find(function(entry) { return entry.re.test(raw); });
+  var context = String(l.summary || l.question || "").replace(/\s+/g, " ").trim();
+  context = context.split(/(?<=[.!?])\s+/).slice(0,2).join(" ").slice(0,420);
+  if (known) {
+    return {
+      title: known.title,
+      description: known.description + " Связь с занятием «" + l.title + "»: " + context,
+      why: known.why + " Сверьте, является ли изображение современным событию или поздним художественным представлением."
+    };
+  }
+  var text = raw.toLowerCase().replace(/[_-]+/g, " ");
+  var title = "Исторический материал по теме «" + l.title + "»";
+  var description = "", why = "";
+  if (/\b(map|carte|karte|mapa|atlas|карта|план города)\b/i.test(text)) {
+    title = "Историческая карта по теме «" + l.title + "»";
+    description = "Карта помогает увидеть территорию, расстояния, маршруты или границы в определённый момент. Контекст занятия: " + context;
+    why = "Сравните дату, легенду, масштаб и регион карты с текстом занятия: границы на карте не всегда означают полный контроль над территорией.";
+  } else if (/\b(manuscript|codex|scroll|tablet|inscription|letter|charter|chronicle|document|papyrus|рукопис|летопис|папирус|надпис|таблич|хартия|документ|archive)\b/i.test(text)) {
+    title = "Письменный или архивный источник по теме «" + l.title + "»";
+    description = "Письменные свидетельства показывают, какие сведения, правила и представления сохранились от прошлого. Контекст занятия: " + context;
+    why = "По возможности выясните автора, адресата и дату документа. Источник может отражать интересы создателя и не описывать опыт всех групп.";
+  } else if (/\b(bust|statue|sculpture|portrait|effigy|бюст|портрет|скульптур|статуя|изваяние)\b/i.test(text)) {
+    title = "Портрет или скульптурный образ по теме «" + l.title + "»";
+    description = "Портрет передаёт образ человека так, как его представлял художник или заказчик; это не обязательно точное прижизненное изображение. Контекст занятия: " + context;
+    why = "Проверьте, кто создал изображение и когда. Поздний образ ценен для изучения памяти об исторической личности, но не всегда достоверно передаёт её внешность.";
+  } else if (/\b(ruin|temple|church|mosque|cathedral|palace|castle|fortress|amphitheatre|amphitheater|храм|церковь|мечет|собор|дворец|крепост|замок|амфитеатр|руин|monument)\b/i.test(text)) {
+    title = "Историческое сооружение по теме «" + l.title + "»";
+    description = "Архитектурный памятник сохраняет следы строительных технологий, организации труда, религиозных практик и ресурсов общества. Контекст занятия: " + context;
+    why = "Нынешний вид здания может отличаться от первоначального. Сопоставьте датировку, перестройки и подпись источника.";
+  } else if (/\b(coin|currency|denarius|drachma|монет|денар|драхм|seal|печать)\b/i.test(text)) {
+    title = "Материальный источник по теме «" + l.title + "»";
+    description = "Монеты, печати и небольшие предметы помогают изучать хозяйство, символы власти и повседневные связи. Контекст занятия: " + context;
+    why = "Для точного вывода важны место находки, датировка и археологический контекст, а не только изображение на предмете.";
+  } else if (/\b(factory|railway|train|worker|industrial|завод|фабрик|железн|рабоч|станок)\b/i.test(text)) {
+    title = "Производство и повседневная жизнь: «" + l.title + "»";
+    description = "Изображение помогает рассмотреть технологии, рабочие места и материальные условия эпохи. Контекст занятия: " + context;
+    why = "Одного кадра недостаточно, чтобы судить обо всех рабочих или предприятиях; проверьте место, дату, автора и цель создания изображения.";
+  } else if (/\b(vase|pottery|ceramic|artifact|artefact|tool|spear|sword|керамик|сосуд|артефакт|орудие|оружие|предмет|excavation|археолог)\b/i.test(text)) {
+    title = "Археологическая находка по теме «" + l.title + "»";
+    description = "Материальная находка может рассказать о технологиях, торговле, ремесле и быте. Контекст занятия: " + context;
+    why = "Значение предмета зависит от места и слоя находки, датировки и сопоставления с другими материалами.";
+  } else {
+    title = "Историческое изображение по теме «" + l.title + "»";
+    description = "Материал подобран по теме занятия. Важно сопоставлять визуальные детали с описанием исторического процесса: " + context;
+    why = "Не делайте вывод о событии только по названию файла. Сверьте подпись, происхождение и датировку в карточке источника.";
+  }
+  return {title:title, description:description, why:why};
+}
+function localizedAttribution(value) {
+  var raw = String(value || "").trim();
+  if (!raw) return "";
+  return raw.replace(/Лицензия:\s*[^·]+/gi, function(part) {
+    return "Лицензия: " + localizedLicenseLabel(part.replace(/^Лицензия:\s*/i, ""));
+  });
+}
+function imageCaptionMarkup(l,rawTitle,href,metadata,kind) {
+  var n = localizedGalleryImage(l, rawTitle);
+  var credit = kind === "gallery" ? "" : localizedAttribution(metadata);
+  return '<span class="image-footnote"><strong>' + esc(n.title) + '</strong><p>' +
+    esc(n.description) + '</p><p>' + esc(n.why) + '</p>' +
+    (credit ? '<p class="image-credit-meta">' + esc(credit) + '</p>' : '') +
+    '<a href="' + esc(href || "#") + '" target="_blank" rel="noopener noreferrer">Источник, авторство и условия использования ↗</a></span>';
+}
 function readableParagraphs(text){var clean=String(text||"").replace(/\s+/g," ").trim();if(!clean)return"";var sentences=clean.split(/(?<=[.!?])\s+(?=[А-ЯЁ«„])/u),parts=[];for(var i=0;i<sentences.length;i+=2){parts.push("<p>"+esc(sentences.slice(i,i+2).join(" "))+"</p>")}return parts.join("")}
 function loadMapStudy(l){var section=el("mapStudy"),grid=el("mapStudyGrid"),search=el("mapStudySearch"),context=[l.title,l.question,l.summary,l.imageQuery||""].join(" ");if(!/(карт|географ|границ|территор|маршрут|торгов|миграц|импер|колони|завоев|путешеств|город|морск|река|степ|росси|европ|ази|африк|америк|средизем|шёлков|шелков|map|empire|border|route|trade|migration|colon|conquest|silk road|territor)/i.test(context)){section.classList.add("hidden");return}var queries=[l.title+" historical map",(l.imageQuery||l.title)+" map",l.title+" map"],seen=new Set();section.classList.remove("hidden");el("mapStudyIntro").textContent="Карта помогает увидеть место, расстояния и перемены границ. Сравните её дату и легенду с материалом урока.";search.href="https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search="+encodeURIComponent(queries[0]);grid.innerHTML='<p class="map-study-status">Ищем карту, подходящую к теме занятия…</p>';function fallback(){grid.innerHTML='<div class="map-study-status">Подходящую карту автоматически найти не удалось. Лучше выбрать её вручную по региону и времени.<div class="map-fallback-links"><a href="'+esc(search.href)+'" target="_blank" rel="noopener noreferrer">Найти карты по теме ↗</a><a href="https://www.oerproject.com/topics/maps" target="_blank" rel="noopener noreferrer">Учебные материалы о картах ↗</a></div></div>'}function attempt(index){if(state.day!==l.day)return;if(index>=queries.length){fallback();return}var api="https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch="+encodeURIComponent(queries[index])+"&gsrnamespace=6&gsrlimit=10&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=900&format=json&origin=*";fetch(api).then(function(r){if(!r.ok)throw new Error("Map search failed");return r.json()}).then(function(d){if(state.day!==l.day)return;var pages=d.query&&d.query.pages?Object.keys(d.query.pages).map(function(k){return d.query.pages[k]}):[],items=[];pages.forEach(function(p){var info=p.imageinfo&&p.imageinfo[0],raw=(p.title||"").replace(/^File:/,"");if(!info||!(info.thumburl||info.url)||!info.descriptionurl||!/(map|carte|karte|mapa|atlas|plan|карта|план)/i.test(raw)||seen.has(info.descriptionurl))return;seen.add(info.descriptionurl);items.push({info:info,title:raw})});if(!items.length){attempt(index+1);return}var item=items[0],n=describeHistoricalImage(l,item.title,"","map");grid.innerHTML='<figure class="map-result"><a href="'+esc(item.info.descriptionurl)+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(item.info.thumburl||item.info.url)+'" data-original-image="'+esc(item.info.url||item.info.thumburl||item.info.url)+'" alt="'+esc(n.title)+'" loading="lazy"></a><figcaption><strong>'+esc(n.title)+'</strong><span>'+esc(n.description)+'</span><span>'+esc(n.why)+'</span><a href="'+esc(item.info.descriptionurl)+'" target="_blank" rel="noopener noreferrer">Открыть карту и проверить дату и легенду ↗</a></figcaption></figure>'}).catch(function(){attempt(index+1)})}attempt(0)}
 function renderLessonConnections(l){var prev=L[l.day-2]||null,next=L[l.day]||null,bridge;if(l.day===1)bridge="Это начало курса. В следующих занятиях вы будете возвращаться к вопросу о том, как мы узнаём прошлое и проверяем свидетельства.";else if(l.day%7===1)bridge="Начинается новая глава — «"+l.weekTitle+"». Сопоставьте её главный вопрос с тем, что вы изучали в предыдущем модуле.";else bridge="Свяжите сегодняшний материал с предыдущим и следующим занятием: что изменилось, какие причины продолжаются и что нового появилось?";el("connectionBridge").textContent=bridge;function card(x,label,empty){if(!x)return'<div class="connection-card connection-end"><span class="connection-kind">'+label+'</span><strong>'+empty+'</strong><small>Вы достигли границы курса.</small></div>';return'<button type="button" class="connection-card" data-connection-day="'+x.day+'"><span class="connection-kind">'+label+' · день '+x.day+'</span><strong>'+esc(x.title)+'</strong><small>Глава '+x.week+' · '+esc(x.period)+'</small><span class="connection-action">Открыть занятие ↗</span></button>'}el("connectionGrid").innerHTML=card(prev,"ПРЕДЫДУЩЕЕ","Первое занятие")+card(next,"СЛЕДУЮЩЕЕ","Курс завершён");el("prevLesson").disabled=!prev;el("nextLesson").disabled=!next}
-function loadReaderGallery(l){var specific=l.wiki==="Historical_method"?"Thucydides ancient Greece history":String(l.wiki||l.title||"").replace(/_/g," "),queries=[l.imageSearch||"",specific,l.title||""].filter(function(q,i,a){return q&&a.indexOf(q)===i}),seen=new Set(),collected=[],grid=el("readerGalleryGrid");function showFallback(){if(state.day!==l.day)return;grid.innerHTML='<div class="map-study-status">Изображения не загрузились или в карточках файлов недостаточно данных. Используйте поиск по теме урока и сверяйте название, дату и происхождение.<p><a href="https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&amp;search='+esc(encodeURIComponent(specific))+'" target="_blank" rel="noopener noreferrer">Открыть поиск изображений по теме ↗</a></p></div>';el("readerGallery").classList.remove("hidden")}function renderCollected(){if(state.day!==l.day)return;if(!collected.length){showFallback();return}grid.innerHTML=collected.slice(0,3).map(function(item){var info=item.info,src=info.thumburl||info.url;return'<article class="reader-gallery-card"><img src="'+esc(src)+'" data-original-image="'+esc(info.url||src)+'" data-source-page="'+esc(info.descriptionurl)+'" data-source-title="'+esc(item.raw)+'" alt="'+esc(item.raw)+'" loading="lazy"><div class="reader-gallery-copy"><strong>'+esc(item.raw)+'</strong>'+(item.description?'<p>'+esc(item.description)+'</p>':'')+(item.date?'<p class="reader-gallery-meta">Дата в карточке файла: '+esc(item.date)+'</p>':'')+(item.artist?'<p class="reader-gallery-meta">Автор/создатель: '+esc(item.artist)+'</p>':'')+(item.license?'<p class="reader-gallery-meta">Лицензия: '+esc(item.license)+'</p>':'')+'<a class="reader-gallery-source" href="'+esc(info.descriptionurl)+'" target="_blank" rel="noopener noreferrer">Карточка файла, подпись и лицензия ↗</a></div></article>'}).join("");el("readerGallery").classList.remove("hidden");grid.querySelectorAll("img").forEach(function(img){img.addEventListener("error",function(){var card=img.closest(".reader-gallery-card");if(card)card.remove();if(!grid.querySelector(".reader-gallery-card"))showFallback()},{once:true})})}function attempt(index){if(state.day!==l.day)return;if(collected.length>=3||index>=queries.length){renderCollected();return}var api="https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch="+encodeURIComponent(queries[index])+"&gsrnamespace=6&gsrlimit=15&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=900&format=json&origin=*";fetch(api).then(function(r){if(!r.ok)throw new Error("Commons search failed");return r.json()}).then(function(d){if(state.day!==l.day)return;var pages=d.query&&d.query.pages?Object.keys(d.query.pages).map(function(k){return d.query.pages[k]}):[];pages.forEach(function(p){var info=p.imageinfo&&p.imageinfo[0],raw=(p.title||"").replace(/^File:/,"");if(!info||!(info.thumburl||info.url)||!info.descriptionurl||seen.has(info.descriptionurl))return;seen.add(info.descriptionurl);var ext=info.extmetadata||{};collected.push({info:info,raw:raw,description:cleanAttribution(ext.ImageDescription&&ext.ImageDescription.value),artist:cleanAttribution(ext.Artist&&ext.Artist.value),license:cleanAttribution(ext.LicenseShortName&&ext.LicenseShortName.value),date:cleanAttribution(ext.DateTimeOriginal&&ext.DateTimeOriginal.value)||cleanAttribution(ext.DateTime&&ext.DateTime.value)})});attempt(index+1)}).catch(function(){attempt(index+1)})}attempt(0)}
+function loadReaderGallery(l) {
+  var MIN_READER_GALLERY_IMAGES = 5, MAX_READER_GALLERY_IMAGES = 9;
+  var specific = l.wiki === "Historical_method" ? "Thucydides Peloponnesian War" :
+    String(l.wiki || l.title || "").replace(/_/g, " ");
+  // Start with the per-lesson curated query, then widen only around the same subject.
+  var queries = [
+    l.imageQuery || "",
+    specific + " historical image",
+    specific + " museum archive artifact",
+    l.title + " historical photograph painting document",
+    l.title + " map monument primary source"
+  ].filter(function(q, i, a) { return q && a.indexOf(q) === i; });
+  var seen = new Set(), collected = [], grid = el("readerGalleryGrid");
+  var stopWords = new Set(("the and for with from into that this these those about image images photo photos photograph " +
+    "photographs historical history picture pictures painting paintings illustration illustrations museum archive " +
+    "ancient medieval modern early late century period old new source sources artifact artifacts").split(/\s+/));
+  var topicTokens = (String(l.title || "") + " " + specific + " " + String(l.imageQuery || ""))
+    .toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/)
+    .filter(function(t) { return t.length >= 4 && !stopWords.has(t); });
+  function isUsableImage(page) {
+    var info = page && page.imageinfo && page.imageinfo[0] || {};
+    var title = String(page && page.title || "");
+    var mime = String(info.mime || "").toLowerCase();
+    if (!info.thumburl || !info.url || !info.descriptionurl) return false;
+    if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(title)) return false;
+    if (mime && mime.indexOf("image/") !== 0) return false;
+    return true;
+  }
+  function relevanceScore(raw) {
+    var words = String(raw || "").toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
+    return topicTokens.reduce(function(score, token) {
+      return score + (words.some(function(word) {
+        return word === token || (word.length >= 5 && token.length >= 5 &&
+          (word.indexOf(token) === 0 || token.indexOf(word) === 0));
+      }) ? 1 : 0);
+    }, 0);
+  }
+  function renderCollected() {
+    if (state.day !== l.day) return;
+    if (!collected.length) {
+      grid.innerHTML = '<div class="map-study-status">Не удалось автоматически подтвердить подходящие файлы. Лучше открыть тематический поиск, чем подставлять случайные изображения.<p><a href="https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&amp;search=' +
+        esc(encodeURIComponent(l.imageQuery || specific)) +
+        '" target="_blank" rel="noopener noreferrer">Открыть тематический поиск Wikimedia Commons ↗</a></p></div>';
+      el("readerGallery").classList.remove("hidden");
+      return;
+    }
+    grid.innerHTML = collected.slice(0, MAX_READER_GALLERY_IMAGES).map(function(item) {
+      var info = item.info, caption = localizedGalleryImage(l, item.raw);
+      var author = item.artist ? '<p class="reader-gallery-meta">Автор/создатель: ' + esc(item.artist) + '</p>' : '';
+      var date = item.date ? '<p class="reader-gallery-meta">Дата в карточке файла: ' + esc(item.date) + '</p>' : '';
+      var license = item.license ? '<p class="reader-gallery-meta">Лицензия: ' + esc(localizedLicenseLabel(item.license)) + '</p>' :
+        '<p class="reader-gallery-meta">Полные условия лицензии доступны в карточке файла.</p>';
+      return '<article class="reader-gallery-card">' +
+        '<img src="' + esc(info.thumburl) + '" data-original-image="' + esc(info.url) +
+        '" data-source-page="' + esc(info.descriptionurl) + '" data-source-title="' + esc(caption.title) +
+        '" data-caption-title="' + esc(caption.title) + '" alt="' + esc(caption.title) + '" loading="lazy">' +
+        '<div class="reader-gallery-copy"><strong>' + esc(caption.title) + '</strong>' +
+        '<p>' + esc(caption.description) + '</p><p>' + esc(caption.why) + '</p>' +
+        date + author + license +
+        '<a class="reader-gallery-source" href="' + esc(info.descriptionurl) +
+        '" target="_blank" rel="noopener noreferrer">Источник, авторство и полная лицензия ↗</a></div></article>';
+    }).join("");
+    var status = document.createElement("p");
+    status.className = "reader-gallery-status";
+    status.textContent = "Подобрано " + Math.min(collected.length, MAX_READER_GALLERY_IMAGES) +
+      " дополнительных изображений по теме; вместе с основным изображением занятие содержит до 10 иллюстраций.";
+    if (collected.length < MIN_READER_GALLERY_IMAGES) {
+      status.textContent += " Не удалось подтвердить ещё " +
+        (MIN_READER_GALLERY_IMAGES - collected.length) + " тематических файлов; откройте поиск по теме ниже.";
+    }
+    grid.prepend(status);
+    if (collected.length < MIN_READER_GALLERY_IMAGES) {
+      var link = document.createElement("p");
+      link.className = "reader-gallery-status";
+      link.innerHTML = '<a class="reader-gallery-source" href="https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&amp;search=' +
+        esc(encodeURIComponent(l.imageQuery || specific)) +
+        '" target="_blank" rel="noopener noreferrer">Найти дополнительные изображения ↗</a>';
+      grid.appendChild(link);
+    }
+    el("readerGallery").classList.remove("hidden");
+    grid.querySelectorAll("img").forEach(function(img) {
+      img.addEventListener("error", function() {
+        var card = img.closest(".reader-gallery-card");
+        if (card) card.remove();
+        var cards = grid.querySelectorAll(".reader-gallery-card").length;
+        var note = grid.querySelector(".reader-gallery-status");
+        if (note && cards < MIN_READER_GALLERY_IMAGES) {
+          note.textContent = "После проверки загрузки осталось " + cards +
+            " дополнительных изображений. Для недостающих файлов используйте тематический поиск.";
+        }
+      }, { once: true });
+    });
+  }
+  function attempt(index) {
+    if (state.day !== l.day) return;
+    if (collected.length >= MAX_READER_GALLERY_IMAGES || index >= queries.length) {
+      renderCollected();
+      return;
+    }
+    var api = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
+      encodeURIComponent(queries[index]) +
+      "&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime%7Csize&iiurlwidth=1000&format=json&origin=*";
+    fetch(api).then(function(response) {
+      if (!response.ok) throw new Error("Commons gallery search returned " + response.status);
+      return response.json();
+    }).then(function(data) {
+      if (state.day !== l.day) return;
+      var pages = data.query && data.query.pages ? Object.keys(data.query.pages).map(function(k) {
+        return data.query.pages[k];
+      }) : [];
+      var candidates = [];
+      pages.forEach(function(page) {
+        var info = page.imageinfo && page.imageinfo[0], raw = String(page.title || "").replace(/^File:/, "");
+        if (!isUsableImage(page) || seen.has(info.descriptionurl)) return;
+        var score = relevanceScore(raw);
+        // A file must share a meaningful topic term; a MIME type alone is not enough.
+        if (score < 1) return;
+        seen.add(info.descriptionurl);
+        var ext = info.extmetadata || {};
+        candidates.push({
+          info: info, raw: raw, score: score,
+          artist: cleanAttribution(ext.Artist && ext.Artist.value),
+          license: cleanAttribution(ext.LicenseShortName && ext.LicenseShortName.value),
+          date: cleanAttribution(ext.DateTimeOriginal && ext.DateTimeOriginal.value) ||
+            cleanAttribution(ext.DateTime && ext.DateTime.value)
+        });
+      });
+      candidates.sort(function(a,b) { return b.score-a.score; });
+      candidates.forEach(function(item) {
+        if (collected.length < MAX_READER_GALLERY_IMAGES) collected.push(item);
+      });
+      attempt(index + 1);
+    }).catch(function() { attempt(index + 1); });
+  }
+  el("readerGallery").classList.add("hidden");
+  grid.innerHTML = '<p class="map-study-status">Ищем 5–10 подходящих изображений по теме занятия…</p>';
+  el("readerGallery").classList.remove("hidden");
+  attempt(0);
+}
 var epochImageCache={},epochImageFailed={};
 function isUsableEpochImage(page,info){var title=String(page&&page.title||""),mime=String(info&&info.mime||"");if(/\.(pdf|djvu?|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(title))return false;if(mime)return /^image\//i.test(mime);return /\.(jpe?g|png|gif|webp|tiff?|svg|avif|xcf)$/i.test(title)}function loadEpochBackground(l){
 var week=l.week,entry=(window.HISTORY_EPOCH_VISUALS||{})[week]||{query:l.imageSearch||l.title,label:l.weekTitle,article:l.wiki};
@@ -556,7 +769,7 @@ function useCommons(index){
     var pages=d.query&&d.query.pages?Object.keys(d.query.pages).map(function(k){return d.query.pages[k]}):[];
     var p=pages.find(function(x){var info=x.imageinfo&&x.imageinfo[0];return info&&isUsableEpochImage(x,info)&&info.descriptionurl&&info.url&&!(epochImageFailed[week]||[]).includes(x.title)});
     if(!p){useCommons(index+1);return}
-    var info=p.imageinfo[0],ext=info.extmetadata||{},credit=[cleanAttribution(ext.Artist&&ext.Artist.value),cleanAttribution(ext.LicenseShortName&&ext.LicenseShortName.value)].filter(Boolean).join(" · ");
+    var info=p.imageinfo[0],ext=info.extmetadata||{},credit=[cleanAttribution(ext.Artist&&ext.Artist.value)?"Автор/создатель: "+cleanAttribution(ext.Artist&&ext.Artist.value):"",cleanAttribution(ext.LicenseShortName&&ext.LicenseShortName.value)?"Лицензия: "+localizedLicenseLabel(cleanAttribution(ext.LicenseShortName&&ext.LicenseShortName.value)):""].filter(Boolean).join(" · ");
     epochImageCache[week]={src:info.thumburl||info.url,original:info.url,page:info.descriptionurl,title:p.title.replace(/^File:/,""),fileTitle:p.title,label:entry.label||l.weekTitle,description:credit,origin:"commons"};
     applyEpochImage(week,epochImageCache[week]);
   }).catch(function(){useCommons(index+1)});
@@ -661,11 +874,18 @@ el("imageTaskCheck").addEventListener("click",checkImageTask);
 el("nextImageTask").addEventListener("click",function(){if(state.imgStep<2){state.imgStep++;renderImageTask()}else{document.querySelector(".quiz").scrollIntoView({behavior:"smooth"})}});
 el("examQuestions").addEventListener("click",function(e){var b=e.target.closest("[data-exam-option]");if(!b)return;var article=b.closest("[data-exam-q]"),q=+article.dataset.examQ,option=+b.dataset.examOption,r=state.examAnswers[state.day];if(!r||!Array.isArray(r.selected))r={selected:[null,null,null],checked:false};r.selected[q]=option;r.checked=false;state.examAnswers[state.day]=r;save();renderExamPractice()});
 el("checkExam").addEventListener("click",checkExam);el("checkQuiz").addEventListener("click",checkQuiz);el("toggleClock").addEventListener("click",function(){state.running=!state.running;if(state.running)state.handle=setInterval(tick,1000);else clearInterval(state.handle);el("toggleClock").textContent=state.running?"Ⅱ":"▶"});el("resetClock").addEventListener("click",function(){state.running=false;clearInterval(state.handle);state.secs=3000;el("clock").textContent="50:00";el("toggleClock").textContent="▶"});el("prevLesson").addEventListener("click",function(){openLesson(state.day-1)});el("nextLesson").addEventListener("click",function(){openLesson(state.day+1)});el("export").addEventListener("click",function(){var s="# История вдвоём — заметки\n\n";Object.keys(state.notes).sort(function(a,b){return +a- +b}).forEach(function(d){if(state.notes[d])s+="## День "+d+": "+L[+d-1].title+"\n\n"+state.notes[d]+"\n\n"});var blob=new Blob([s],{type:"text/markdown;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="istoriya-vdvoem-zametki.md";a.click();URL.revokeObjectURL(url)});
-function closeImageViewer(){el("imageViewer").classList.add("hidden");el("imageViewer").classList.remove("zoomed");el("imageViewerImage").src="";document.body.style.overflow=""}
+function closeImageViewer(){el("imageViewer").classList.add("hidden");el("imageViewer").classList.remove("zoomed");el("imageViewerImage").classList.remove("is-panning");el("imageViewerStage").classList.remove("is-panning");el("imageViewerStage").scrollLeft=0;el("imageViewerStage").scrollTop=0;el("imageViewerImage").src="";document.body.style.overflow=""}
+function openImageViewer(img,source,title,description){var viewer=el("imageViewer"),pic=el("imageViewerImage"),stage=el("imageViewerStage");pic.src=img.dataset.originalImage||img.currentSrc||img.src;pic.alt=img.alt||title||"Историческое изображение";el("imageViewerTitle").textContent=title||img.dataset.captionTitle||img.alt||"Историческое изображение";el("imageViewerDescription").textContent=description||"";var link=el("imageViewerSource");if(source){link.href=source;link.classList.remove("hidden")}else{link.removeAttribute("href");link.classList.add("hidden")}viewer.classList.remove("zoomed");stage.scrollLeft=0;stage.scrollTop=0;viewer.classList.remove("hidden");document.body.style.overflow="hidden";el("imageViewerZoom").textContent="Увеличить";el("imageViewerClose").focus()}
+var imagePanState=null;
+el("imageViewerStage").addEventListener("pointerdown",function(e){var viewer=el("imageViewer"),stage=el("imageViewerStage"),pic=el("imageViewerImage");if(!viewer.classList.contains("zoomed")||e.button!==0||!(e.target===pic||e.target===stage))return;imagePanState={x:e.clientX,y:e.clientY,left:stage.scrollLeft,top:stage.scrollTop,pointerId:e.pointerId};stage.classList.add("is-panning");pic.classList.add("is-panning");try{stage.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
+el("imageViewerStage").addEventListener("pointermove",function(e){if(!imagePanState||e.pointerId!==imagePanState.pointerId)return;var stage=el("imageViewerStage");stage.scrollLeft=imagePanState.left-(e.clientX-imagePanState.x);stage.scrollTop=imagePanState.top-(e.clientY-imagePanState.y)});
+function endImagePan(e){if(!imagePanState)return;if(e&&e.pointerId!==imagePanState.pointerId)return;imagePanState=null;el("imageViewerStage").classList.remove("is-panning");el("imageViewerImage").classList.remove("is-panning")}
+["pointerup","pointercancel","lostpointercapture"].forEach(function(name){el("imageViewerStage").addEventListener(name,endImagePan)});
+
 function openImageViewer(img,source,title,description){var viewer=el("imageViewer"),pic=el("imageViewerImage");pic.src=img.dataset.originalImage||img.currentSrc||img.src;pic.alt=img.alt||title||"Историческое изображение";el("imageViewerTitle").textContent=title||img.alt||"Историческое изображение";el("imageViewerDescription").textContent=description||"";var link=el("imageViewerSource");if(source){link.href=source;link.classList.remove("hidden")}else{link.removeAttribute("href");link.classList.add("hidden")}viewer.classList.remove("hidden");document.body.style.overflow="hidden";el("imageViewerZoom").textContent="Увеличить";el("imageViewerClose").focus()}
-document.addEventListener("click",function(e){var img=e.target.closest("#readerImage,#image,#taskImage,#epochBackgroundImage,.reader-gallery-card img,.map-result img,.image-choice-card img");if(img&&!img.closest("#imageViewer")){if(img.hidden||!img.src)return;e.preventDefault();e.stopPropagation();var source="",title=img.alt||"",description="";if(img.id==="epochBackgroundImage"){source=window.currentEpochSource||"";title=window.currentEpochTitle||title;var cached=epochImageCache[current().week];description=cached&&cached.description||""}else if(img.matches("#readerImage,#image,#taskImage")){source=img.dataset.sourcePage||el("taskPhotoLink").href;title=img.dataset.sourceTitle||title;var cap=el("readerCaption");description=cap?cap.innerText:""}else if(img.closest(".reader-gallery-card")){var c=img.closest(".reader-gallery-card");var a=c.querySelector(".reader-gallery-source");source=a?a.href:"";description=c.querySelector(".reader-gallery-copy")?.innerText||""}else if(img.closest(".map-result")){var a=img.closest(".map-result").querySelector("a");source=a?a.href:"";description=img.closest(".map-result").querySelector("figcaption")?.innerText||""}else{var c=img.closest(".image-choice-option"),a=c&&c.querySelector(".image-choice-source");source=a?a.href:"";description=c?c.innerText:""}openImageViewer(img,source,title,description);return}if(e.target===el("imageViewer"))closeImageViewer()});
+document.addEventListener("click",function(e){var img=e.target.closest("#readerImage,#image,#taskImage,#epochBackgroundImage,.reader-gallery-card img,.map-result img,.image-choice-card img");if(img&&!img.closest("#imageViewer")){if(img.hidden||!img.src)return;e.preventDefault();e.stopPropagation();var source="",title=img.alt||"",description="";if(img.id==="epochBackgroundImage"){source=window.currentEpochSource||"";title=window.currentEpochTitle||title;var cached=epochImageCache[current().week];description=cached&&cached.description||""}else if(img.matches("#readerImage,#image,#taskImage")){source=img.dataset.sourcePage||el("taskPhotoLink").href;title=img.dataset.captionTitle||img.alt||title;var cap=el("readerCaption");description=cap?cap.innerText:""}else if(img.closest(".reader-gallery-card")){var c=img.closest(".reader-gallery-card");var a=c.querySelector(".reader-gallery-source");source=a?a.href:"";description=c.querySelector(".reader-gallery-copy")?.innerText||""}else if(img.closest(".map-result")){var a=img.closest(".map-result").querySelector("a");source=a?a.href:"";description=img.closest(".map-result").querySelector("figcaption")?.innerText||""}else{var c=img.closest(".image-choice-option"),a=c&&c.querySelector(".image-choice-source");source=a?a.href:"";description=c?c.innerText:""}openImageViewer(img,source,title,description);return}if(e.target===el("imageViewer"))closeImageViewer()});
 el("viewPageBackground").addEventListener("click",function(){var img=el("epochBackgroundImage");if(!img.src||el("viewPageBackground").disabled)return;var item=epochImageCache[current().week]||{};openImageViewer(img,window.currentEpochSource||"",window.currentEpochTitle||"Исторический фон",item.description||"Фоновое изображение главы; откройте страницу источника для полного описания, авторства и лицензии.")});el("imageViewerClose").addEventListener("click",closeImageViewer);
-el("imageViewerZoom").addEventListener("click",function(){var v=el("imageViewer"),z=v.classList.toggle("zoomed");el("imageViewerZoom").textContent=z?"Уменьшить":"Увеличить"});
+el("imageViewerZoom").addEventListener("click",function(){var v=el("imageViewer"),stage=el("imageViewerStage"),z=v.classList.toggle("zoomed");el("imageViewerZoom").textContent=z?"Уменьшить":"Увеличить";stage.scrollLeft=0;stage.scrollTop=0;if(!z)endImagePan()});
 document.addEventListener("keydown",function(e){if(e.key==="Escape"&&!el("imageViewer").classList.contains("hidden"))closeImageViewer()});
 
 drawHome();drawNav();var param=+(new URLSearchParams(location.search).get("day")||0);if(param>=1&&param<=182)openLesson(param);
