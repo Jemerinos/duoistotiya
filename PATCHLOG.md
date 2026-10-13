@@ -336,3 +336,28 @@
 - Preserve the text-version level rather than lowering it when appending an enrichment paragraph.
 
 **Important:** no content is considered delivered merely because a source file exists. Completion must be verified in the runtime data and through the rendered application.
+
+
+---
+
+## PATCH-010 — Russian gallery, draggable image viewer and fuller runtime lesson narratives
+
+**Status:** implementation on branch complete-russian-gallery-and-viewer; awaiting CI and publication.
+
+**Audit findings**
+- The per-lesson gallery used l.imageSearch, while the actual runtime lesson object exposes l.imageQuery, so the prepared per-lesson image query was not used.
+- The gallery stopped at three results and showed raw English Wikimedia descriptions and filenames.
+- Zoom worked, but the viewer lacked pointer-drag-to-pan.
+- The authored base plus one enrichment paragraph was usually far shorter than a complete school-friendly explanation.
+
+**Changes in this branch**
+- The main lesson image plus up to nine gallery items gives a target of 5–10 images per lesson. Search uses each lesson's curated query, related variants, file-type validation, and topic-term matching.
+- Every displayed image gets a Russian contextual title and explanation. English Wikimedia ImageDescription and technical filenames aren't used as pupil-facing copy. Author, date and localized licence summary remain beside each gallery image, with a source-page link.
+- The viewer uses the original image URL when available. Pointer drag pans when zoomed; close, backdrop click and Escape remain supported.
+- The lesson narrative app runs after curated research and participant-source data. It adds prose from that lesson's own chronology, causes, developments, consequences, facts, actors, groups and definitions while skipping exact sentence repetitions already in the reading.
+- CI checks actual runtime narrative assembly, its minimum word count, the 5–10-image target, Russian caption helper, localized licence labels, pan/close behavior, local file existence and script order.
+
+**Limitations**
+- Wikimedia is external. The page reports a shortage instead of substituting obviously unrelated files when fewer than five additional suitable candidates can be confirmed. Code-level query coverage is not proof that all 182 topics already return 5–10 matching files today.
+- The narrative layer is built from lesson-specific evidence already present in the course. The post-CI median word count must be checked; this step isn't a substitute for a human historical fact-check.
+- GitHub Pages deployment must be checked independently after merge.
