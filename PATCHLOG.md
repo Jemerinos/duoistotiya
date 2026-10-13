@@ -294,3 +294,26 @@
 - [ ] Добавлены конкретные, источник-поддержанные причины/последствия в избранные событийные уроки с самым слабым покрытием; не заполнять пустоту общими фразами.
 - [ ] Проверки курса, действий, структуры и fast media проходят; CI/коммит и оставшиеся редакторские ограничения сохранены.
 - [ ] PR остаётся Draft; main и Pages не трогаем.
+
+
+---
+
+## PATCH-008 — Remove disconnected enrichment drafts; prepare a real narrative-content pass
+
+**Status:** cleanup and diagnostic guard in progress; no lesson text is being silently replaced in this patch.
+
+**Problem confirmed on main:** `curriculum-enrichment-01.js`, `curriculum-enrichment-02.js` and `curriculum-enrichment-03.js` contained supplemental paragraphs for days 1–138 but were not loaded by `index.html`. They could pass unnoticed because CI checked the files that it already knew about rather than detecting these unconnected drafts. The files therefore did not change what a learner saw.
+
+**Decision:** remove these three unconnected root-level files for now. Their historical versions remain available in Git history, but are not treated as published learning material. Do not create another unconnected "backup" layer.
+
+**Guardrails added in this patch**
+- `.github/scripts/check-site.py` fails if a future `curriculum-enrichment-*.js` file exists without being loaded by the site.
+- `.github/scripts/check-course.js` reports the character-length distribution of all 182 runtime lesson readings, so the actual rendered content gap is visible in CI. This metric is diagnostic only; it does not confuse length with factual or pedagogical quality.
+- No claim is made that the lesson-content expansion is complete in this cleanup patch.
+
+**Next separate content phase**
+- Expand the actual rendered readings in `curriculum-details-01.js` … `curriculum-details-04.js` and the curated research packs, rather than create an unused side layer.
+- Target a clear, school-friendly narrative of roughly 500–800 words for a normal lesson, adjusted for the scope of the topic. Explain background, chronology, named actors and their interests, key terms in context, several causal links, consequences, and what evidence supports the account. Methods/comparison lessons should follow their purpose rather than receive artificial event causes.
+- Keep source links beside the relevant lesson content; distinguish primary evidence, later reconstruction, scholarly interpretation, and uncertainty.
+- Localize image captions into Russian. Do not present raw English Wikimedia `ImageDescription` or raw filenames as the pupil-facing explanation. Retain the original file page for authorship, licence and provenance.
+- Add checks against the text the app actually renders, verify sample lessons from early/middle/late course ranges, then verify the deployed site separately from CI success.
