@@ -76,6 +76,8 @@ assert(/uniqueReaderFacts/.test(readerHtml), "Fact cards must filter sentences a
 assert(/depth-evidence-expand/.test(readerHtml) && /depth-chronology-expand/.test(readerHtml),
   "Extracted evidence and chronology must be collapsed by default to avoid repeating the reading");
 assert(!/id="depthCheckPoints"/.test(readerHtml), "Repeated generic checklist must be removed from lesson cards");
+assert(/id="viewPageBackground"/.test(readerHtml) && /loadEpochBackground\(current\(\)\)/.test(readerHtml),
+  "Home screen must load the historical background and provide its viewer control");
 console.log("Exact-text audit OK: " + repeatedWithinLesson +
   " long exact sentence overlaps detected inside lessons are hidden by reader de-duplication; no long sentence is reused across 3+ lessons.");
 
@@ -98,6 +100,22 @@ assert(course.weeks[3][0] === "Ранние общества Азии, Афри�
 assert(course.lessons[0][6].depth.people.some(p => p.name === "Фукидид"), "Thucydides example missing from first lesson");
 const researchStats = window.HISTORY_RESEARCH_CONTENT_STATS;
 assert(researchStats && researchStats.version === 2 && researchStats.lessons === 7, "Expected seven researched content packs");
+const eventStats = window.HISTORY_EVENT_DEPTH_STATS;
+assert(eventStats && eventStats.version === 1 && eventStats.lessons === 13,
+  "Expected 13 source-backed event-depth supplements");
+for (const day of eventStats.days) {
+  const row = course.lessons[day - 1], meta = row && row[6], d = meta && meta.depth;
+  assert(meta && meta.eventDepthVersion === 1, "Missing event-depth supplement on day " + day);
+  assert(meta.detailedText && meta.detailedText.length >= 850, "Event lesson lacks expanded context on day " + day);
+  assert(d.causes.length >= 2 && d.development.length >= 2 && d.consequences.length >= 2,
+    "Event lesson needs multiple concrete causes, developments, and consequences on day " + day);
+  assert(meta.researchSources.length >= 2 && meta.researchSources.every(s => /^https:\/\//.test(s.url) && s.title && s.desc),
+    "Event lesson lacks source links on day " + day);
+  for (const field of ["causes", "development", "consequences"]) {
+    for (const item of d[field]) assert(item.length >= 45 && item.length <= 420,
+      "Suspicious short/long event evidence in " + field + " on day " + day);
+  }
+}
 for (const day of researchStats.days) {
   const meta = course.lessons[day - 1][6];
   assert(meta.detailedText && meta.detailedText.length >= 700, "Expanded research text too short on day " + day);
