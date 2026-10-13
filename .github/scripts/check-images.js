@@ -128,126 +128,147 @@ async function checkBackgroundQueries() {
     const row = course.lessons[(week - 1) * 7];
     const entry = visuals[week];
     items.push({
-      week,
-      label: entry.label,
-      article: entry.article,
+      week, label: entry.label, article: entry.article || "",
+      preferredFile: entry.preferredFile || "",
       queries: [...new Set([entry.query, row[6] && row[6].imageSearch, row[0]].filter(Boolean))]
     });
   }
-  const results = [];
-  const missing = [];
+  const results = [], missing = [];
+  const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+  function isUsable(page) {
+    const info = page && page.imageinfo && page.imageinfo[0];
+    if (!page || !info || !info.thumburl || !info.descriptionurl || !info.url) return false;
+    const title = String(page.title || "").toLowerCase();
+    const mime = String(info.mime || "").toLowerCase();
+    if (/\.(pdf|djvu|epub)$/i.test(title)) return false;
+    if (mime && !mime.startsWith("image/")) return false;
+    return true;
+  }
+  async function getJson(url, label) {
+    return retry(label, async () => {
+      const response = await withTimeout(url);
+      if (response.status === 429 || response.status === 503) {
+        const error = new Error(label + " returned HTTP " + response.status);
+        error.retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after")) ?? 12000;
+        throw error;
+      }
+      assert(response.ok, label + " returned HTTP " + response.status);
+      const payload = await response.json();
+      if (payload && payload.error) {
+        const code = String(payload.error.code || "");
+        const message = String(payload.error.info || payload.error.message || code);
+        const error = new Error(label + " API error " + code + ": " + message);
+        if (/maxlag|ratelimit|readonly|throttl/i.test(code + " " + message)) error.retryAfterMs = 12000;
+        throw error;
+      }
+      return payload;
+    });
+  }
+  function saveCandidate(item, found) {
+    results.push(found);
+    console.log("BACKGROUND CANDIDATE " + JSON.stringify({
+      week:found.week,label:found.label,file:found.file,method:found.method,
+      preferredFile:item.preferredFile || "",fallbackUsed:!!found.fallbackUsed,source:found.source
+    }));
+  }
+  async function stoppedByRateLimit(error, item) {
+    const message = String(error && error.message || error);
+    if (!/HTTP 429|HTTP 503|maxlag|rate.?limit|throttl/i.test(message)) return false;
+    const note = "Live background audit INCONCLUSIVE: " + results.length +
+      "/26 modules checked; Wikimedia rate limit while checking module " + item.week +
+      ". The rest remain unverified, not missing.";
+    console.log(note);
+    throw new Error(note);
+  }
+
   for (const item of items) {
     let found = null;
-    // Article lead images are preferred; broad Commons search is a fallback.
+    // 1) Check the exact, editorially selected Commons file first.
+    if (item.preferredFile) {
+      const url = "https://commons.wikimedia.org/w/api.php?action=query&titles=" +
+        encodeURIComponent(item.preferredFile) +
+        "&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime%7Csize&iiurlwidth=240&format=json&origin=*";
+      try {
+        const payload = await getJson(url, "Pinned Commons file for module " + item.week);
+        await pause(10000);
+        const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
+        const candidate = pages.find(page => page.title === item.preferredFile && isUsable(page));
+        if (candidate) {
+          const info = candidate.imageinfo[0];
+          found = {
+            week:item.week,label:item.label,article:item.article,file:candidate.title,
+            source:info.descriptionurl,method:"pinned-file",fallbackUsed:false
+          };
+        } else {
+          console.log("PINNED FILE UNAVAILABLE " + JSON.stringify({week:item.week,file:item.preferredFile}));
+        }
+      } catch (error) {
+        await stoppedByRateLimit(error,item);
+        console.log("PINNED FILE LOOKUP FAILED " + JSON.stringify({week:item.week,file:item.preferredFile,error:String(error.message||error)}));
+      }
+    }
+    if (found) { saveCandidate(item,found); continue; }
+
+    // 2) Use the declared Wikipedia article thumbnail before a text search.
     if (item.article) {
-      const articleUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages%7Cinfo&piprop=thumbnail%7Coriginal%7Cname&pithumbsize=600&inprop=url&redirects=1&titles=" +
+      const url = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages%7Cinfo&piprop=thumbnail%7Coriginal%7Cname&pithumbsize=600&inprop=url&redirects=1&titles=" +
         encodeURIComponent(item.article) + "&format=json&origin=*";
       try {
-        const payload = await retry("Wikipedia article image for module " + item.week, async () => {
-          const response = await withTimeout(articleUrl);
-          if (response.status === 429 || response.status === 503) {
-            const error = new Error("Wikipedia article image lookup returned HTTP " + response.status);
-            error.retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after")) ?? 12000;
-            throw error;
-          }
-          assert(response.ok, "Wikipedia article image lookup returned HTTP " + response.status);
-          return await response.json();
-        });
-        await new Promise(resolve => setTimeout(resolve, 10000));
+        const payload = await getJson(url,"Wikipedia article image for module " + item.week);
+        await pause(10000);
         const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
         const page = pages.find(p => !p.missing && p.thumbnail && p.thumbnail.source && p.pageimage);
         if (page) {
           found = {
-            week: item.week, label: item.label, article: item.article,
-            file: "File:" + page.pageimage, mime: "Wikipedia article thumbnail",
-            source: page.fullurl || "https://en.wikipedia.org/wiki/" + encodeURIComponent(page.title.replace(/ /g, "_")),
-            thumbnail: page.thumbnail.source,
-            original: page.original && page.original.source || page.thumbnail.source,
-            fallbackUsed: false, method: "article-first"
+            week:item.week,label:item.label,article:item.article,file:"File:"+page.pageimage,
+            source:page.fullurl || "https://en.wikipedia.org/wiki/"+encodeURIComponent(String(page.title||item.article).replace(/ /g,"_")),
+            method:"article-thumbnail",fallbackUsed:!!item.preferredFile
           };
-          results.push(found);
-          console.log("BACKGROUND CANDIDATE " + JSON.stringify(found));
-          continue;
         }
-        console.log("ARTICLE IMAGE EMPTY " + JSON.stringify({week:item.week,article:item.article}));
       } catch (error) {
-        console.log("ARTICLE IMAGE FALLBACK " + JSON.stringify({week:item.week,article:item.article,error:String(error && error.message || error)}));
+        await stoppedByRateLimit(error,item);
+        console.log("ARTICLE IMAGE FALLBACK " + JSON.stringify({week:item.week,article:item.article,error:String(error.message||error)}));
       }
     }
+    if (found) { saveCandidate(item,found); continue; }
+
+    // 3) Commons text-search is the last resort, with PDF/DjVu and non-image results rejected.
     for (let queryIndex = 0; queryIndex < item.queries.length; queryIndex++) {
       const query = item.queries[queryIndex];
       const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
-        encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime%7Csize&iiurlwidth=200&format=json&origin=*";
-      let payload;
+        encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime%7Csize&iiurlwidth=240&format=json&origin=*";
       try {
-        payload = await retry("Commons background search for module " + item.week, async () => {
-          const response = await withTimeout(url);
-          if (response.status === 429 || response.status === 503) {
-            const error = new Error("Commons background query returned HTTP " + response.status);
-            error.retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after")) ?? 12000;
-            throw error;
-          }
-          assert(response.ok, "Commons background query returned HTTP " + response.status);
-          const data = await response.json();
-          if (data && data.error) {
-            const code = String(data.error.code || "");
-            const message = String(data.error.info || data.error.message || code);
-            const error = new Error("Commons API error " + code + ": " + message);
-            if (/maxlag|ratelimit|readonly|throttl/i.test(code + " " + message)) error.retryAfterMs = 12000;
-            throw error;
-          }
-          return data;
-        });
-      } catch (error) {
-        if (/HTTP 429|HTTP 503/.test(String(error && error.message || error))) {
-          console.log("Live background image audit INCONCLUSIVE: " + results.length +
-            "/26 modules verified before Wikimedia rate limiting at module " + item.week +
-            ". Remaining modules are unverified, not classified as missing.");
-          return;
+        const payload = await getJson(url,"Commons search for module " + item.week);
+        await pause(10000);
+        const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
+        const candidate = pages.find(isUsable);
+        if (candidate) {
+          const info = candidate.imageinfo[0];
+          found = {week:item.week,label:item.label,article:item.article,file:candidate.title,
+            source:info.descriptionurl,method:"commons-search",fallbackUsed:true};
+          break;
         }
-        throw error;
-      }
-      await new Promise(resolve => setTimeout(resolve, 10000));
-      const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
-      const candidate = pages.find(hasUsableImageMetadata);
-      if (!candidate) {
-        console.log("BACKGROUND QUERY EMPTY " + JSON.stringify({
-          week: item.week, query, resultPages: pages.length,
-          sampleFiles: pages.slice(0, 4).map(page => {
-            const info = page.imageinfo && page.imageinfo[0] || {};
-            return {title: page.title,mime: info.mime || "not-returned",thumbnail: !!info.thumburl,source: !!info.descriptionurl};
-          })
-        }));
-      }
-      if (candidate) {
-        const info = candidate.imageinfo && candidate.imageinfo[0] || {};
-        found = {
-          week:item.week,label:item.label,article:item.article||"",query,fallbackUsed:queryIndex>0,
-          file:candidate.title,mime:info.mime||"unknown",source:info.descriptionurl||"",
-          thumbnail:info.thumburl||info.url||"",
-          author:info.extmetadata&&info.extmetadata.Artist&&info.extmetadata.Artist.value||"",
-          license:info.extmetadata&&info.extmetadata.LicenseShortName&&info.extmetadata.LicenseShortName.value||"",
-          method:"commons"
-        };
-        break;
+      } catch (error) {
+        await stoppedByRateLimit(error,item);
+        console.log("COMMONS QUERY FAILED " + JSON.stringify({week:item.week,query,error:String(error.message||error)}));
       }
     }
-    if (found) {
-      results.push(found);
-      console.log("BACKGROUND CANDIDATE " + JSON.stringify(found));
-    } else {
-      missing.push(item.week + " (" + item.label + "; article: " + (item.article||"none") + "; queries: " + item.queries.join(" / ") + ")");
-      console.log("BACKGROUND MISSING " + JSON.stringify({week:item.week,label:item.label,article:item.article||"",queries:item.queries}));
+    if (found) saveCandidate(item,found);
+    else {
+      missing.push(item.week);
+      console.log("BACKGROUND MISSING " + JSON.stringify({week:item.week,label:item.label,article:item.article,preferredFile:item.preferredFile||"",queries:item.queries}));
     }
   }
-  if (missing.length) {
-    console.log("Background candidate manifest: " + JSON.stringify(results.map(item => ({week:item.week,label:item.label,article:item.article||"",file:item.file||"",source:item.source||"",method:item.method||"commons",fallbackUsed:!!item.fallbackUsed}))));
-    throw new Error("No live image result for module(s): " + missing.join("; "));
-  }
-  const fallbacks = results.filter(item => item.fallbackUsed).map(item => item.week);
-  console.log("Live background audit OK: " + results.length + "/26 modules have usable image candidates. Full manifest: " +
-    JSON.stringify(results.map(item => ({week:item.week,label:item.label,article:item.article||"",file:item.file||"",source:item.source||"",thumbnail:item.thumbnail||"",method:item.method||"commons",fallbackUsed:!!item.fallbackUsed}))) +
-    ". Commons fallback query used for module(s): " + (fallbacks.length ? fallbacks.join(", ") : "none") + ".");
+
+  const manifest = results.map(item => ({
+    week:item.week,label:item.label,file:item.file,method:item.method,
+    preferredFile:item.preferredFile||"",fallbackUsed:!!item.fallbackUsed
+  }));
+  console.log("Background candidate manifest (compact): " + JSON.stringify(manifest));
+  if (missing.length) throw new Error("No usable background image candidate for module(s): " + missing.join(", "));
+  const fileMatches = results.filter(item => item.method === "pinned-file").length;
+  console.log("Live background audit OK: " + results.length + "/26 usable candidates; " +
+    fileMatches + " pinned files verified; remaining candidates use article thumbnails or Commons search.");
 }
 
 async function onlineCheck() {
@@ -288,10 +309,14 @@ async function onlineCheck() {
     return { status: response.status, type };
   });
   console.log("Live image smoke test OK: Wikipedia Action API returned page data; Commons returned \"" + candidate.title + "\"; thumbnail returned " + imageResponse.status + " (" + imageResponse.type + ").");
-  await checkBackgroundQueries();
 }
 
-if (process.argv.includes("--online")) {
+if (process.argv.includes("--background-audit")) {
+  checkBackgroundQueries().catch(error => {
+    console.error("Live background audit FAILED:", error && error.stack || error);
+    process.exitCode = 1;
+  });
+} else if (process.argv.includes("--online")) {
   onlineCheck().catch(error => {
     console.error("Live image smoke test FAILED:", error && error.stack || error);
     process.exitCode = 1;
