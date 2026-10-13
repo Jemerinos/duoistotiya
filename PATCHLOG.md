@@ -361,3 +361,14 @@
 - Wikimedia is external. The page reports a shortage instead of substituting obviously unrelated files when fewer than five additional suitable candidates can be confirmed. Code-level query coverage is not proof that all 182 topics already return 5–10 matching files today.
 - The narrative layer is built from lesson-specific evidence already present in the course. The post-CI median word count must be checked; this step isn't a substitute for a human historical fact-check.
 - GitHub Pages deployment must be checked independently after merge.
+
+
+---
+
+## PATCH-011 — Исправление поискового поля изображений
+
+В ходе повторной проверки найдено три использования старого имени l.imageSearch в запасном поиске основной картинки и изображения фона главы. В модели урока правильное поле — l.imageQuery. Все три ссылки заменены; check-images.js теперь проверяет, что старого имени нет, а основной и фоновый загрузчики используют поле урока.
+
+Статус PATCH-010: PR #5 объединён коммитом e090a8961ff900249c3a692f08aabc4218e81969. Run 38466820261: четыре обязательные CI-проверки успешны. Проверка runtime-текстов: 182 урока, медиана 423 слова, ни одного короче 250 слов.
+
+Ограничение: галерея динамически ищет изображения Wikimedia; цель — 5–10 вместе с основной картинкой, но число подходящих результатов для всех 182 тем ещё не проверено полным live-аудитом. Публичный Pages после merge этим сеансом не подтверждён; не считать PR CI доказательством публикации.
