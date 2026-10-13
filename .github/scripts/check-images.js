@@ -33,6 +33,9 @@ for (let week = 1; week <= 26; week++) {
   const item = visuals[week];
   assert(item && typeof item.query === "string" && item.query.trim().length >= 8, "Missing descriptive background query for module " + week);
   assert(typeof item.label === "string" && item.label.trim(), "Missing Russian background label for module " + week);
+  assert(typeof item.focus === "string" && item.focus.trim().length >= 3, "Missing single-topic focus for module " + week);
+  assert(item.query.toLocaleLowerCase().includes(item.focus.toLocaleLowerCase()),
+    "Background query must include its declared focus for module " + week + ": " + item.query);
 }
 
 assert(/id="readerImage"[^>]*alt="[^"]+"/.test(html), "Reader image needs non-empty alt text");
@@ -54,7 +57,7 @@ assert(/ext.ImageDescription/.test(html) && /ext.LicenseShortName/.test(html), "
 assert(!/class="factnote">'+notes[i]/.test(html), "Repeated generic guidance still appears under every lesson fact");
 assert(/epochImageFailed/.test(html), "Background loading should skip a candidate that already failed");
 
-console.log("Image structure OK: 182/182 lesson routes, 26/26 background queries, per-image source routing, retry/fallback and up-to-three sourced gallery results.");
+console.log("Image structure OK: 182/182 lesson routes, 26/26 single-focus background queries, per-image source routing, retry/fallback and up-to-three sourced gallery results.");
 
 /* Optional live smoke test. This checks the endpoints and one returned image, not all 182
    search results; automatic search results still require editorial relevance review. */
@@ -126,6 +129,7 @@ async function checkBackgroundQueries() {
         }
         throw error;
       }
+      await new Promise(resolve => setTimeout(resolve, 10000));
       const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
       const candidate = pages.find(page => {
         const info = page.imageinfo && page.imageinfo[0];
@@ -138,7 +142,6 @@ async function checkBackgroundQueries() {
     }
     if (found) results.push(found);
     else missing.push(item.week + " (" + item.label + "; queries: " + item.queries.join(" / ") + ")");
-    await new Promise(resolve => setTimeout(resolve, 10000));
   }
   if (missing.length) {
     throw new Error("No live Commons image result for module(s): " + missing.join("; "));
