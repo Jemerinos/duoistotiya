@@ -18,7 +18,7 @@
     13:{query:"Novgorod Kremlin Russia medieval fortress walls photograph",article:"Novgorod Kremlin",focus:"Novgorod",label:"Средневековый Новгород"},
     14:{query:"Sandro Botticelli Italian Renaissance painting Uffizi",article:"Sandro Botticelli",focus:"Botticelli",label:"Итальянское Возрождение"},
     15:{query:"Peter the Great portrait painting Russian emperor eighteenth century",article:"Peter the Great",focus:"Peter the Great",label:"Пётр I и Петербург"},
-    16:{query:"Atlantic slave trade slave ship eighteenth century engraving",article:"Atlantic slave trade",focus:"Atlantic slave trade",label:"Атлантическая работорговля"},
+    16:{query:"Atlantic slave trade advertisement enslaved people auction historical document",article:"Atlantic slave trade",focus:"Atlantic slave trade",label:"Объявление о продаже порабощённых людей"},
     17:{query:"Storming of the Bastille 1789 French Revolution historical painting",article:"Storming of the Bastille",focus:"Bastille",label:"Взятие Бастилии, 1789 год"},
     18:{query:"Industrial Revolution nineteenth century textile factory machinery photograph",article:"Industrial Revolution",focus:"Industrial Revolution",label:"Фабричное производство XIX века"},
     19:{query:"Proclamation of German Empire 1871 Anton von Werner painting",article:"German Empire",preferredFile:"File:1871 Proclamation of the German Empire.jpg",focus:"German Empire",label:"Провозглашение Германской империи, 1871 год"},
@@ -27,7 +27,7 @@
     22:{query:"Great Depression unemployed queue 1931 photograph",article:"Great Depression",focus:"Great Depression",label:"Массовая безработица во время Великой депрессии"},
     23:{query:"Normandy landings D-Day 1944 Second World War historical photograph",article:"Normandy landings",focus:"Normandy",label:"Высадка союзников в Нормандии, 1944 год"},
     24:{query:"Berlin Wall Checkpoint Charlie Cold War 1961 historical photograph",article:"Berlin Wall",focus:"Berlin Wall",label:"Берлинская стена и холодная война"},
-    25:{query:"Maastricht Treaty signing 1992 European Union historical photograph",article:"Maastricht Treaty",preferredFile:"File:1991, persconferentie Eurotop, MECC Maastricht.jpg",focus:"Maastricht Treaty",label:"Европейский саммит в Маастрихте перед договором 1992 года"},
+    25:{query:"Maastricht Treaty summit MECC Maastricht European Community 1991 photograph",article:"Maastricht Treaty",preferredFile:"File:1991, persconferentie Eurotop, MECC Maastricht.jpg",focus:"Maastricht Treaty",label:"Саммит Европейского сообщества в Маастрихте, 1991 год"},
     26:{query:"Archivist archival documents reading room historical archive photograph",article:"Archive",focus:"Archivist",label:"Работа историка с архивными документами"}
   };
 })();
