@@ -30,10 +30,15 @@ script_order = [
     "curriculum-details-apply.js", "curriculum-enrichment-01.js",
     "curriculum-enrichment-02.js", "curriculum-enrichment-03.js",
     "curriculum-enrichment-04.js", "curriculum-visuals.js",
-    "curriculum-research.js", "curriculum-enrichment-apply.js",
-    "curriculum-participants.js", "curriculum-participant-sources.js", "curriculum-glossary.js"
+    "curriculum-research.js", "curriculum-participants.js",
+    "curriculum-participant-sources.js", "curriculum-enrichment-apply.js",
+    "curriculum-glossary.js"
 ]
 script_positions = [html.index(f'<script src="{name}"></script>') for name in script_order]
+for name in script_order:
+    if not (root / name).is_file():
+        raise SystemExit("index.html references missing local script: " + name)
+
 if script_positions != sorted(script_positions):
     raise SystemExit("Course scripts are loaded in the wrong dependency order")
 
@@ -59,7 +64,7 @@ if minutes != [5, 10, 15, 10, 10] or sum(minutes) != 50:
 
 required = [
     'id="epochBackgroundImage"', 'id="viewPageBackground"', 'loadEpochBackground(current())', 'function loadEpochBackground(l)', 'function handleTopicImageError(l,fromCommons)',
-    'img.dataset.sourcePage=source', 'collected.slice(0,3)', 'reader-gallery-meta',
+    'img.dataset.sourcePage=source', 'MIN_READER_GALLERY_IMAGES = 5', 'MAX_READER_GALLERY_IMAGES = 9', 'function localizedGalleryImage', 'reader-gallery-meta',
     'id="imageViewerImage"', 'id="imageViewerClose"', 'data-source-page',
     'id="openGlossary"', 'id="glossaryOverlay"', 'id="glossaryDialog"',
     'aria-modal="true"', 'data-glossary-term', 'Открыть в глоссарии',
