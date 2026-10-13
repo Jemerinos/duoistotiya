@@ -12,9 +12,9 @@ require("../../curriculum-enrichment-02.js");
 require("../../curriculum-enrichment-03.js");
 require("../../curriculum-enrichment-04.js");
 require("../../curriculum-research.js");
-require("../../curriculum-enrichment-apply.js");
 require("../../curriculum-participants.js");
 require("../../curriculum-participant-sources.js");
+require("../../curriculum-enrichment-apply.js");
 require("../../curriculum-glossary.js");
 const course = window.HISTORY_CURRICULUM;
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -167,14 +167,24 @@ assert(glossary.find("Первичный источник") && glossary.find("Ф
 // Report the actual text delivered to the reader, not orphaned helper files.
 const narrativeLengths = course.lessons.map((row, i) => ({
   day: i + 1,
-  length: String(row[6] && row[6].detailedText || "").trim().length
-})).sort((a, b) => a.length - b.length);
-const below700 = narrativeLengths.filter(x => x.length < 700).length;
-const below2500 = narrativeLengths.filter(x => x.length < 2500).length;
-const medianNarrativeLength = narrativeLengths[Math.floor(narrativeLengths.length / 2)].length;
-console.log("Narrative length audit (rendered lesson texts): " + narrativeLengths.length +
-  " lessons; median " + medianNarrativeLength + " characters; " + below700 +
-  " under 700 characters; " + below2500 + " under 2,500 characters. This is a baseline report, not a content-quality pass.");
+  text: String(row[6] && row[6].detailedText || "").trim(),
+  length: String(row[6] && row[6].detailedText || "").trim().length,
+  words: String(row[6] && row[6].detailedText || "").trim().split(/\s+/).filter(Boolean).length,
+  assemblyVersion: row[6] && row[6].narrativeAssemblyVersion
+}));
+const missingNarrativeAssembly = narrativeLengths.filter(x => x.assemblyVersion !== 1);
+assert(missingNarrativeAssembly.length === 0,
+  "Runtime lesson readings missing contextual narrative assembly: " + missingNarrativeAssembly.map(x => x.day).join(", "));
+const tooShortNarratives = narrativeLengths.filter(x => x.words < 180);
+assert(tooShortNarratives.length === 0,
+  "Runtime lesson narratives shorter than 180 words after contextual assembly: " +
+  tooShortNarratives.map(x => x.day + " (" + x.words + ")").join(", "));
+const sortedLengths = narrativeLengths.slice().sort((a,b)=>a.length-b.length);
+const sortedWords = narrativeLengths.slice().sort((a,b)=>a.words-b.words);
+const below250 = narrativeLengths.filter(x => x.words < 250).length;
+console.log("Rendered narrative audit: " + narrativeLengths.length + " lessons; median " +
+  sortedWords[91].words + " words / " + sortedLengths[91].length +
+  " characters; " + below250 + " below 250 words. This audit reflects actual runtime text, not unconnected source files.");
 const avgTerms = depths.reduce((sum, d) => sum + d.terms.length, 0) / depths.length;
 const peopleCoverage = depths.filter(d => d.people.length > 0).length;
 const groupsCoverage = depths.filter(d => d.groups.length > 0).length;
