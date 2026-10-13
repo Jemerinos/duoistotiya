@@ -9,14 +9,28 @@ if not (root / "PATCHLOG.md").is_file() or not (root / "PROJECT_STATE.md").is_fi
 if 'PATCH-002' not in (root / "PATCHLOG.md").read_text(encoding="utf-8"):
     raise SystemExit("PATCHLOG.md is missing the current image-audit patch")
 
-for script in ("curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js", "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js", "curriculum-details-apply.js", "curriculum-research.js", "curriculum-participants.js", "curriculum-participant-sources.js", "curriculum-glossary.js"):
+for script in (
+    "curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js",
+    "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js",
+    "curriculum-details-apply.js", "curriculum-enrichment-01.js",
+    "curriculum-enrichment-02.js", "curriculum-enrichment-03.js",
+    "curriculum-enrichment-04.js", "curriculum-visuals.js",
+    "curriculum-research.js", "curriculum-enrichment-apply.js",
+    "curriculum-participants.js", "curriculum-participant-sources.js",
+    "curriculum-glossary.js"
+):
     if f'<script src="{script}"></script>' not in html:
         raise SystemExit(f"index.html must load {script}")
+    if not (root / script).is_file():
+        raise SystemExit(f"index.html references missing script: {script}")
 
 script_order = [
     "curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js",
     "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js",
-    "curriculum-details-apply.js", "curriculum-visuals.js", "curriculum-research.js",
+    "curriculum-details-apply.js", "curriculum-enrichment-01.js",
+    "curriculum-enrichment-02.js", "curriculum-enrichment-03.js",
+    "curriculum-enrichment-04.js", "curriculum-visuals.js",
+    "curriculum-research.js", "curriculum-enrichment-apply.js",
     "curriculum-participants.js", "curriculum-participant-sources.js", "curriculum-glossary.js"
 ]
 script_positions = [html.index(f'<script src="{name}"></script>') for name in script_order]
