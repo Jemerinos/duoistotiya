@@ -205,3 +205,8 @@ Added repository-wide `AGENTS.md` and four reusable skills under `.agents/skills
 **Delivery mode:** autonomous work should create/update a pull request and must not merge or deploy without explicit human approval. The repository GitHub connector is available, but no Codex Cloud environment is currently registered to this tool session. The user must create/publish a Codex Cloud environment in ChatGPT/Codex web or desktop, add this repository, verify the GitHub connection and push permission, then launch a cloud task from that environment. Codex Cloud setup is separate from files committed to the repository.
 
 **Current status:** implementation is on branch `agent-workflow-skills`; check PR and workflow results before treating this setup as accepted. This section must be updated with the actual PR URL and CI outcome after those actions complete.
+
+
+## Lesson gallery update — 2026-10-13
+
+On branch `agent-workflow-skills`, the lesson gallery display cap was raised from three to six results, and the image audit assertion was updated to match. This increases the number of illustrations that can be shown when Wikimedia returns usable results; it does **not** guarantee six images for every lesson or complete the Russian-caption/relevance audit. Existing click-to-enlarge viewer behavior is present in `index.html`. Latest-head CI is pending; no merge or deployment has occurred.
