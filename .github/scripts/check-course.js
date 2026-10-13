@@ -11,10 +11,15 @@ require("../../curriculum-research.js");
 require("../../curriculum-participants.js");
 require("../../curriculum-participant-sources.js");
 require("../../curriculum-glossary.js");
+require("../../curriculum-enrichment-04.js");
+require("../../curriculum-enrichment-apply.js");
 const course = window.HISTORY_CURRICULUM;
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 assert(course && course.weeks.length === 26, "Expected 26 course modules");
 assert(course.lessons.length === 182, "Expected 182 lessons");
+const narrativeStats = window.HISTORY_NARRATIVE_STATS;
+assert(narrativeStats && narrativeStats.version === 2 && narrativeStats.lessons === 182 && narrativeStats.enrichedLessons === 182, "Narrative assembly must run for every lesson");
+assert(narrativeStats.minCharacters >= 1000 && narrativeStats.targetedSupplementLessons === 44, "Narrative length or supplement coverage is incomplete");
 const titles = new Set();
 const depths = [];
 for (let i = 0; i < course.lessons.length; i++) {
@@ -33,7 +38,8 @@ for (let i = 0; i < course.lessons.length; i++) {
   assert(Array.isArray(d.development) && d.development.length >= 1, "Missing event development notes on lesson " + day);
   assert(Array.isArray(d.consequences) && d.consequences.length >= 1, "Missing consequence notes on lesson " + day);
   assert(Array.isArray(d.chronology) && d.chronology.length >= 3, "Incomplete chronology on lesson " + day);
-  assert(row[6].detailedText && row[6].detailedText.length >= 220, "Missing expanded reading on lesson " + day);
+  assert(row[6].detailedText && row[6].detailedText.length >= 1000, "Main narrative is too short on lesson " + day);
+  assert(row[6].expandedNarrativeVersion === 2 && row[6].narrativeParagraphs >= 4, "Main reading must include integrated context in multiple paragraphs on lesson " + day);
   assert(row[6].lessonContentVersion === 2, "Missing content coverage layer on lesson " + day);
   assert(Array.isArray(row[6].researchSources) && row[6].researchSources.length >= 2, "Missing topic/source starting points on lesson " + day);
   assert(row[6].researchSources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc), "Invalid source card on lesson " + day);
