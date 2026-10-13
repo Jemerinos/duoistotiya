@@ -12,7 +12,7 @@
     if(!base)missing.push(day);
     var combined=base+"\n\n"+addition.trim();
     meta.detailedText=combined;
-    meta.detailedTextVersion=2;
+    meta.detailedTextVersion=Math.max(meta.detailedTextVersion||1,2);
     meta.enrichmentVersion=1;
     stats.lessons++;
     stats.wordsBefore+=base.split(/\s+/).filter(Boolean).length;
