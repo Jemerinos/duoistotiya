@@ -194,3 +194,14 @@
 - В workflow добавить syntax checks всех enrichment loaders.
 - Не удалять эти файлы повторно, пока не будет проверено, что их функции перенесены в другой слой и тесты подтверждают сохранение контента.
 - Отдельная большая задача остаётся: качество и объём школьного изложения и локализация всех подписей к изображениям. Этот corrective patch исправляет доставку и проверки, но не объявляет завершённым редакторское расширение всего курса.
+
+
+## Agent workflow setup — 2026-10-13
+
+**Current task branch:** `agent-workflow-skills` (based on main HEAD `c6f4c96fae99c23f2f323eb297bdbb84c956ccfe` at task start).
+
+Added repository-wide `AGENTS.md` and four reusable skills under `.agents/skills/`: lesson authoring, independent history fact-checking, historical image audit, and safe project update/recovery. The skills define procedures and acceptance criteria; they do not run agents by themselves.
+
+**Delivery mode:** autonomous work should create/update a pull request and must not merge or deploy without explicit human approval. The repository GitHub connector is available, but no Codex Cloud environment is currently registered to this tool session. The user must create/publish a Codex Cloud environment in ChatGPT/Codex web or desktop, add this repository, verify the GitHub connection and push permission, then launch a cloud task from that environment. Codex Cloud setup is separate from files committed to the repository.
+
+**Current status:** implementation is on branch `agent-workflow-skills`; check PR and workflow results before treating this setup as accepted. This section must be updated with the actual PR URL and CI outcome after those actions complete.
