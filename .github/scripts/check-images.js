@@ -61,6 +61,8 @@ assert(/function drawHome\(\)[\s\S]{0,1800}loadEpochBackground\(current\(\)\)/.t
   "Home page background must load before the first lesson is opened");
 assert(/function parseRetryAfterMs/.test(require("node:fs").readFileSync(__filename, "utf8")),
   "Media audit must handle Retry-After delta-seconds and HTTP-date");
+assert(/filetype:bitmap/.test(require("node:fs").readFileSync(__filename, "utf8")) && /info\.mime/.test(require("node:fs").readFileSync(__filename, "utf8")),
+  "Background search must reject document thumbnails and prefer bitmap images");
 
 console.log("Image structure OK: 182/182 lesson routes, 26/26 single-focus background queries, per-image source routing, retry/fallback and up-to-three sourced gallery results.");
 
@@ -126,7 +128,7 @@ async function checkBackgroundQueries() {
     for (let queryIndex = 0; queryIndex < item.queries.length; queryIndex++) {
       const query = item.queries[queryIndex];
       const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
-        encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=15&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=200&format=json&origin=*";
+        encodeURIComponent(query + " filetype:bitmap") + "&gsrnamespace=6&gsrlimit=15&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime%7Csize&iiurlwidth=200&format=json&origin=*";
       let payload;
       try {
         payload = await retry("Commons background search for module " + item.week, async () => {
@@ -153,13 +155,13 @@ async function checkBackgroundQueries() {
       const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
       const candidate = pages.find(page => {
         const info = page.imageinfo && page.imageinfo[0];
-        return info && (info.thumburl || info.url) && info.descriptionurl;
+        return info && (info.thumburl || info.url) && info.descriptionurl && /^image\//i.test(info.mime || "") && !/\.(pdf|djvu?)$/i.test(page.title);
       });
       if (candidate) {
         const info = candidate.imageinfo && candidate.imageinfo[0] || {};
         found = {
           week: item.week, label: item.label, query, fallbackUsed: queryIndex > 0,
-          file: candidate.title, source: info.descriptionurl || "",
+          file: candidate.title, mime: info.mime || "unknown", source: info.descriptionurl || "",
           thumbnail: info.thumburl || info.url || "",
           author: info.extmetadata && info.extmetadata.Artist && info.extmetadata.Artist.value || "",
           license: info.extmetadata && info.extmetadata.LicenseShortName && info.extmetadata.LicenseShortName.value || ""
