@@ -317,3 +317,22 @@
 - Keep source links beside the relevant lesson content; distinguish primary evidence, later reconstruction, scholarly interpretation, and uncertainty.
 - Localize image captions into Russian. Do not present raw English Wikimedia `ImageDescription` or raw filenames as the pupil-facing explanation. Retain the original file page for authorship, licence and provenance.
 - Add checks against the text the app actually renders, verify sample lessons from early/middle/late course ranges, then verify the deployed site separately from CI success.
+
+
+---
+
+## PATCH-009 — Restore loaded lesson enrichments and close the missing-script CI gap
+
+**Status:** corrective patch; the previous PATCH-008 deletion was based on an outdated view of `index.html` and was not safe to keep.
+
+**Root cause:** after the main branch had advanced, `index.html` already referenced `curriculum-enrichment-01.js` through `curriculum-enrichment-04.js` and `curriculum-enrichment-apply.js`. The three deleted files were therefore runtime dependencies, not unused drafts. The existing site test checked that expected script tags were present, but did not check that every referenced file existed; the Node syntax step likewise did not include these files. CI consequently could pass despite broken runtime dependencies.
+
+**Correction**
+- Restore the exact historical contents of enrichment files 01–03 from Git history.
+- Make the actual browser load order match data dependencies: curated research text is applied before the final enrichment append. This prevents the seven curated research readings from overwriting the added historical paragraph.
+- Check that every script referenced in `index.html` exists on disk and that all five enrichment scripts appear in the expected order.
+- Add Node syntax checks for enrichment files and the apply script.
+- Make the course test load scripts in the same data order and verify every one of the 182 runtime lesson readings actually contains its assigned historical-detail paragraph.
+- Preserve the text-version level rather than lowering it when appending an enrichment paragraph.
+
+**Important:** no content is considered delivered merely because a source file exists. Completion must be verified in the runtime data and through the rendered application.
