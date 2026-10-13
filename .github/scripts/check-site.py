@@ -72,4 +72,17 @@ if html.index('id="knowledgeCheck"') < html.index('id="reader"'):
 if "glossary-dialog" not in html or "@media(max-width:700px)" not in html:
     raise SystemExit("Glossary dialog or mobile layout is missing")
 
+# Supplemental lesson files must never sit in the repository unused: either load
+# them explicitly on the page (and test their application) or remove them.
+orphaned_enrichment = sorted(
+    path.name for path in root.glob("curriculum-enrichment-*.js")
+    if f'<script src="{path.name}"></script>' not in html
+)
+if orphaned_enrichment:
+    raise SystemExit(
+        "Unconnected lesson enrichment files are not shown on the site: "
+        + ", ".join(orphaned_enrichment)
+        + ". Integrate and test them, or remove them instead of treating them as delivered."
+    )
+
 print(f"Site structure OK: {len(ids)} unique IDs; 50-minute lesson; epoch banner, depth blocks and one five-question check.")
