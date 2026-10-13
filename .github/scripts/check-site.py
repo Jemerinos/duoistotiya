@@ -44,7 +44,7 @@ if minutes != [5, 10, 15, 10, 10] or sum(minutes) != 50:
     raise SystemExit("Daily schedule must remain 50 minutes: " + repr(minutes))
 
 required = [
-    'id="epochBackgroundImage"', 'function loadEpochBackground(l)', 'function handleTopicImageError(l,fromCommons)',
+    'id="epochBackgroundImage"', 'id="viewPageBackground"', 'loadEpochBackground(current())', 'function loadEpochBackground(l)', 'function handleTopicImageError(l,fromCommons)',
     'img.dataset.sourcePage=source', 'collected.slice(0,3)', 'reader-gallery-meta',
     'id="imageViewerImage"', 'id="imageViewerClose"', 'data-source-page',
     'id="openGlossary"', 'id="glossaryOverlay"', 'id="glossaryDialog"',
