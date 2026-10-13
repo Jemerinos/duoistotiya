@@ -3,10 +3,10 @@
 (function(){
   "use strict";
   window.HISTORY_EPOCH_VISUALS={
-    1:{query:"Thucydides History of the Peloponnesian War Greek manuscript folio",article:"Thucydides",focus:"Thucydides",label:"Фукидид и рукописная традиция"},
-    2:{query:"Chauvet Cave Paleolithic animal cave paintings photograph",article:"Chauvet Cave",focus:"Chauvet Cave",label:"Палеолитическое наскальное искусство"},
+    1:{query:"Thucydides bust history Peloponnesian War",article:"Thucydides",focus:"Thucydides",label:"Фукидид — историк Пелопоннесской войны"},
+    2:{query:"Chauvet Cave Paleolithic animal cave paintings photograph",article:"Chauvet Cave",focus:"Chauvet Cave",label:"Наскальные изображения пещеры Шове (реплика)"},
     3:{query:"Çatalhöyük Neolithic houses archaeological excavation Turkey photograph",article:"Çatalhöyük",focus:"Çatalhöyük",label:"Чатал-Хююк и раннее земледелие"},
-    4:{query:"Mohenjo-daro Great Bath Indus Valley archaeological ruins photograph",article:"Mohenjo-daro",focus:"Mohenjo-daro",label:"Долина Инда: Мохенджо-Даро"},
+    4:{query:"Mohenjo-daro Great Bath Indus Valley archaeological ruins photograph",article:"Mohenjo-daro",preferredFile:"File:Mohenjo-daro.jpg",focus:"Mohenjo-daro",label:"Мохенджо-Даро: Великая купальня"},
     5:{query:"Parthenon Athens Acropolis ancient Greek temple photograph",article:"Parthenon",focus:"Parthenon",label:"Афинский Акрополь"},
     6:{query:"Roman Forum ancient Rome archaeological ruins photograph",article:"Roman Forum",focus:"Roman Forum",label:"Римский форум"},
     7:{query:"Great Stupa Sanchi Ashoka India Buddhist monument photograph",article:"Sanchi",focus:"Sanchi",label:"Санчи и империя Маурьев"},
@@ -21,13 +21,13 @@
     16:{query:"Atlantic slave trade slave ship eighteenth century engraving",article:"Atlantic slave trade",focus:"Atlantic slave trade",label:"Атлантическая работорговля"},
     17:{query:"Storming of the Bastille 1789 French Revolution historical painting",article:"Storming of the Bastille",focus:"Bastille",label:"Взятие Бастилии, 1789 год"},
     18:{query:"Industrial Revolution nineteenth century textile factory machinery photograph",article:"Industrial Revolution",focus:"Industrial Revolution",label:"Фабричное производство XIX века"},
-    19:{query:"Proclamation of German Empire 1871 Anton von Werner painting",article:"German Empire",focus:"German Empire",label:"Объединение Германии, 1871 год"},
-    20:{query:"Partition of Africa 1880s colonial map historical",article:"Scramble for Africa",focus:"Partition of Africa",label:"Раздел Африки в эпоху империализма"},
+    19:{query:"Proclamation of German Empire 1871 Anton von Werner painting",article:"German Empire",preferredFile:"File:1871 Proclamation of the German Empire.jpg",focus:"German Empire",label:"Провозглашение Германской империи, 1871 год"},
+    20:{query:"Partition of Africa 1880s colonial map historical",article:"Scramble for Africa",preferredFile:"File:Scramble-for-Africa-1880-1913-v2.png",focus:"Partition of Africa",label:"Раздел Африки, 1880–1913 годы"},
     21:{query:"Battle of the Somme 1916 First World War trenches historical photograph",article:"Battle of the Somme",focus:"Somme",label:"Западный фронт Первой мировой войны"},
-    22:{query:"Great Depression Germany 1930s unemployed queue historical photograph",article:"Great Depression",focus:"Great Depression",label:"Европа во время Великой депрессии"},
+    22:{query:"Great Depression unemployed queue 1931 photograph",article:"Great Depression",focus:"Great Depression",label:"Массовая безработица во время Великой депрессии"},
     23:{query:"Normandy landings D-Day 1944 Second World War historical photograph",article:"Normandy landings",focus:"Normandy",label:"Высадка союзников в Нормандии, 1944 год"},
     24:{query:"Berlin Wall Checkpoint Charlie Cold War 1961 historical photograph",article:"Berlin Wall",focus:"Berlin Wall",label:"Берлинская стена и холодная война"},
-    25:{query:"Maastricht Treaty signing 1992 European Union historical photograph",article:"Maastricht Treaty",focus:"Maastricht Treaty",label:"Маастрихтский договор и мир после холодной войны"},
+    25:{query:"Maastricht Treaty signing 1992 European Union historical photograph",article:"Maastricht Treaty",preferredFile:"File:1991, persconferentie Eurotop, MECC Maastricht.jpg",focus:"Maastricht Treaty",label:"Европейский саммит в Маастрихте перед договором 1992 года"},
     26:{query:"Archivist archival documents reading room historical archive photograph",article:"Archive",focus:"Archivist",label:"Работа историка с архивными документами"}
   };
 })();
