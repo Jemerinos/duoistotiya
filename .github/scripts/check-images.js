@@ -61,8 +61,10 @@ assert(/function drawHome\(\)[\s\S]{0,1800}loadEpochBackground\(current\(\)\)/.t
   "Home page background must load before the first lesson is opened");
 assert(/function parseRetryAfterMs/.test(require("node:fs").readFileSync(__filename, "utf8")),
   "Media audit must handle Retry-After delta-seconds and HTTP-date");
-assert(/info\.mime/.test(require("node:fs").readFileSync(__filename, "utf8")) && /!\/\\\.\(pdf\|djvu\?\)\$\/i/.test(require("node:fs").readFileSync(__filename, "utf8")),
-  "Background search must reject document thumbnails and prefer image MIME types");
+assert(/function isUsableEpochImage\(page,info\)/.test(html),
+  "Background loader must accept explicit image MIME or a safe image extension when MIME is omitted");
+assert(/el\("viewPageBackground"\)\.addEventListener\("click"/.test(html),
+  "Background viewer control must open the source for the selected epoch");
 
 console.log("Image structure OK: 182/182 lesson routes, 26/26 single-focus background queries, per-image source routing, retry/fallback and up-to-three sourced gallery results.");
 
@@ -110,6 +112,16 @@ async function retry(label, fn) {
   }
   throw new Error(label + " failed after 3 attempts: " + String(last && last.message || last));
 }
+function hasUsableImageMetadata(page) {
+  const info = page && page.imageinfo && page.imageinfo[0] || {};
+  const title = String(page && page.title || "");
+  const mime = String(info.mime || "");
+  if (!(info.thumburl || info.url) || !info.descriptionurl || !info.url) return false;
+  if (/\.(pdf|djvu?|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(title)) return false;
+  if (mime) return /^image\//i.test(mime);
+  return /\.(jpe?g|png|gif|webp|tiff?|svg|avif|xcf)$/i.test(title);
+}
+
 async function checkBackgroundQueries() {
   const items = [];
   for (let week = 1; week <= 26; week++) {
@@ -140,7 +152,15 @@ async function checkBackgroundQueries() {
             throw error;
           }
           assert(response.ok, "Commons background query returned HTTP " + response.status);
-          return await response.json();
+          const data = await response.json();
+          if (data && data.error) {
+            const code = String(data.error.code || "");
+            const message = String(data.error.info || data.error.message || code);
+            const error = new Error("Commons API error " + code + ": " + message);
+            if (/maxlag|ratelimit|readonly|throttl/i.test(code + " " + message)) error.retryAfterMs = 12000;
+            throw error;
+          }
+          return data;
         });
       } catch (error) {
         if (/HTTP 429|HTTP 503/.test(String(error && error.message || error))) {
@@ -153,10 +173,18 @@ async function checkBackgroundQueries() {
       }
       await new Promise(resolve => setTimeout(resolve, 10000));
       const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
-      const candidate = pages.find(page => {
-        const info = page.imageinfo && page.imageinfo[0];
-        return info && (info.thumburl || info.url) && info.descriptionurl && /^image\//i.test(info.mime || "") && !/\.(pdf|djvu?)$/i.test(page.title);
-      });
+      const candidate = pages.find(hasUsableImageMetadata);
+      if (!candidate) {
+        console.log("BACKGROUND QUERY EMPTY " + JSON.stringify({
+          week: item.week,
+          query,
+          resultPages: pages.length,
+          sampleFiles: pages.slice(0, 4).map(page => {
+            const info = page.imageinfo && page.imageinfo[0] || {};
+            return { title: page.title, mime: info.mime || "not-returned", thumbnail: !!info.thumburl, source: !!info.descriptionurl };
+          })
+        }));
+      }
       if (candidate) {
         const info = candidate.imageinfo && candidate.imageinfo[0] || {};
         found = {
@@ -169,11 +197,13 @@ async function checkBackgroundQueries() {
         break;
       }
     }
-    if (found) results.push(found);
-    else missing.push(item.week + " (" + item.label + "; queries: " + item.queries.join(" / ") + ")");
-  }
-  for (const item of results) {
-    console.log("BACKGROUND CANDIDATE " + JSON.stringify(item));
+    if (found) {
+      results.push(found);
+      console.log("BACKGROUND CANDIDATE " + JSON.stringify(found));
+    } else {
+      missing.push(item.week + " (" + item.label + "; queries: " + item.queries.join(" / ") + ")");
+      console.log("BACKGROUND MISSING " + JSON.stringify({ week: item.week, label: item.label, queries: item.queries }));
+    }
   }
   if (missing.length) {
     throw new Error("No live Commons image result for module(s): " + missing.join("; "));
