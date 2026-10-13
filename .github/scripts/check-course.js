@@ -76,6 +76,8 @@ assert(/uniqueReaderFacts/.test(readerHtml), "Fact cards must filter sentences a
 assert(/depth-evidence-expand/.test(readerHtml) && /depth-chronology-expand/.test(readerHtml),
   "Extracted evidence and chronology must be collapsed by default to avoid repeating the reading");
 assert(!/id="depthCheckPoints"/.test(readerHtml), "Repeated generic checklist must be removed from lesson cards");
+assert(/var usedEvidence=new Set/.test(readerHtml) && /contentSentences\(value\)\.forEach/.test(readerHtml),
+  "Causality cards must deduplicate expanded excerpts against the primary cause/mechanism/effect chain");
 assert(readerHtml.includes('el("readerExample").classList.toggle("hidden",!l.example)') && !readerHtml.includes("Свяжите исторический процесс с конкретными решениями"),
   "Missing lesson examples must be hidden instead of filled with a generic paragraph");
 assert(readerHtml.includes('peopleCard.classList.toggle("hidden",!(peopleHtml||groupsHtml))') && !readerHtml.includes("В тексте не выделена конкретная историческая персоналия"),
