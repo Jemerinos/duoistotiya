@@ -5,6 +5,7 @@ This repository powers a Russian-language world-history and Russian-history lear
 
 ## Working rules
 - Start from the current branch and inspect only the files and project notes relevant to the task. The project state and patch log are useful context for ongoing work; do not blindly follow obsolete historical instructions when newer entries supersede them.
+- When asked to continue autonomous site improvement, read `CODEX_TASK.md` after this file and follow its priority order, bounded batches, checkpointing, and completion report. Treat it as the active task brief, not as permission to merge or deploy.
 - For non-trivial work, create or use a dedicated branch. Never commit directly to `main` for autonomous tasks.
 - Never merge a pull request or publish/deploy changes autonomously. Open/update a PR for review and report its URL, test evidence, and remaining risks.
 - Make the smallest coherent change that satisfies the task. Avoid unrelated refactors and duplicate content layers.
