@@ -76,6 +76,10 @@ assert(/uniqueReaderFacts/.test(readerHtml), "Fact cards must filter sentences a
 assert(/depth-evidence-expand/.test(readerHtml) && /depth-chronology-expand/.test(readerHtml),
   "Extracted evidence and chronology must be collapsed by default to avoid repeating the reading");
 assert(!/id="depthCheckPoints"/.test(readerHtml), "Repeated generic checklist must be removed from lesson cards");
+assert(readerHtml.includes('el("readerExample").classList.toggle("hidden",!l.example)') && !readerHtml.includes("Свяжите исторический процесс с конкретными решениями"),
+  "Missing lesson examples must be hidden instead of filled with a generic paragraph");
+assert(readerHtml.includes('peopleCard.classList.toggle("hidden",!(peopleHtml||groupsHtml))') && !readerHtml.includes("В тексте не выделена конкретная историческая персоналия"),
+  "Empty participant cards must be hidden instead of showing boilerplate");
 assert(/id="viewPageBackground"/.test(readerHtml) && /loadEpochBackground\(current\(\)\)/.test(readerHtml),
   "Home screen must load the historical background and provide its viewer control");
 console.log("Exact-text audit OK: " + repeatedWithinLesson +
@@ -101,8 +105,8 @@ assert(course.lessons[0][6].depth.people.some(p => p.name === "Фукидид"),
 const researchStats = window.HISTORY_RESEARCH_CONTENT_STATS;
 assert(researchStats && researchStats.version === 2 && researchStats.lessons === 7, "Expected seven researched content packs");
 const eventStats = window.HISTORY_EVENT_DEPTH_STATS;
-assert(eventStats && eventStats.version === 1 && eventStats.lessons === 13,
-  "Expected 13 source-backed event-depth supplements");
+assert(eventStats && eventStats.version === 1 && eventStats.lessons === 23,
+  "Expected 23 source-backed event-depth supplements");
 for (const day of eventStats.days) {
   const row = course.lessons[day - 1], meta = row && row[6], d = meta && meta.depth;
   assert(meta && meta.eventDepthVersion === 1, "Missing event-depth supplement on day " + day);
