@@ -56,6 +56,11 @@ assert(/data-source-page/.test(html) && /reader-gallery-source/.test(html), "Gal
 assert(/ext.ImageDescription/.test(html) && /ext.LicenseShortName/.test(html), "Gallery cards should display available source metadata");
 assert(!/class="factnote">'+notes[i]/.test(html), "Repeated generic guidance still appears under every lesson fact");
 assert(/epochImageFailed/.test(html), "Background loading should skip a candidate that already failed");
+assert(/id="viewPageBackground"/.test(html), "Home page must expose a way to open the background image in the viewer");
+assert(/function drawHome\(\)[\s\S]{0,1800}loadEpochBackground\(current\(\)\)/.test(html),
+  "Home page background must load before the first lesson is opened");
+assert(/function parseRetryAfterMs/.test(require("node:fs").readFileSync(__filename, "utf8")),
+  "Media audit must handle Retry-After delta-seconds and HTTP-date");
 
 console.log("Image structure OK: 182/182 lesson routes, 26/26 single-focus background queries, per-image source routing, retry/fallback and up-to-three sourced gallery results.");
 
