@@ -3,9 +3,25 @@ import re
 
 root = Path(".")
 html = (root / "index.html").read_text(encoding="utf-8")
-for script in ("curriculum.js", "curriculum-depth.js"):
+if not (root / "PATCHLOG.md").is_file() or not (root / "PROJECT_STATE.md").is_file():
+    raise SystemExit("Persistent patch log and project recovery state are required")
+
+if 'PATCH-002' not in (root / "PATCHLOG.md").read_text(encoding="utf-8"):
+    raise SystemExit("PATCHLOG.md is missing the current image-audit patch")
+
+for script in ("curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js", "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js", "curriculum-details-apply.js", "curriculum-research.js", "curriculum-participants.js", "curriculum-participant-sources.js", "curriculum-glossary.js"):
     if f'<script src="{script}"></script>' not in html:
         raise SystemExit(f"index.html must load {script}")
+
+script_order = [
+    "curriculum.js", "curriculum-details-01.js", "curriculum-details-02.js",
+    "curriculum-details-03.js", "curriculum-details-04.js", "curriculum-depth.js",
+    "curriculum-details-apply.js", "curriculum-visuals.js", "curriculum-research.js",
+    "curriculum-participants.js", "curriculum-participant-sources.js", "curriculum-glossary.js"
+]
+script_positions = [html.index(f'<script src="{name}"></script>') for name in script_order]
+if script_positions != sorted(script_positions):
+    raise SystemExit("Course scripts are loaded in the wrong dependency order")
 
 inline_scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
 if not inline_scripts:
@@ -28,11 +44,17 @@ if minutes != [5, 10, 15, 10, 10] or sum(minutes) != 50:
     raise SystemExit("Daily schedule must remain 50 minutes: " + repr(minutes))
 
 required = [
-    'id="epochBanner"', 'id="epochBackgroundImage"', 'function loadEpochBackground(l)',
+    'id="epochBackgroundImage"', 'id="viewPageBackground"', 'loadEpochBackground(current())', 'function loadEpochBackground(l)', 'function handleTopicImageError(l,fromCommons)',
+    'img.dataset.sourcePage=source', 'collected.slice(0,3)', 'reader-gallery-meta',
+    'id="imageViewerImage"', 'id="imageViewerClose"', 'data-source-page',
+    'id="openGlossary"', 'id="glossaryOverlay"', 'id="glossaryDialog"',
+    'aria-modal="true"', 'data-glossary-term', 'Открыть в глоссарии',
+    'curriculum-glossary.js', 'curriculum-participants.js', 'curriculum-participant-sources.js',
+    'participant-sources-title', 'participant-source-note', 'Источники к биографическим сведениям',
     'id="lessonDepth"', 'id="depthPeople"', 'id="depthCausality"', 'id="depthChronology"',
     'id="knowledgeCheck"', 'Проверка знаний · 5 вопросов',
     'function describeHistoricalImage(l,rawTitle,metadata,kind)', 'Фукидид',
-    'Почему это важно для урока:', '<details class="supplemental-panel"',
+'<details class="supplemental-panel"',
     '--green:#6D28D9', '--ink:#111827', 'mobileNavToggle',
     'function quickQuizSet(l)', 'function examQuestionSet(l)'
 ]
@@ -46,5 +68,8 @@ for stale in ['Название файла в каталоге', 'Названи
 
 if html.index('id="knowledgeCheck"') < html.index('id="reader"'):
     raise SystemExit("Knowledge check must follow the lesson reading")
+
+if "glossary-dialog" not in html or "@media(max-width:700px)" not in html:
+    raise SystemExit("Glossary dialog or mobile layout is missing")
 
 print(f"Site structure OK: {len(ids)} unique IDs; 50-minute lesson; epoch banner, depth blocks and one five-question check.")

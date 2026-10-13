@@ -3,15 +3,18 @@ name: Publish site to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 # Don't cancel a running validation/deploy because another small content commit arrived.
+# Superseded PR validations are cancelled; manual audits use a separate event group.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 
 jobs:
   validate-site:
@@ -27,6 +30,12 @@ jobs:
           node --check /tmp/site-inline.js
           node --check curriculum.js
           node --check curriculum-depth.js
+          node --check curriculum-research.js
+          node --check curriculum-participants.js
+          node --check curriculum-participant-sources.js
+          node --check curriculum-glossary.js
+          node --check curriculum-visuals.js
+          node --check .github/scripts/check-images.js
 
   validate-course:
     name: "2/3 — Данные курса и детализация"
@@ -46,9 +55,34 @@ jobs:
       - name: Check quizzes, answer keys and image questions
         run: node .github/scripts/check-activities.js
 
+  validate-media:
+    name: "4/4 — Изображения и восстановление контекста"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check persistent patch log and recovery state
+        run: python .github/scripts/check-project-logs.py
+      - name: Check all lesson image routes and viewer behavior
+        run: node .github/scripts/check-images.js
+      - name: Smoke-test live Wikipedia/Commons API and one real thumbnail
+        run: node .github/scripts/check-images.js --online
+
+  audit-backgrounds:
+    if: github.event_name == 'workflow_dispatch'
+    name: "Полный аудит 26 фоновых изображений"
+    needs: [validate-media]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify preferred file, article thumbnail and fallback for all modules
+        run: node .github/scripts/check-images.js --background-audit
+
   deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     name: Publish validated site
-    needs: [validate-site, validate-course, validate-activities]
+    needs: [validate-site, validate-course, validate-activities, validate-media]
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
