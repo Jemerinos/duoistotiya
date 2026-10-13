@@ -366,3 +366,20 @@
 - Verify Codex Cloud environment setup separately: this GitHub integration can write repository files and open a PR, but does not itself create/publish a Codex Cloud environment.
 
 **Result at patch preparation:** files committed on the task branch. CI result and PR creation are tracked separately; no claim of runtime behavior change or site deployment is made.
+
+
+---
+
+## PATCH-011 — Expand lesson image galleries
+
+**Status:** implemented on `agent-workflow-skills`; CI for the updated head is pending. No merge or deployment performed.
+
+**Change**
+- Increase the per-lesson Wikimedia gallery display cap from three to six distinct results when the available API results support it.
+- Update the image audit assertion to require the six-image rendering cap.
+- Preserve the existing image viewer and per-image source-page metadata; clicking a displayed image opens the site's detailed viewer.
+
+**Limitations**
+- Six is a display target/cap, not a guarantee that every lesson will have six valid, relevant, successfully loaded images. The current Wikimedia search can return fewer usable items; the audit must not describe this as a completed visual review of all lessons.
+- Existing image viewer behavior was present before this patch. This patch does not independently validate every image's relevance or provide Russian editorial captions for every result.
+- Wait for CI on the latest branch head before claiming validation success.
