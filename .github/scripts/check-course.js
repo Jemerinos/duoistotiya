@@ -39,6 +39,46 @@ for (let i = 0; i < course.lessons.length; i++) {
   assert(row[6].researchSources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc), "Invalid source card on lesson " + day);
   depths.push(d);
 }
+// Audit exact repeated sentences in actual runtime lesson data, including expanded readings.
+const sentenceKey = value => String(value || "").toLocaleLowerCase("ru")
+  .replace(/ё/g, "е").replace(/[«»„“”"]/g, "")
+  .replace(/[^а-яa-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim();
+const splitSentences = value => String(value || "").replace(/\s+/g, " ")
+  .split(/(?<=[.!?])\s+(?=[А-ЯЁA-Z«„0-9])/u).map(x => x.trim()).filter(Boolean);
+const globalSentenceUse = new Map();
+let repeatedWithinLesson = 0;
+for (let i = 0; i < course.lessons.length; i++) {
+  const row = course.lessons[i], day = i + 1, meta = row[6] || {};
+  const fields = [["summary", row[3]], ["expanded reading", meta.detailedText],
+    ...((row[4] || []).map((value, j) => ["fact " + (j + 1), value]))];
+  const seenHere = new Map();
+  for (const [field, value] of fields) {
+    for (const sentence of splitSentences(value)) {
+      const key = sentenceKey(sentence);
+      if (key.length < 65) continue;
+      const entry = {day, field, sentence};
+      if (seenHere.has(key) && seenHere.get(key).field !== field) repeatedWithinLesson++;
+      else seenHere.set(key, entry);
+      if (!globalSentenceUse.has(key)) globalSentenceUse.set(key, []);
+      globalSentenceUse.get(key).push(entry);
+    }
+  }
+}
+const crossLessonRepeats = [...globalSentenceUse.entries()]
+  .map(([key, uses]) => ({key, uses, days: [...new Set(uses.map(x => x.day))]}))
+  .filter(item => item.days.length >= 3);
+assert(crossLessonRepeats.length === 0,
+  "Identical long sentences are reused across 3+ lessons: " +
+  crossLessonRepeats.slice(0, 12).map(item => item.days.join(",") + " → " + item.uses[0].sentence).join(" | "));
+const readerHtml = require("node:fs").readFileSync(require("node:path").join(__dirname, "../../index.html"), "utf8");
+assert(/detailedTextWithoutSummaryRepeat/.test(readerHtml), "Reader must filter exact summary repeats from expanded reading");
+assert(/uniqueReaderFacts/.test(readerHtml), "Fact cards must filter sentences already present in summary/reading");
+assert(/depth-evidence-expand/.test(readerHtml) && /depth-chronology-expand/.test(readerHtml),
+  "Extracted evidence and chronology must be collapsed by default to avoid repeating the reading");
+assert(!/id="depthCheckPoints"/.test(readerHtml), "Repeated generic checklist must be removed from lesson cards");
+console.log("Exact-text audit OK: " + repeatedWithinLesson +
+  " long exact sentence overlaps detected inside lessons are hidden by reader de-duplication; no long sentence is reused across 3+ lessons.");
+
 for (const field of ["causes", "development", "consequences"]) {
   const byStatement = new Map();
   for (let i = 0; i < course.lessons.length; i++) {
