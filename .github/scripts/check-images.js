@@ -51,7 +51,7 @@ const loadImageStart = html.indexOf("function loadImage(l){");
 const loadImageEnd = html.indexOf("function renderSources(){", loadImageStart);
 const primaryImageLoader = loadImageStart >= 0 && loadImageEnd > loadImageStart ? html.slice(loadImageStart, loadImageEnd) : "";
 assert(primaryImageLoader && !primaryImageLoader.includes("api/rest_v1/page/summary/"), "Primary image loader must use the updated MediaWiki Action API path");
-assert(html.includes("collected.slice(0,3)"), "Lesson image gallery should render up to three results");
+assert(html.includes("collected.slice(0,6)"), "Lesson image gallery should render up to six results");
 assert(/data-source-page/.test(html) && /reader-gallery-source/.test(html), "Gallery images need per-file source links");
 assert(/ext.ImageDescription/.test(html) && /ext.LicenseShortName/.test(html), "Gallery cards should display available source metadata");
 assert(!/class="factnote">'+notes[i]/.test(html), "Repeated generic guidance still appears under every lesson fact");

@@ -336,3 +336,50 @@
 - Preserve the text-version level rather than lowering it when appending an enrichment paragraph.
 
 **Important:** no content is considered delivered merely because a source file exists. Completion must be verified in the runtime data and through the rendered application.
+
+
+---
+
+## PATCH-010 — Add repository agent instructions and reusable editorial skills
+
+**Status:** prepared on branch `agent-workflow-skills`; awaiting CI and review. No merge or deployment performed.
+
+**Purpose:** make future Codex work on the course repeatable, evidence-aware, recoverable, and safe for autonomous execution.
+
+**Files added**
+- `AGENTS.md`: repository-wide rules for branching, curriculum quality, images, validation, truthful reporting, checkpoints, and non-merging delivery.
+- `.agents/skills/lesson-author/SKILL.md`: workflow and acceptance checklist for writing pupil-facing Russian history lessons.
+- `.agents/skills/history-fact-check/SKILL.md`: independent evidence-oriented review, severity levels, and verdict format.
+- `.agents/skills/image-audit/SKILL.md`: image relevance, provenance/licensing, Russian captions, viewer behavior, and human-review criteria.
+- `.agents/skills/safe-project-update/SKILL.md`: bounded work, validation, timeout recovery, checkpoint template, and PR-only autonomous delivery.
+
+**Safety boundaries**
+- Autonomous changes must stay on a dedicated branch.
+- No autonomous PR merge or deployment.
+- Tests, manual inspection, and online checks must be reported separately; unperformed checks must not be described as passing.
+- Image quantity is a target only when useful sources exist; irrelevant images must not be added just to reach a quota.
+- Historical claims must not be invented or represented as verified without supporting evidence.
+
+**Validation still required**
+- Inspect the five added Markdown files on the branch and confirm skill frontmatter/paths.
+- Run the repository's existing CI checks against this branch.
+- Verify Codex Cloud environment setup separately: this GitHub integration can write repository files and open a PR, but does not itself create/publish a Codex Cloud environment.
+
+**Result at patch preparation:** files committed on the task branch. CI result and PR creation are tracked separately; no claim of runtime behavior change or site deployment is made.
+
+
+---
+
+## PATCH-011 — Expand lesson image galleries
+
+**Status:** implemented on `agent-workflow-skills`; CI for the updated head is pending. No merge or deployment performed.
+
+**Change**
+- Increase the per-lesson Wikimedia gallery display cap from three to six distinct results when the available API results support it.
+- Update the image audit assertion to require the six-image rendering cap.
+- Preserve the existing image viewer and per-image source-page metadata; clicking a displayed image opens the site's detailed viewer.
+
+**Limitations**
+- Six is a display target/cap, not a guarantee that every lesson will have six valid, relevant, successfully loaded images. The current Wikimedia search can return fewer usable items; the audit must not describe this as a completed visual review of all lessons.
+- Existing image viewer behavior was present before this patch. This patch does not independently validate every image's relevance or provide Russian editorial captions for every result.
+- Wait for CI on the latest branch head before claiming validation success.
