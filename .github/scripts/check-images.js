@@ -111,7 +111,7 @@ async function checkBackgroundQueries() {
           if (response.status === 429 || response.status === 503) {
             const header = Number(response.headers.get("retry-after"));
             const error = new Error("Commons background query returned HTTP " + response.status);
-            error.retryAfterMs = Number.isFinite(header) && header > 0 ? header * 1000 : 5000;
+            error.retryAfterMs = Number.isFinite(header) && header > 0 ? header * 1000 : 12000;
             throw error;
           }
           assert(response.ok, "Commons background query returned HTTP " + response.status);
@@ -119,9 +119,9 @@ async function checkBackgroundQueries() {
         });
       } catch (error) {
         if (/HTTP 429|HTTP 503/.test(String(error && error.message || error))) {
-          console.log("Live background image audit inconclusive: " + results.length +
+          console.log("Live background image audit INCONCLUSIVE: " + results.length +
             "/26 modules verified before Wikimedia rate limiting at module " + item.week +
-            ". Remaining modules are unverified, not classified as missing.");
+            ". Remaining modules are unverified, not classified as missing; increase the delay or rerun after the rate-limit window.");
           return;
         }
         throw error;
@@ -138,7 +138,7 @@ async function checkBackgroundQueries() {
     }
     if (found) results.push(found);
     else missing.push(item.week + " (" + item.label + "; queries: " + item.queries.join(" / ") + ")");
-    await new Promise(resolve => setTimeout(resolve, 450));
+    await new Promise(resolve => setTimeout(resolve, 10000));
   }
   if (missing.length) {
     throw new Error("No live Commons image result for module(s): " + missing.join("; "));
