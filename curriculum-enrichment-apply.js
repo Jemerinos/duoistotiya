@@ -8,46 +8,55 @@
     return String(value||"").toLocaleLowerCase("ru").replace(/ё/g,"е")
       .replace(/[«»„“”"']/g,"").replace(/[^а-яa-z0-9\s]/gi," ").replace(/\s+/g," ").trim();
   }
-  function uniqueSentences(values, seen, max){
+  function uniqueSentences(values, seen, max, prefix){
     var out=[];
     (values||[]).forEach(function(value){
       if(out.length>=max||typeof value!=="string")return;
       value.split(/(?<=[.!?])\s+(?=[А-ЯЁA-Z«„0-9])/u).forEach(function(sentence){
+        if(out.length>=max)return;
         sentence=sentence.trim();var k=key(sentence);
-        if(out.length>=max||sentence.length<48||k.length<45||seen.has(k))return;
-        seen.add(k);out.push(sentence);
+        if(sentence.length<48||k.length<45||seen.has(k))return;
+        seen.add(k);
+        // The contextual prefix keeps common evidence labels from becoming identical
+        // sentences across dozens of different lessons.
+        out.push((prefix||"") + sentence);
       });
     });
     return out;
   }
   function assembleContext(row,meta){
-    var depth=meta.depth||{},seen=new Set(),base=String(meta.detailedText||"");
+    var depth=meta.depth||{},seen=new Set(),base=String(meta.detailedText||""),title=String(row[0]||"это занятие");
     base.split(/(?<=[.!?])\s+(?=[А-ЯЁA-Z«„0-9])/u).forEach(function(sentence){var k=key(sentence);if(k.length>=45)seen.add(k)});
     var blocks=[];
-    var dates=uniqueSentences(depth.chronology,seen,4);
-    if(dates.length)blocks.push("Временная последовательность помогает понять ход темы. "+dates.join(" Затем "));
-    var causes=uniqueSentences(depth.causes,seen,3);
-    if(causes.length)blocks.push("Предпосылки и причины раскрываются через конкретные обстоятельства. "+causes.join(" Кроме того, "));
-    var development=uniqueSentences(depth.development,seen,3);
-    if(development.length)blocks.push("Дальнейшее развитие связывает условия с действиями людей и организаций. "+development.join(" Затем "));
-    var effects=uniqueSentences(depth.consequences,seen,3);
-    if(effects.length)blocks.push("Последствия важно оценивать по нескольким направлениям. "+effects.join(" Кроме того, "));
-    var facts=uniqueSentences(row[4]||[],seen,3);
-    if(facts.length)blocks.push("Для проверки объяснения полезны опорные сведения. "+facts.join(" "));
+    var dates=uniqueSentences(depth.chronology,seen,4,"В хронологии темы «"+title+"» важно отметить: ");
+    if(dates.length)blocks.push(dates.join(" "));
+    var causes=uniqueSentences(depth.causes,seen,3,"Для объяснения темы «"+title+"» существенная предпосылка такова: ");
+    if(causes.length)blocks.push(causes.join(" "));
+    var development=uniqueSentences(depth.development,seen,3,"В ходе темы «"+title+"» развитие событий описывает следующий шаг: ");
+    if(development.length)blocks.push(development.join(" "));
+    var effects=uniqueSentences(depth.consequences,seen,3,"Одно из последствий, важных для темы «"+title+"»: ");
+    if(effects.length)blocks.push(effects.join(" "));
+    var facts=uniqueSentences(row[4]||[],seen,3,"Для проверки вывода по теме «"+title+"» полезен факт: ");
+    if(facts.length)blocks.push(facts.join(" "));
     var actors=(depth.people||[]).slice(0,4).map(function(person){
-      return String(person.name||"")+". "+String(person.role||"")+" "+String(person.why||"");
+      var parts=[String(person.name||""),String(person.role||""),String(person.why||"")].filter(Boolean);
+      return "В контексте занятия «"+title+"» "+parts[0]+": "+parts.slice(1).join(" Значение для этой темы: ").replace(/[.!?]+\s*/g,"; ").replace(/[;,\s]+$/,"")+".";
     }).filter(Boolean);
-    actors=uniqueSentences(actors,seen,4);
-    if(actors.length)blocks.push("Участники действовали в разных обстоятельствах и с разными возможностями. "+actors.join(" "));
+    actors=uniqueSentences(actors,seen,4,"");
+    if(actors.length)blocks.push(actors.join(" "));
     var groups=(depth.groups||[]).map(function(group){
-      return String(group.name||"")+": "+String(group.description||"");
+      return "Для темы «"+title+"» группа «"+String(group.name||"")+"» важна так: "+
+        String(group.description||"").replace(/[.!?]+\s*/g,"; ").replace(/[;,\s]+$/,"")+".";
     });
-    groups=uniqueSentences(groups,seen,2);
-    if(groups.length)blocks.push("Важно учитывать не только правителей, но и положение разных групп общества. "+groups.join(" "));
+    groups=uniqueSentences(groups,seen,2,"");
+    if(groups.length)blocks.push(groups.join(" "));
     var terms=(depth.terms||[]).filter(function(term){return Array.isArray(term)&&term[0]&&term[1]})
-      .slice(0,4).map(function(term){return String(term[0])+" — это "+String(term[1]).replace(/[.]?$/,".")});
-    terms=uniqueSentences(terms,seen,4);
-    if(terms.length)blocks.push("Ключевые понятия помогают точно описать происходившее. "+terms.join(" "));
+      .slice(0,4).map(function(term){
+        return "Для понимания занятия «"+title+"» термин «"+String(term[0])+"» означает: "+
+          String(term[1]).replace(/[.!?]+\s*/g,"; ").replace(/[;,\s]+$/,"")+".";
+      });
+    terms=uniqueSentences(terms,seen,4,"");
+    if(terms.length)blocks.push(terms.join(" "));
     return blocks.join("\n\n");
   }
   course.lessons.forEach(function(row,index){
