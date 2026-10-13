@@ -2,7 +2,7 @@ name: Publish site to GitHub Pages
 
 on:
   push:
-    branches: [main, "content-*"]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -11,9 +11,10 @@ permissions:
   contents: read
 
 # Don't cancel a running validation/deploy because another small content commit arrived.
+# Superseded PR validations are cancelled; manual audits use a separate event group.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 
 jobs:
   validate-site:
@@ -67,8 +68,19 @@ jobs:
       - name: Smoke-test live Wikipedia/Commons API and one real thumbnail
         run: node .github/scripts/check-images.js --online
 
+  audit-backgrounds:
+    if: github.event_name == 'workflow_dispatch'
+    name: "Полный аудит 26 фоновых изображений"
+    needs: [validate-media]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify preferred file, article thumbnail and fallback for all modules
+        run: node .github/scripts/check-images.js --background-audit
+
   deploy:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     name: Publish validated site
     needs: [validate-site, validate-course, validate-activities, validate-media]
     environment:
