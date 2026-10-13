@@ -147,6 +147,17 @@ assert(course.lessons.some(row => row[6].depth.people.some(person => person.sour
 const glossary = window.HISTORY_GLOSSARY;
 assert(glossary && glossary.entries.length >= 200 && glossary.stats.clickableTerms >= 100, "Glossary index is unexpectedly incomplete");
 assert(glossary.find("Первичный источник") && glossary.find("Фукидид") && glossary.find("Деколонизация"), "Core glossary lookups failed");
+// Report the actual text delivered to the reader, not orphaned helper files.
+const narrativeLengths = course.lessons.map((row, i) => ({
+  day: i + 1,
+  length: String(row[6] && row[6].detailedText || "").trim().length
+})).sort((a, b) => a.length - b.length);
+const below700 = narrativeLengths.filter(x => x.length < 700).length;
+const below2500 = narrativeLengths.filter(x => x.length < 2500).length;
+const medianNarrativeLength = narrativeLengths[Math.floor(narrativeLengths.length / 2)].length;
+console.log("Narrative length audit (rendered lesson texts): " + narrativeLengths.length +
+  " lessons; median " + medianNarrativeLength + " characters; " + below700 +
+  " under 700 characters; " + below2500 + " under 2,500 characters. This is a baseline report, not a content-quality pass.");
 const avgTerms = depths.reduce((sum, d) => sum + d.terms.length, 0) / depths.length;
 const peopleCoverage = depths.filter(d => d.people.length > 0).length;
 const groupsCoverage = depths.filter(d => d.groups.length > 0).length;
