@@ -30,10 +30,15 @@ script_order = [
     "curriculum-details-apply.js", "curriculum-enrichment-01.js",
     "curriculum-enrichment-02.js", "curriculum-enrichment-03.js",
     "curriculum-enrichment-04.js", "curriculum-visuals.js",
-    "curriculum-research.js", "curriculum-enrichment-apply.js",
-    "curriculum-participants.js", "curriculum-participant-sources.js", "curriculum-glossary.js"
+    "curriculum-research.js", "curriculum-participants.js",
+    "curriculum-participant-sources.js", "curriculum-enrichment-apply.js",
+    "curriculum-glossary.js"
 ]
 script_positions = [html.index(f'<script src="{name}"></script>') for name in script_order]
+for name in script_order:
+    if not (root / name).is_file():
+        raise SystemExit("index.html references missing local script: " + name)
+
 if script_positions != sorted(script_positions):
     raise SystemExit("Course scripts are loaded in the wrong dependency order")
 
