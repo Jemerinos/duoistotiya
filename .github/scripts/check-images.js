@@ -74,6 +74,19 @@ async function withTimeout(url, timeoutMs = 15000, options = {}) {
     clearTimeout(timer);
   }
 }
+function parseRetryAfterMs(value, now = Date.now()) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  const seconds = Number(raw);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
+  const date = Date.parse(raw);
+  if (Number.isFinite(date)) return Math.max(0, date - now);
+  return null;
+}
+assert(parseRetryAfterMs("12", 0) === 12000, "Retry-After delta-seconds must be parsed");
+assert(parseRetryAfterMs("Thu, 01 Jan 1970 00:00:05 GMT", 0) === 5000,
+  "Retry-After HTTP-date must be parsed");
+assert(parseRetryAfterMs("not a date", 0) === null, "Invalid Retry-After must be ignored");
 async function retry(label, fn) {
   let last;
   for (let attempt = 1; attempt <= 3; attempt++) {
@@ -81,8 +94,10 @@ async function retry(label, fn) {
     catch (error) {
       last = error;
       if (attempt < 3) {
-        const delay = Number(error && error.retryAfterMs) || attempt * 1500;
-        await new Promise(resolve => setTimeout(resolve, Math.min(delay, 20000)));
+        const rawDelay = Number(error && error.retryAfterMs);
+        const delay = Number.isFinite(rawDelay) && rawDelay >= 0 ? rawDelay : attempt * 1500;
+        console.log(label + ": retry " + (attempt + 1) + "/3 after " + delay + " ms");
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
@@ -106,15 +121,15 @@ async function checkBackgroundQueries() {
     for (let queryIndex = 0; queryIndex < item.queries.length; queryIndex++) {
       const query = item.queries[queryIndex];
       const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
-        encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=200&format=json&origin=*";
+        encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=15&prop=imageinfo&iiprop=url%7Cextmetadata&iiurlwidth=200&format=json&origin=*";
       let payload;
       try {
         payload = await retry("Commons background search for module " + item.week, async () => {
           const response = await withTimeout(url);
           if (response.status === 429 || response.status === 503) {
-            const header = Number(response.headers.get("retry-after"));
+            const header = response.headers.get("retry-after");
             const error = new Error("Commons background query returned HTTP " + response.status);
-            error.retryAfterMs = Number.isFinite(header) && header > 0 ? header * 1000 : 12000;
+            error.retryAfterMs = parseRetryAfterMs(header) ?? 12000;
             throw error;
           }
           assert(response.ok, "Commons background query returned HTTP " + response.status);
@@ -136,7 +151,14 @@ async function checkBackgroundQueries() {
         return info && (info.thumburl || info.url) && info.descriptionurl;
       });
       if (candidate) {
-        found = { week: item.week, label: item.label, query, fallbackUsed: queryIndex > 0, file: candidate.title };
+        const info = candidate.imageinfo && candidate.imageinfo[0] || {};
+        found = {
+          week: item.week, label: item.label, query, fallbackUsed: queryIndex > 0,
+          file: candidate.title, source: info.descriptionurl || "",
+          thumbnail: info.thumburl || info.url || "",
+          author: info.extmetadata && info.extmetadata.Artist && info.extmetadata.Artist.value || "",
+          license: info.extmetadata && info.extmetadata.LicenseShortName && info.extmetadata.LicenseShortName.value || ""
+        };
         break;
       }
     }
@@ -146,8 +168,11 @@ async function checkBackgroundQueries() {
   if (missing.length) {
     throw new Error("No live Commons image result for module(s): " + missing.join("; "));
   }
+  for (const item of results) {
+    console.log("BACKGROUND CANDIDATE " + JSON.stringify(item));
+  }
   const fallbacks = results.filter(item => item.fallbackUsed).map(item => item.week);
-  console.log("Live background search OK: 26/26 modules have a usable image candidate. Fallback query used for module(s): " +
+  console.log("Live background search OK: " + results.length + "/26 modules have a usable image candidate. Fallback query used for module(s): " +
     (fallbacks.length ? fallbacks.join(", ") : "none") + ".");
 }
 async function onlineCheck() {
