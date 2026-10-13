@@ -61,8 +61,8 @@ assert(/function drawHome\(\)[\s\S]{0,1800}loadEpochBackground\(current\(\)\)/.t
   "Home page background must load before the first lesson is opened");
 assert(/function parseRetryAfterMs/.test(require("node:fs").readFileSync(__filename, "utf8")),
   "Media audit must handle Retry-After delta-seconds and HTTP-date");
-assert(/filetype:bitmap/.test(require("node:fs").readFileSync(__filename, "utf8")) && /info\.mime/.test(require("node:fs").readFileSync(__filename, "utf8")),
-  "Background search must reject document thumbnails and prefer bitmap images");
+assert(/info\.mime/.test(require("node:fs").readFileSync(__filename, "utf8")) && /!\/\\\.\(pdf\|djvu\?\)\$\/i/.test(require("node:fs").readFileSync(__filename, "utf8")),
+  "Background search must reject document thumbnails and prefer image MIME types");
 
 console.log("Image structure OK: 182/182 lesson routes, 26/26 single-focus background queries, per-image source routing, retry/fallback and up-to-three sourced gallery results.");
 
@@ -128,7 +128,7 @@ async function checkBackgroundQueries() {
     for (let queryIndex = 0; queryIndex < item.queries.length; queryIndex++) {
       const query = item.queries[queryIndex];
       const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
-        encodeURIComponent(query + " filetype:bitmap") + "&gsrnamespace=6&gsrlimit=15&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime%7Csize&iiurlwidth=200&format=json&origin=*";
+        encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime%7Csize&iiurlwidth=200&format=json&origin=*";
       let payload;
       try {
         payload = await retry("Commons background search for module " + item.week, async () => {
@@ -172,11 +172,11 @@ async function checkBackgroundQueries() {
     if (found) results.push(found);
     else missing.push(item.week + " (" + item.label + "; queries: " + item.queries.join(" / ") + ")");
   }
-  if (missing.length) {
-    throw new Error("No live Commons image result for module(s): " + missing.join("; "));
-  }
   for (const item of results) {
     console.log("BACKGROUND CANDIDATE " + JSON.stringify(item));
+  }
+  if (missing.length) {
+    throw new Error("No live Commons image result for module(s): " + missing.join("; "));
   }
   const fallbacks = results.filter(item => item.fallbackUsed).map(item => item.week);
   console.log("Live background search OK: " + results.length + "/26 modules have a usable image candidate. Fallback query used for module(s): " +
