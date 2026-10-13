@@ -556,6 +556,19 @@ function useCommons(index){
     applyEpochImage(week,epochImageCache[week]);
   }).catch(function(){useCommons(index+1)});
 }
+function usePreferredFile(){
+  if(!entry.preferredFile){useArticle();return}
+  var api="https://commons.wikimedia.org/w/api.php?action=query&titles="+encodeURIComponent(entry.preferredFile)+"&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime%7Csize&iiurlwidth=1800&format=json&origin=*";
+  fetch(api).then(function(r){if(!r.ok)throw new Error("Pinned Commons file lookup failed");return r.json()}).then(function(d){
+    if(current().week!==week)return;
+    var pages=d.query&&d.query.pages?Object.keys(d.query.pages).map(function(k){return d.query.pages[k]}):[];
+    var p=pages.find(function(x){var info=x.imageinfo&&x.imageinfo[0];return info&&isUsableEpochImage(x,info)&&info.descriptionurl&&info.url&&!(epochImageFailed[week]||[]).includes(x.title)});
+    if(!p){useArticle();return}
+    var info=p.imageinfo[0],ext=info.extmetadata||{},credit=[cleanAttribution(ext.Artist&&ext.Artist.value),cleanAttribution(ext.LicenseShortName&&ext.LicenseShortName.value)].filter(Boolean).join(" · ");
+    epochImageCache[week]={src:info.thumburl||info.url,original:info.url,page:info.descriptionurl,title:p.title.replace(/^File:/,""),fileTitle:p.title,label:entry.label||l.weekTitle,description:credit,origin:"pinned-file"};
+    applyEpochImage(week,epochImageCache[week]);
+  }).catch(function(){useArticle()});
+}
 function useArticle(){
   if(!entry.article){useCommons(0);return}
   var api="https://en.wikipedia.org/w/api.php?action=query&prop=pageimages%7Cinfo&piprop=thumbnail%7Coriginal%7Cname&pithumbsize=1800&inprop=url&redirects=1&titles="+encodeURIComponent(entry.article)+"&format=json&origin=*";
@@ -570,7 +583,7 @@ function useArticle(){
     applyEpochImage(week,epochImageCache[week]);
   }).catch(function(){useCommons(0)});
 }
-useArticle();
+usePreferredFile();
 }
 function applyEpochImage(week,item){
 if(current().week!==week)return;
