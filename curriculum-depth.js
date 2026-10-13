@@ -266,12 +266,8 @@ var PEOPLE = [
       cause:causeCard,
       mechanism:mechanismCard,
       effect:effectCard,
-      methodNote:"Различайте длительные условия, непосредственный повод, решения участников и последствия. Эта схема помогает задать вопросы к материалу, но не утверждает, что у события была только одна причина.",
-      checkPoints:[
-        "Назови термин и объясни его своими словами.",
-        "Укажи конкретного человека или социальную группу и объясни её роль.",
-        "Свяжи причину и последствие через механизм, а не только словом «поэтому»."
-      ]
+      /* Shared generic method note and checklist removed; each lesson's question,
+         evidence, and quiz should carry its learning objective. */
     };
     meta.depthVersion=1;
     row[6]=meta;
