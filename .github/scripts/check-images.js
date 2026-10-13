@@ -130,6 +130,7 @@ async function checkBackgroundQueries() {
     items.push({
       week,
       label: entry.label,
+      article: entry.article,
       queries: [...new Set([entry.query, row[6] && row[6].imageSearch, row[0]].filter(Boolean))]
     });
   }
@@ -137,6 +138,42 @@ async function checkBackgroundQueries() {
   const missing = [];
   for (const item of items) {
     let found = null;
+    // Article lead images are preferred; broad Commons search is a fallback.
+    if (item.article) {
+      const articleUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages%7Cinfo&piprop=thumbnail%7Coriginal%7Cname&pithumbsize=600&inprop=url&redirects=1&titles=" +
+        encodeURIComponent(item.article) + "&format=json&origin=*";
+      try {
+        const payload = await retry("Wikipedia article image for module " + item.week, async () => {
+          const response = await withTimeout(articleUrl);
+          if (response.status === 429 || response.status === 503) {
+            const error = new Error("Wikipedia article image lookup returned HTTP " + response.status);
+            error.retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after")) ?? 12000;
+            throw error;
+          }
+          assert(response.ok, "Wikipedia article image lookup returned HTTP " + response.status);
+          return await response.json();
+        });
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
+        const page = pages.find(p => !p.missing && p.thumbnail && p.thumbnail.source && p.pageimage);
+        if (page) {
+          found = {
+            week: item.week, label: item.label, article: item.article,
+            file: "File:" + page.pageimage, mime: "Wikipedia article thumbnail",
+            source: page.fullurl || "https://en.wikipedia.org/wiki/" + encodeURIComponent(page.title.replace(/ /g, "_")),
+            thumbnail: page.thumbnail.source,
+            original: page.original && page.original.source || page.thumbnail.source,
+            fallbackUsed: false, method: "article-first"
+          };
+          results.push(found);
+          console.log("BACKGROUND CANDIDATE " + JSON.stringify(found));
+          continue;
+        }
+        console.log("ARTICLE IMAGE EMPTY " + JSON.stringify({week:item.week,article:item.article}));
+      } catch (error) {
+        console.log("ARTICLE IMAGE FALLBACK " + JSON.stringify({week:item.week,article:item.article,error:String(error && error.message || error)}));
+      }
+    }
     for (let queryIndex = 0; queryIndex < item.queries.length; queryIndex++) {
       const query = item.queries[queryIndex];
       const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
@@ -146,9 +183,8 @@ async function checkBackgroundQueries() {
         payload = await retry("Commons background search for module " + item.week, async () => {
           const response = await withTimeout(url);
           if (response.status === 429 || response.status === 503) {
-            const header = response.headers.get("retry-after");
             const error = new Error("Commons background query returned HTTP " + response.status);
-            error.retryAfterMs = parseRetryAfterMs(header) ?? 12000;
+            error.retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after")) ?? 12000;
             throw error;
           }
           assert(response.ok, "Commons background query returned HTTP " + response.status);
@@ -166,7 +202,7 @@ async function checkBackgroundQueries() {
         if (/HTTP 429|HTTP 503/.test(String(error && error.message || error))) {
           console.log("Live background image audit INCONCLUSIVE: " + results.length +
             "/26 modules verified before Wikimedia rate limiting at module " + item.week +
-            ". Remaining modules are unverified, not classified as missing; increase the delay or rerun after the rate-limit window.");
+            ". Remaining modules are unverified, not classified as missing.");
           return;
         }
         throw error;
@@ -176,23 +212,22 @@ async function checkBackgroundQueries() {
       const candidate = pages.find(hasUsableImageMetadata);
       if (!candidate) {
         console.log("BACKGROUND QUERY EMPTY " + JSON.stringify({
-          week: item.week,
-          query,
-          resultPages: pages.length,
+          week: item.week, query, resultPages: pages.length,
           sampleFiles: pages.slice(0, 4).map(page => {
             const info = page.imageinfo && page.imageinfo[0] || {};
-            return { title: page.title, mime: info.mime || "not-returned", thumbnail: !!info.thumburl, source: !!info.descriptionurl };
+            return {title: page.title,mime: info.mime || "not-returned",thumbnail: !!info.thumburl,source: !!info.descriptionurl};
           })
         }));
       }
       if (candidate) {
         const info = candidate.imageinfo && candidate.imageinfo[0] || {};
         found = {
-          week: item.week, label: item.label, query, fallbackUsed: queryIndex > 0,
-          file: candidate.title, mime: info.mime || "unknown", source: info.descriptionurl || "",
-          thumbnail: info.thumburl || info.url || "",
-          author: info.extmetadata && info.extmetadata.Artist && info.extmetadata.Artist.value || "",
-          license: info.extmetadata && info.extmetadata.LicenseShortName && info.extmetadata.LicenseShortName.value || ""
+          week:item.week,label:item.label,article:item.article||"",query,fallbackUsed:queryIndex>0,
+          file:candidate.title,mime:info.mime||"unknown",source:info.descriptionurl||"",
+          thumbnail:info.thumburl||info.url||"",
+          author:info.extmetadata&&info.extmetadata.Artist&&info.extmetadata.Artist.value||"",
+          license:info.extmetadata&&info.extmetadata.LicenseShortName&&info.extmetadata.LicenseShortName.value||"",
+          method:"commons"
         };
         break;
       }
@@ -201,17 +236,20 @@ async function checkBackgroundQueries() {
       results.push(found);
       console.log("BACKGROUND CANDIDATE " + JSON.stringify(found));
     } else {
-      missing.push(item.week + " (" + item.label + "; queries: " + item.queries.join(" / ") + ")");
-      console.log("BACKGROUND MISSING " + JSON.stringify({ week: item.week, label: item.label, queries: item.queries }));
+      missing.push(item.week + " (" + item.label + "; article: " + (item.article||"none") + "; queries: " + item.queries.join(" / ") + ")");
+      console.log("BACKGROUND MISSING " + JSON.stringify({week:item.week,label:item.label,article:item.article||"",queries:item.queries}));
     }
   }
   if (missing.length) {
-    throw new Error("No live Commons image result for module(s): " + missing.join("; "));
+    console.log("Background candidate manifest: " + JSON.stringify(results.map(item => ({week:item.week,label:item.label,article:item.article||"",file:item.file||"",source:item.source||"",method:item.method||"commons",fallbackUsed:!!item.fallbackUsed}))));
+    throw new Error("No live image result for module(s): " + missing.join("; "));
   }
   const fallbacks = results.filter(item => item.fallbackUsed).map(item => item.week);
-  console.log("Live background search OK: " + results.length + "/26 modules have a usable image candidate. Fallback query used for module(s): " +
-    (fallbacks.length ? fallbacks.join(", ") : "none") + ".");
+  console.log("Live background audit OK: " + results.length + "/26 modules have usable image candidates. Full manifest: " +
+    JSON.stringify(results.map(item => ({week:item.week,label:item.label,article:item.article||"",file:item.file||"",source:item.source||"",thumbnail:item.thumbnail||"",method:item.method||"commons",fallbackUsed:!!item.fallbackUsed}))) +
+    ". Commons fallback query used for module(s): " + (fallbacks.length ? fallbacks.join(", ") : "none") + ".");
 }
+
 async function onlineCheck() {
   const wikiUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages%7Cinfo&piprop=name%7Cthumbnail%7Coriginal&pithumbsize=600&inprop=url&titles=Hammurabi&format=json&origin=*";
   const wikiData = await retry("Wikipedia Action API", async () => {
