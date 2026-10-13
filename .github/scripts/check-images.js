@@ -51,9 +51,20 @@ const loadImageStart = html.indexOf("function loadImage(l){");
 const loadImageEnd = html.indexOf("function renderSources(){", loadImageStart);
 const primaryImageLoader = loadImageStart >= 0 && loadImageEnd > loadImageStart ? html.slice(loadImageStart, loadImageEnd) : "";
 assert(primaryImageLoader && !primaryImageLoader.includes("api/rest_v1/page/summary/"), "Primary image loader must use the updated MediaWiki Action API path");
-assert(html.includes("collected.slice(0,3)"), "Lesson image gallery should render up to three results");
+assert(/MIN_READER_GALLERY_IMAGES = 5/.test(html) && /MAX_READER_GALLERY_IMAGES = 9/.test(html),
+  "Every lesson should target 5–10 relevant images in total: main image plus 5–9 gallery items");
+assert(/l\.imageQuery \|\|/.test(html), "Gallery must use the actual per-lesson curated image query");
+assert(/collected\.slice\(0, MAX_READER_GALLERY_IMAGES\)/.test(html), "Gallery must cap the number of supplemental images");
+assert(/function localizedGalleryImage/.test(html), "Every gallery image needs a Russian topic-specific caption");
+assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
+  "Raw English Wikimedia ImageDescription must never be rendered as the pupil-facing caption");
+assert(/localizedLicenseLabel/.test(html), "Image licence labels must be localized into Russian");
+assert(/pointerdown/.test(html) && /pointermove/.test(html) && /scrollLeft=imagePanState/.test(html),
+  "Zoomed images must support pointer drag-to-pan");
+assert(/e\.target===el\("imageViewer"\)/.test(html) && /e\.key==="Escape"/.test(html),
+  "Viewer must close on backdrop click and Escape");
 assert(/data-source-page/.test(html) && /reader-gallery-source/.test(html), "Gallery images need per-file source links");
-assert(/ext.ImageDescription/.test(html) && /ext.LicenseShortName/.test(html), "Gallery cards should display available source metadata");
+assert(/localizedLicenseLabel/.test(html) && /ext.LicenseShortName/.test(html), "Image licences must stay available as localized labels and source links");
 assert(!/class="factnote">'+notes[i]/.test(html), "Repeated generic guidance still appears under every lesson fact");
 assert(/epochImageFailed/.test(html), "Background loading should skip a candidate that already failed");
 assert(/id="viewPageBackground"/.test(html), "Home page must expose a way to open the background image in the viewer");
@@ -66,7 +77,7 @@ assert(/function isUsableEpochImage\(page,info\)/.test(html),
 assert(/el\("viewPageBackground"\)\.addEventListener\("click"/.test(html),
   "Background viewer control must open the source for the selected epoch");
 
-console.log("Image structure OK: 182/182 lesson routes, 26/26 single-focus background queries, per-image source routing, retry/fallback and up-to-three sourced gallery results.");
+console.log("Image checks OK: 182/182 lesson routes, 26 backgrounds, 5–10 total image target, Russian captions and licences, original-source links, zoom/pan/close viewer.");
 
 /* Optional live smoke test. This checks the endpoints and one returned image, not all 182
    search results; automatic search results still require editorial relevance review. */
