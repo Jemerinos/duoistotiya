@@ -7,7 +7,12 @@ require("../../curriculum-details-03.js");
 require("../../curriculum-details-04.js");
 require("../../curriculum-depth.js");
 require("../../curriculum-details-apply.js");
+require("../../curriculum-enrichment-01.js");
+require("../../curriculum-enrichment-02.js");
+require("../../curriculum-enrichment-03.js");
+require("../../curriculum-enrichment-04.js");
 require("../../curriculum-research.js");
+require("../../curriculum-enrichment-apply.js");
 require("../../curriculum-participants.js");
 require("../../curriculum-participant-sources.js");
 require("../../curriculum-glossary.js");
@@ -15,6 +20,18 @@ const course = window.HISTORY_CURRICULUM;
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 assert(course && course.weeks.length === 26, "Expected 26 course modules");
 assert(course.lessons.length === 182, "Expected 182 lessons");
+const enrichmentStats = window.HISTORY_ENRICHMENT_STATS;
+assert(enrichmentStats && enrichmentStats.lessons === 182 && enrichmentStats.version === 1,
+  "Historical detail enrichment must be applied to all 182 runtime lesson readings");
+assert(window.HISTORY_LESSON_DEEPENING && Object.keys(window.HISTORY_LESSON_DEEPENING).length === 182,
+  "Expected one lesson-specific historical detail paragraph for each lesson");
+for (let i = 0; i < course.lessons.length; i++) {
+  const meta = course.lessons[i][6] || {};
+  const addition = window.HISTORY_LESSON_DEEPENING[i + 1];
+  assert(meta.enrichmentVersion === 1 && typeof meta.detailedText === "string" &&
+    meta.detailedText.includes(addition.trim()),
+    "Lesson " + (i + 1) + " does not contain its historical detail in the text actually rendered");
+}
 const titles = new Set();
 const depths = [];
 for (let i = 0; i < course.lessons.length; i++) {
