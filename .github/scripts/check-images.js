@@ -54,6 +54,12 @@ assert(primaryImageLoader && !primaryImageLoader.includes("api/rest_v1/page/summ
 assert(/MIN_READER_GALLERY_IMAGES = 5/.test(html) && /MAX_READER_GALLERY_IMAGES = 9/.test(html),
   "Every lesson should target 5–10 relevant images in total: main image plus 5–9 gallery items");
 assert(/l\.imageQuery \|\|/.test(html), "Gallery must use the actual per-lesson curated image query");
+assert(!/l\.imageSearch/.test(html),
+  "Primary image fallback, chapter background and image gallery must all use runtime l.imageQuery rather than a nonexistent property");
+assert(/function loadCommonsImage\(l\)[\s\S]*?queries=\[l\.imageQuery\|\|""/.test(html),
+  "Primary image Commons fallback must use the lesson-specific curated image query");
+assert(/function loadEpochBackground\(l\)[\s\S]*?l\.imageQuery/.test(html),
+  "Chapter background fallback must use the runtime lesson image query");
 assert(/collected\.slice\(0, MAX_READER_GALLERY_IMAGES\)/.test(html), "Gallery must cap the number of supplemental images");
 assert(/function localizedGalleryImage/.test(html), "Every gallery image needs a Russian topic-specific caption");
 assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
