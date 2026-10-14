@@ -322,11 +322,17 @@ async function liveAuditLessonQueries(range) {
       title + " historical photograph painting document",
       title + " map monument primary source"
     ].filter((query, index, all) => query && all.indexOf(query) === index);
-    const topicTokens = (title + " " + wiki + " " + String(reading.imageSearch || "")).toLowerCase()
+    const topicTokens = Array.from(new Set((title + " " + wiki + " " + String(reading.imageSearch || "")).toLowerCase()
       .replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/)
-      .filter(token => token.length >= 4 && !stopWords.has(token));
+      .filter(token => token.length >= 4 && !stopWords.has(token))));
     const minimumScore = day >= 2 && day <= 3 ? 2 : 1;
-    const seen = new Set(), collected = [];
+    const seen = new Set(), families = new Set(), collected = [];
+    function sourceFamily(raw) {
+      const value = String(raw || "").toLowerCase().replace(/\([^)]*\)/g, " ")
+        .replace(/\b\d{6,}\b/g, " ").replace(/\b\d{4}\b/g, " ")
+        .replace(/[^a-z0-9а-яё]+/gi, " ").replace(/\s+/g, " ").trim();
+      return value.split(" ").slice(0, 7).join(" ");
+    }
     for (const query of queryList) {
       const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
         encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime&iiurlwidth=500&format=json&origin=*";
@@ -347,10 +353,12 @@ async function liveAuditLessonQueries(range) {
         const info = page && page.imageinfo && page.imageinfo[0] || {};
         const file = String(page && page.title || "").replace(/^File:/, "");
         const mime = String(info.mime || "").toLowerCase();
+        const ext = info.extmetadata || {};
+        const description = String(ext.ImageDescription && ext.ImageDescription.value || "").replace(/<[^>]*>/g, " ");
         if (!info.thumburl || !info.url || !info.descriptionurl) return null;
         if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
-        const words = file.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
+        const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
         const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
           word === token || (word.length >= 5 && token.length >= 5 &&
             (word.indexOf(token) === 0 || token.indexOf(word) === 0))) ? 1 : 0), 0);
@@ -358,9 +366,9 @@ async function liveAuditLessonQueries(range) {
       }).filter(Boolean);
       candidates.sort((a,b) => b.score - a.score);
       candidates.forEach(item => {
-        if (!seen.has(item.source) && collected.length < 9) {
-          seen.add(item.source);
-          collected.push(item);
+        const family = sourceFamily(item.file);
+        if (!seen.has(item.source) && !families.has(family) && collected.length < 9) {
+          seen.add(item.source); families.add(family); collected.push(item);
         }
       });
       if (collected.length >= 9) break;
