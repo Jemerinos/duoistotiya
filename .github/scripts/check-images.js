@@ -39,6 +39,10 @@ assert(/timeline|chronology/i.test(lessonImageQuery("Хронология и и�
   "Lesson 2 image query must represent chronology or timelines");
 assert(/map|geography/i.test(lessonImageQuery("География и карта как источник")),
   "Lesson 3 image query must represent maps or historical geography");
+assert(/l\.day === 2 && \/\\\\b\(genealog\|genealogical\|genealogie\|souverains\|family tree\|dynasty\)\\\\b\/i\.test\(title\)/.test(html),
+  "Lesson 2 gallery must suppress genealogy-heavy matches");
+assert(/l\.day === 3 && \/\\\\b\(cover\|covers\|title page\|contents\|frontispiece\)\\\\b\/i\.test\(title\)/.test(html),
+  "Lesson 3 gallery must suppress atlas covers and title pages");
 
 
 for (let week = 1; week <= 26; week++) {
@@ -364,7 +368,8 @@ async function liveAuditLessonQueries(range) {
         const description = String(ext.ImageDescription && ext.ImageDescription.value || "").replace(/<[^>]*>/g, " ");
         if (!info.thumburl || !info.url || !info.descriptionurl) return null;
         if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(file)) return null;
-        if (day === 3 && /\b(title page|contents to|covers? to|front cover|book cover|table of contents)\b/i.test(file)) return null;
+        if (day === 2 && /\b(genealog|genealogical|genealogie|souverains|family tree|dynasty)\b/i.test(file)) return null;
+        if (day === 3 && /\b(cover|covers|title page|contents|frontispiece)\b/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
         const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
         const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
