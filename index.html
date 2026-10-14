@@ -622,6 +622,11 @@ function loadReaderGallery(l) {
     2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "timeline of world history"],
     3: ["historical atlas world map geography physical features", "world map rivers mountains geography", "historical atlas map continents regions", "old world map physical geography"]
   };
+  Object.assign(batchSpecificQueries, {
+    4: ["archaeological excavation stratigraphy soil section layers","archaeological excavation pottery bones tools in situ","archaeological assemblage flint tools animal remains excavation"],
+    5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription","Magna Carta historical charter manuscript parchment","Declaration of Independence original document handwriting archive","historical treaty manuscript original signed document","archival collection historic handwritten letter paper document","ancient Egyptian papyrus manuscript text museum","historic legal deed parchment seal archive","primary historical source document manuscript letter signed scan"],
+    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"]
+  });
   var queries = [
     l.imageQuery || "",
     ...(batchSpecificQueries[l.day] || [
@@ -638,6 +643,12 @@ function loadReaderGallery(l) {
   var topicTokens = Array.from(new Set((String(l.title || "") + " " + specific + " " + String(l.imageQuery || ""))
     .toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/)
     .filter(function(t) { return t.length >= 4 && !stopWords.has(t); })));
+  var galleryAuditTerms = {
+    4: ["archaeolog", "excavation", "stratigraph", "pottery", "bone", "artifact", "flint", "skeleton", "burial", "layer", "trench", "remains"],
+    5: ["primary", "document", "charter", "manuscript", "letter", "diary", "papyrus", "tablet", "parchment", "seal", "inscription", "declaration"],
+    6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"]
+  };
+  topicTokens.push(...(galleryAuditTerms[l.day] || []));
   function isUsableImage(page) {
     var info = page && page.imageinfo && page.imageinfo[0] || {};
     var title = String(page && page.title || "");
@@ -646,6 +657,9 @@ function loadReaderGallery(l) {
     if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(title)) return false;
     if (l.day === 2 && /(genealog|souverain|family of|family tree|house of|dynasty|lineage|dukes|emperors to|kings of)/i.test(title)) return false;
     if (l.day === 3 && /\b(cover|covers|title page|contents|frontispiece)\b/i.test(title)) return false;
+    if (l.day === 4 && /(mosaic|medallion|portrait|sculpture|statue|artwork)/i.test(title) && !/(excavat|archaeolog|stratigraph|in situ|findid)/i.test(title)) return false;
+    if (l.day === 5 && /(fictional|novel|album|movie|film|fan art|comic|cartoon)/i.test(title)) return false;
+    if (l.day === 6 && /(uniform|clothing|helmet|side cap|malaria|health museum|medical exhibit|comic|cartoon)/i.test(title)) return false;
     if (mime && mime.indexOf("image/") !== 0) return false;
     return true;
   }
@@ -657,7 +671,7 @@ function loadReaderGallery(l) {
       .replace(/[^a-z0-9а-яё]+/gi, " ").replace(/\s+/g, " ").trim();
     return value.split(" ").slice(0, 7).join(" ");
   }
-  var minimumRelevanceScore = (l.day >= 2 && l.day <= 3) ? 2 : 1;
+  var minimumRelevanceScore = l.day === 5 ? 1 : ((l.day >= 2 && l.day <= 6) ? 2 : 1);
   function relevanceScore(raw, description) {
     var words = (String(raw || "") + " " + String(description || "")).toLowerCase()
       .replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
