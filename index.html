@@ -619,7 +619,7 @@ function loadReaderGallery(l) {
   // Start with the per-lesson curated query, then widen only around the same subject.
   var batchSpecificQueries = {
     1: ["historical letter manuscript document", "handwritten letter historical document", "historical manuscript letter archive", "historical source inscription tablet manuscript"],
-    2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "chronology chart ancient and modern history"],
+    2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "timeline of world history"],
     3: ["historical atlas world map geography physical features", "world map rivers mountains geography", "historical atlas map continents regions", "old world map physical geography"]
   };
   var queries = [
@@ -644,7 +644,7 @@ function loadReaderGallery(l) {
     var mime = String(info.mime || "").toLowerCase();
     if (!info.thumburl || !info.url || !info.descriptionurl) return false;
     if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(title)) return false;
-    if (l.day === 2 && /\b(genealog|genealogical|genealogie|souverains|family tree|dynasty)\b/i.test(title)) return false;
+    if (l.day === 2 && /(genealog|souverain|family of|family tree|house of|dynasty|lineage|dukes|emperors to|kings of)/i.test(title)) return false;
     if (l.day === 3 && /\b(cover|covers|title page|contents|frontispiece)\b/i.test(title)) return false;
     if (mime && mime.indexOf("image/") !== 0) return false;
     return true;
