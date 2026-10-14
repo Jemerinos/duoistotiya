@@ -43,6 +43,18 @@ assert(html.includes('if (l.day === 2 && /(genealog|souverain|family of|family t
   "Lesson 2 gallery must suppress genealogy-heavy matches");
 assert(html.includes('if (l.day === 3 && /\\b(cover|covers|title page|contents|frontispiece)\\b/i.test(title))'),
   "Lesson 3 gallery must suppress atlas covers and title pages");
+assert(html.includes('if (l.day === 7 && /(classroom|lecture|school desk|worksheet|presentation slide|powerpoint|training session)/i.test(title)) return false;'),
+  "Lesson 7 gallery must suppress classroom-only results");
+assert(html.includes('if (l.day === 8 && /(dinosaur|gorilla|chimpanzee|orangutan|macaque|baboon|monkey skull)/i.test(title) && !/(hominin|hominid|human|homo|neanderthal|denisovan)/i.test(title)) return false;'),
+  "Lesson 8 gallery must suppress unrelated animal fossils");
+assert(html.includes('if (l.day === 9 && /(video game|fantasy art|toy|doll|costume party|comic|cartoon)/i.test(title)) return false;'),
+  "Lesson 9 gallery must suppress fictionalized results");
+assert(/document|source|letter/i.test(lessonImageQuery("Практикум 1: разбор источника")),
+  "Lesson 7 image query must represent historical documents");
+assert(/homo sapiens|neanderthal|fossil/i.test(lessonImageQuery("Homo sapiens и другие человеческие виды")),
+  "Lesson 8 image query must represent human evolution");
+assert(/hunter gatherer|paleolithic|stone tools/i.test(lessonImageQuery("Повседневность охотников-собирателей")),
+  "Lesson 9 image query must represent hunter-gatherer life");
 
 
 for (let week = 1; week <= 26; week++) {
@@ -328,7 +340,10 @@ async function liveAuditLessonQueries(range) {
     Object.assign(batchSpecificQueries, {
     4: ["archaeological excavation stratigraphy soil section layers","archaeological excavation pottery bones tools in situ","archaeological assemblage flint tools animal remains excavation"],
     5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription","Magna Carta historical charter manuscript parchment","Declaration of Independence original document handwriting archive","historical treaty manuscript original signed document","archival collection historic handwritten letter paper document","ancient Egyptian papyrus manuscript text museum","historic legal deed parchment seal archive","primary historical source document manuscript letter signed scan"],
-    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"]
+    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"],
+    7: ["historical primary source handwritten letter document archive","medieval charter parchment wax seal document","historical newspaper front page archival scan","historical telegram signed document primary source"],
+    8: ["Homo sapiens Neanderthal Denisovan fossil skull mandible","Neanderthal cranium fossil museum Homo sapiens","Denisovan fossil tooth mandible skull discovery","Pleistocene hominin fossil skull archaeological specimen"],
+    9: ["Paleolithic hunter gatherer camp reconstruction prehistoric dwelling","hunter gatherer stone tools microliths archaeological excavation","Mesolithic hunter gatherers fishing tools settlement archaeology","prehistoric flint scraper handaxe stone tool museum"]
   });
     const queryList = [
       reading.imageSearch || "",
@@ -345,10 +360,13 @@ async function liveAuditLessonQueries(range) {
     const lessonAuditTerms = {
       4: ["archaeolog", "excavation", "stratigraph", "pottery", "bone", "artifact", "flint", "skeleton", "burial", "layer", "trench", "remains"],
       5: ["primary", "document", "charter", "manuscript", "letter", "diary", "papyrus", "tablet", "parchment", "seal", "inscription", "declaration"],
-      6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"]
+      6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"],
+      7: ["primary", "document", "charter", "manuscript", "letter", "diary", "newspaper", "telegram", "archive", "inscription", "seal", "parchment", "handwriting", "memo"],
+      8: ["homo", "sapiens", "neanderthal", "denisovan", "fossil", "skull", "hominin", "hominid", "mandible", "cranium", "human", "genome", "dna", "evolution"],
+      9: ["hunter", "gatherer", "paleolithic", "mesolithic", "stone", "flint", "microlith", "foraging", "camp", "hunting", "fishing", "settlement", "prehistory", "shelter", "handaxe"]
     };
     topicTokens.push(...(lessonAuditTerms[day] || []));
-    const minimumScore = day === 5 ? 1 : (day >= 2 && day <= 6 ? 2 : 1);
+    const minimumScore = day === 5 ? 1 : (day >= 2 && day <= 9 ? 2 : 1);
     const seen = new Set(), families = new Set(), collected = [];
     function sourceFamily(raw) {
       const value = String(raw || "").toLowerCase().replace(/\([^)]*\)/g, " ")
@@ -385,6 +403,9 @@ async function liveAuditLessonQueries(range) {
         if (day === 4 && /(mosaic|medallion|portrait|sculpture|statue|artwork)/i.test(file) && !/(excavat|archaeolog|stratigraph|in situ|findid)/i.test(file)) return null;
         if (day === 5 && /(fictional|novel|album|movie|film|fan art|comic|cartoon)/i.test(file)) return null;
         if (day === 6 && /(uniform|clothing|helmet|side cap|malaria|health museum|medical exhibit|comic|cartoon)/i.test(file)) return null;
+        if (day === 7 && /(classroom|lecture|school desk|worksheet|presentation slide|powerpoint|training session)/i.test(file)) return null;
+        if (day === 8 && /(dinosaur|gorilla|chimpanzee|orangutan|macaque|baboon|monkey skull)/i.test(file) && !/(hominin|hominid|human|homo|neanderthal|denisovan)/i.test(file)) return null;
+        if (day === 9 && /(video game|fantasy art|toy|doll|costume party|comic|cartoon)/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
         const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
         const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
