@@ -326,7 +326,7 @@ async function liveAuditLessonQueries(range) {
     };
     Object.assign(batchSpecificQueries, {
     4: ["archaeological excavation stratigraphy soil section layers","archaeological excavation pottery bones tools in situ","archaeological assemblage flint tools animal remains excavation"],
-    5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription"],
+    5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription","Magna Carta historical charter manuscript parchment","Declaration of Independence original document handwriting archive"],
     6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"]
   });
     const queryList = [
@@ -347,7 +347,7 @@ async function liveAuditLessonQueries(range) {
       6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"]
     };
     topicTokens.push(...(lessonAuditTerms[day] || []));
-    const minimumScore = day >= 2 && day <= 6 ? 2 : 1;
+    const minimumScore = day === 5 ? 1 : (day >= 2 && day <= 6 ? 2 : 1);
     const seen = new Set(), families = new Set(), collected = [];
     function sourceFamily(raw) {
       const value = String(raw || "").toLowerCase().replace(/\([^)]*\)/g, " ")
