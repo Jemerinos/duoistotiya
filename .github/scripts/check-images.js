@@ -60,6 +60,8 @@ assert(/function loadCommonsImage\(l\)[\s\S]*?queries=\[l\.imageQuery\|\|""/.tes
   "Primary image Commons fallback must use the lesson-specific curated image query");
 assert(/function loadEpochBackground\(l\)[\s\S]*?l\.imageQuery/.test(html),
   "Chapter background fallback must use the runtime lesson image query");
+assert(!/Historical_method.{0,80}Thucydides/.test(html), "A generic historical-method lesson must not be hardwired to Thucydides as its image subject");
+assert(!/Thucydides Peloponnesian War/.test(html), "Gallery fallback must not replace the lesson query with an unrelated named person");
 assert(/collected\.slice\(0, MAX_READER_GALLERY_IMAGES\)/.test(html), "Gallery must cap the number of supplemental images");
 assert(/function localizedGalleryImage/.test(html), "Every gallery image needs a Russian topic-specific caption");
 assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
