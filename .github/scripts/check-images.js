@@ -39,7 +39,7 @@ assert(/timeline|chronology/i.test(lessonImageQuery("Хронология и и�
   "Lesson 2 image query must represent chronology or timelines");
 assert(/map|geography/i.test(lessonImageQuery("География и карта как источник")),
   "Lesson 3 image query must represent maps or historical geography");
-assert(html.includes('if (l.day === 2 && /\\b(genealog|genealogical|genealogie|souverains|family tree|dynasty)\\b/i.test(title))'),
+assert(html.includes('if (l.day === 2 && /(genealog|souverain|family of|family tree|house of|dynasty|lineage|dukes|emperors to|kings of)/i.test(title))'),
   "Lesson 2 gallery must suppress genealogy-heavy matches");
 assert(html.includes('if (l.day === 3 && /\\b(cover|covers|title page|contents|frontispiece)\\b/i.test(title))'),
   "Lesson 3 gallery must suppress atlas covers and title pages");
@@ -321,7 +321,7 @@ async function liveAuditLessonQueries(range) {
     const title = String(row[0] || ""), wiki = String(row[5] || "");
     const batchSpecificQueries = {
       1: ["historical letter manuscript document", "handwritten letter historical document", "historical manuscript letter archive", "historical source inscription tablet manuscript"],
-      2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "chronology chart ancient and modern history"],
+      2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "timeline of world history"],
       3: ["historical atlas world map geography physical features", "world map rivers mountains geography", "historical atlas map continents regions", "old world map physical geography"]
     };
     const queryList = [
@@ -368,7 +368,7 @@ async function liveAuditLessonQueries(range) {
         const description = String(ext.ImageDescription && ext.ImageDescription.value || "").replace(/<[^>]*>/g, " ");
         if (!info.thumburl || !info.url || !info.descriptionurl) return null;
         if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(file)) return null;
-        if (day === 2 && /\b(genealog|genealogical|genealogie|souverains|family tree|dynasty)\b/i.test(file)) return null;
+        if (day === 2 && /(genealog|souverain|family of|family tree|house of|dynasty|lineage|dukes|emperors to|kings of)/i.test(file)) return null;
         if (day === 3 && /\b(cover|covers|title page|contents|frontispiece)\b/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
         const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
