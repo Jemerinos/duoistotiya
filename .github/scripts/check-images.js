@@ -315,6 +315,7 @@ async function liveAuditLessonQueries(range) {
   const stopWords = new Set(("the and for with from into that this these those about image images photo photos photograph " +
     "photographs historical history picture pictures painting paintings illustration illustrations museum archive " +
     "ancient medieval modern early late century period old new source sources artifact artifacts").split(/\s+/));
+  const shortfalls = [];
   for (let day = startDay; day <= endDay; day++) {
     const row = course.lessons[day - 1], reading = row && row[6] || {};
     assert(row && reading.imageSearch, "Lesson " + day + " has no curated image query");
@@ -326,7 +327,7 @@ async function liveAuditLessonQueries(range) {
     };
     Object.assign(batchSpecificQueries, {
     4: ["archaeological excavation stratigraphy soil section layers","archaeological excavation pottery bones tools in situ","archaeological assemblage flint tools animal remains excavation"],
-    5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription","Magna Carta historical charter manuscript parchment","Declaration of Independence original document handwriting archive"],
+    5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription","Magna Carta historical charter manuscript parchment","Declaration of Independence original document handwriting archive","historical treaty manuscript original signed document","archival collection historic handwritten letter paper document","ancient Egyptian papyrus manuscript text museum","historic legal deed parchment seal archive","primary historical source document manuscript letter signed scan"],
     6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"]
   });
     const queryList = [
@@ -410,9 +411,10 @@ async function liveAuditLessonQueries(range) {
     if (collected.length < 5) {
       const message = "Lesson " + day + " has only " + collected.length + " usable images after relevance and type filters; expected at least 5.";
       console.log("LIVE LESSON GALLERY NOTE " + JSON.stringify({day, title, note: message}));
-      throw new Error(message);
+      shortfalls.push(message);
     }
   }
+  if (shortfalls.length) throw new Error(shortfalls.join(" | "));
 }
 
 async function onlineCheck() {
