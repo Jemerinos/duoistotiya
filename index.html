@@ -617,31 +617,50 @@ function loadReaderGallery(l) {
   var MIN_READER_GALLERY_IMAGES = 5, MAX_READER_GALLERY_IMAGES = 9;
   var specific = String(l.wiki || l.title || "").replace(/_/g, " ");
   // Start with the per-lesson curated query, then widen only around the same subject.
+  var batchSpecificQueries = {
+    1: ["historical letter manuscript document", "handwritten letter historical document", "historical manuscript letter archive", "historical source inscription tablet manuscript"],
+    2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "timeline of world history"],
+    3: ["historical atlas world map geography physical features", "world map rivers mountains geography", "historical atlas map continents regions", "old world map physical geography"]
+  };
   var queries = [
     l.imageQuery || "",
-    specific + " historical image",
-    specific + " museum archive artifact",
-    l.title + " historical photograph painting document",
-    l.title + " map monument primary source"
+    ...(batchSpecificQueries[l.day] || [
+      specific + " historical image",
+      specific + " museum archive artifact",
+      l.title + " historical photograph painting document",
+      l.title + " map monument primary source"
+    ])
   ].filter(function(q, i, a) { return q && a.indexOf(q) === i; });
   var seen = new Set(), collected = [], grid = el("readerGalleryGrid");
   var stopWords = new Set(("the and for with from into that this these those about image images photo photos photograph " +
     "photographs historical history picture pictures painting paintings illustration illustrations museum archive " +
     "ancient medieval modern early late century period old new source sources artifact artifacts").split(/\s+/));
-  var topicTokens = (String(l.title || "") + " " + specific + " " + String(l.imageQuery || ""))
+  var topicTokens = Array.from(new Set((String(l.title || "") + " " + specific + " " + String(l.imageQuery || ""))
     .toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/)
-    .filter(function(t) { return t.length >= 4 && !stopWords.has(t); });
+    .filter(function(t) { return t.length >= 4 && !stopWords.has(t); })));
   function isUsableImage(page) {
     var info = page && page.imageinfo && page.imageinfo[0] || {};
     var title = String(page && page.title || "");
     var mime = String(info.mime || "").toLowerCase();
     if (!info.thumburl || !info.url || !info.descriptionurl) return false;
     if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(title)) return false;
+    if (l.day === 2 && /(genealog|souverain|family of|family tree|house of|dynasty|lineage|dukes|emperors to|kings of)/i.test(title)) return false;
+    if (l.day === 3 && /\b(cover|covers|title page|contents|frontispiece)\b/i.test(title)) return false;
     if (mime && mime.indexOf("image/") !== 0) return false;
     return true;
   }
-  function relevanceScore(raw) {
-    var words = String(raw || "").toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
+  function imageSourceFamily(raw) {
+    var value = String(raw || "").toLowerCase()
+      .replace(/\([^)]*\)/g, " ")
+      .replace(/\b\d{6,}\b/g, " ")
+      .replace(/\b\d{4}\b/g, " ")
+      .replace(/[^a-z0-9а-яё]+/gi, " ").replace(/\s+/g, " ").trim();
+    return value.split(" ").slice(0, 7).join(" ");
+  }
+  var minimumRelevanceScore = (l.day >= 2 && l.day <= 3) ? 2 : 1;
+  function relevanceScore(raw, description) {
+    var words = (String(raw || "") + " " + String(description || "")).toLowerCase()
+      .replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
     return topicTokens.reduce(function(score, token) {
       return score + (words.some(function(word) {
         return word === token || (word.length >= 5 && token.length >= 5 &&
@@ -726,11 +745,12 @@ function loadReaderGallery(l) {
       pages.forEach(function(page) {
         var info = page.imageinfo && page.imageinfo[0], raw = String(page.title || "").replace(/^File:/, "");
         if (!isUsableImage(page) || seen.has(info.descriptionurl)) return;
-        var score = relevanceScore(raw);
-        // A file must share a meaningful topic term; a MIME type alone is not enough.
-        if (score < 1) return;
-        seen.add(info.descriptionurl);
         var ext = info.extmetadata || {};
+        var description = cleanAttribution(ext.ImageDescription && ext.ImageDescription.value);
+        var score = relevanceScore(raw, description);
+        // Score file title plus its catalogued description, not MIME type alone.
+        if (score < minimumRelevanceScore) return;
+        seen.add(info.descriptionurl);
         candidates.push({
           info: info, raw: raw, score: score,
           artist: cleanAttribution(ext.Artist && ext.Artist.value),
@@ -740,8 +760,13 @@ function loadReaderGallery(l) {
         });
       });
       candidates.sort(function(a,b) { return b.score-a.score; });
+      var families = new Set(collected.map(function(item) { return imageSourceFamily(item.raw); }));
       candidates.forEach(function(item) {
-        if (collected.length < MAX_READER_GALLERY_IMAGES) collected.push(item);
+        if (collected.length >= MAX_READER_GALLERY_IMAGES) return;
+        var family = imageSourceFamily(item.raw);
+        if (families.has(family)) return;
+        families.add(family);
+        collected.push(item);
       });
       attempt(index + 1);
     }).catch(function() { attempt(index + 1); });

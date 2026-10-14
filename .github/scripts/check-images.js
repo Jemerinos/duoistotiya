@@ -29,6 +29,22 @@ for (let i = 0; i < course.lessons.length; i++) {
 assert(missing.length === 0, "Lessons without an image/article route: " + missing.join("; "));
 assert(weakQueries.length === 0, "Image queries too generic to be useful: " + weakQueries.join("; "));
 
+function lessonImageQuery(title) {
+  const row = course.lessons.find(item => item[0] === title);
+  return String(row && row[6] && row[6].imageSearch || "");
+}
+assert(/evidence|source|document/i.test(lessonImageQuery("Что изучает история?")),
+  "Lesson 1 image query must represent historical evidence and sources");
+assert(/timeline|chronology/i.test(lessonImageQuery("Хронология и историческое время")),
+  "Lesson 2 image query must represent chronology or timelines");
+assert(/map|geography/i.test(lessonImageQuery("География и карта как источник")),
+  "Lesson 3 image query must represent maps or historical geography");
+assert(html.includes('if (l.day === 2 && /(genealog|souverain|family of|family tree|house of|dynasty|lineage|dukes|emperors to|kings of)/i.test(title))'),
+  "Lesson 2 gallery must suppress genealogy-heavy matches");
+assert(html.includes('if (l.day === 3 && /\\b(cover|covers|title page|contents|frontispiece)\\b/i.test(title))'),
+  "Lesson 3 gallery must suppress atlas covers and title pages");
+
+
 for (let week = 1; week <= 26; week++) {
   const item = visuals[week];
   assert(item && typeof item.query === "string" && item.query.trim().length >= 8, "Missing descriptive background query for module " + week);
@@ -290,6 +306,101 @@ async function checkBackgroundQueries() {
     fileMatches + " pinned files verified; remaining candidates use article thumbnails or Commons search.");
 }
 
+
+async function liveAuditLessonQueries(range) {
+  const match = String(range || "").match(/^(\d+)-(\d+)$/);
+  assert(match, "Lesson audit range must look like 1-3");
+  const startDay = Number(match[1]), endDay = Number(match[2]);
+  assert(startDay >= 1 && endDay >= startDay && endDay <= 182, "Lesson audit range is outside the course");
+  const stopWords = new Set(("the and for with from into that this these those about image images photo photos photograph " +
+    "photographs historical history picture pictures painting paintings illustration illustrations museum archive " +
+    "ancient medieval modern early late century period old new source sources artifact artifacts").split(/\s+/));
+  for (let day = startDay; day <= endDay; day++) {
+    const row = course.lessons[day - 1], reading = row && row[6] || {};
+    assert(row && reading.imageSearch, "Lesson " + day + " has no curated image query");
+    const title = String(row[0] || ""), wiki = String(row[5] || "");
+    const batchSpecificQueries = {
+      1: ["historical letter manuscript document", "handwritten letter historical document", "historical manuscript letter archive", "historical source inscription tablet manuscript"],
+      2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "timeline of world history"],
+      3: ["historical atlas world map geography physical features", "world map rivers mountains geography", "historical atlas map continents regions", "old world map physical geography"]
+    };
+    const queryList = [
+      reading.imageSearch || "",
+      ...(batchSpecificQueries[day] || [
+        wiki.replace(/_/g, " ") + " historical image",
+        wiki.replace(/_/g, " ") + " museum archive artifact",
+        title + " historical photograph painting document",
+        title + " map monument primary source"
+      ])
+    ].filter((query, index, all) => query && all.indexOf(query) === index);
+    const topicTokens = Array.from(new Set((title + " " + wiki + " " + String(reading.imageSearch || "")).toLowerCase()
+      .replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/)
+      .filter(token => token.length >= 4 && !stopWords.has(token))));
+    const minimumScore = day >= 2 && day <= 3 ? 2 : 1;
+    const seen = new Set(), families = new Set(), collected = [];
+    function sourceFamily(raw) {
+      const value = String(raw || "").toLowerCase().replace(/\([^)]*\)/g, " ")
+        .replace(/\b\d{6,}\b/g, " ").replace(/\b\d{4}\b/g, " ")
+        .replace(/[^a-z0-9а-яё]+/gi, " ").replace(/\s+/g, " ").trim();
+      return value.split(" ").slice(0, 7).join(" ");
+    }
+    for (const query of queryList) {
+      const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
+        encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime&iiurlwidth=500&format=json&origin=*";
+      const payload = await retry("Live Commons query for lesson " + day, async () => {
+        const response = await withTimeout(url, 15000);
+        if (response.status === 429 || response.status === 503) {
+          const error = new Error("Commons query for lesson " + day + " returned HTTP " + response.status);
+          error.retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after")) ?? 12000;
+          throw error;
+        }
+        assert(response.ok, "Commons query for lesson " + day + " returned HTTP " + response.status);
+        const data = await response.json();
+        assert(!data.error, "Commons query for lesson " + day + " returned API error");
+        return data;
+      });
+      const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
+      const candidates = pages.map(page => {
+        const info = page && page.imageinfo && page.imageinfo[0] || {};
+        const file = String(page && page.title || "").replace(/^File:/, "");
+        const mime = String(info.mime || "").toLowerCase();
+        const ext = info.extmetadata || {};
+        const description = String(ext.ImageDescription && ext.ImageDescription.value || "").replace(/<[^>]*>/g, " ");
+        if (!info.thumburl || !info.url || !info.descriptionurl) return null;
+        if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(file)) return null;
+        if (day === 2 && /(genealog|souverain|family of|family tree|house of|dynasty|lineage|dukes|emperors to|kings of)/i.test(file)) return null;
+        if (day === 3 && /\b(cover|covers|title page|contents|frontispiece)\b/i.test(file)) return null;
+        if (mime && mime.indexOf("image/") !== 0) return null;
+        const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
+        const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
+          word === token || (word.length >= 5 && token.length >= 5 &&
+            (word.indexOf(token) === 0 || token.indexOf(word) === 0))) ? 1 : 0), 0);
+        return score >= minimumScore ? {file, score, mime: mime || "unspecified", source: info.descriptionurl, query} : null;
+      }).filter(Boolean);
+      candidates.sort((a,b) => b.score - a.score);
+      candidates.forEach(item => {
+        const family = sourceFamily(item.file);
+        if (!seen.has(item.source) && !families.has(family) && collected.length < 9) {
+          seen.add(item.source); families.add(family); collected.push(item);
+        }
+      });
+      if (collected.length >= 9) break;
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    console.log("LIVE LESSON GALLERY AUDIT " + JSON.stringify({
+      day, title, queryList, minimumScore, candidateCount: collected.length,
+      candidates: collected.slice(0, 9).map(item => ({
+        file: item.file, score: item.score, mime: item.mime, query: item.query, source: item.source
+      }))
+    }));
+    if (collected.length < 5) {
+      console.log("LIVE LESSON GALLERY NOTE " + JSON.stringify({
+        day, title, note: "Fewer than five usable supplemental files remain after relevance and type filters."
+      }));
+    }
+  }
+}
+
 async function onlineCheck() {
   const wikiUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages%7Cinfo&piprop=name%7Cthumbnail%7Coriginal&pithumbsize=600&inprop=url&titles=Hammurabi&format=json&origin=*";
   const wikiData = await retry("Wikipedia Action API", async () => {
@@ -328,6 +439,8 @@ async function onlineCheck() {
     return { status: response.status, type };
   });
   console.log("Live image smoke test OK: Wikipedia Action API returned page data; Commons returned \"" + candidate.title + "\"; thumbnail returned " + imageResponse.status + " (" + imageResponse.type + ").");
+  const auditArg = process.argv.find(arg => arg.startsWith("--lesson-audit="));
+  if (auditArg) await liveAuditLessonQueries(auditArg.split("=")[1]);
 }
 
 if (process.argv.includes("--background-audit")) {
