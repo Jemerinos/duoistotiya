@@ -14,7 +14,7 @@ permissions:
 # Superseded PR validations are cancelled; manual audits use a separate event group.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   validate-site:
