@@ -39,9 +39,9 @@ assert(/timeline|chronology/i.test(lessonImageQuery("Хронология и и�
   "Lesson 2 image query must represent chronology or timelines");
 assert(/map|geography/i.test(lessonImageQuery("География и карта как источник")),
   "Lesson 3 image query must represent maps or historical geography");
-assert(/l\.day === 2 && \/\\\\b\(genealog\|genealogical\|genealogie\|souverains\|family tree\|dynasty\)\\\\b\/i\.test\(title\)/.test(html),
+assert(html.includes('if (l.day === 2 && /\\b(genealog|genealogical|genealogie|souverains|family tree|dynasty)\\b/i.test(title))'),
   "Lesson 2 gallery must suppress genealogy-heavy matches");
-assert(/l\.day === 3 && \/\\\\b\(cover\|covers\|title page\|contents\|frontispiece\)\\\\b\/i\.test\(title\)/.test(html),
+assert(html.includes('if (l.day === 3 && /\\b(cover|covers|title page|contents|frontispiece)\\b/i.test(title))'),
   "Lesson 3 gallery must suppress atlas covers and title pages");
 
 
