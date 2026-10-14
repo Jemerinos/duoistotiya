@@ -383,3 +383,14 @@
 PATCH-010: PR #5 объединён коммитом e090a8961ff900249c3a692f08aabc4218e81969. CI run 38466820261 прошёл по всем четырём обязательным проверкам. Тексты runtime: 182 занятия, медиана 423 слова, ни одного текста короче 250 слов.
 
 Ограничение: галерея динамически ищет файлы Wikimedia; цель 5–10 изображений вместе с основной картинкой не означает, что количество и релевантность проверены вручную для всех 182 уроков. Полный live-аудит галерей не выполнен. Публичное отображение GitHub Pages после merge в этой сессии не подтверждено.
+
+
+---
+
+## Mini live audit — lessons 1–3
+
+- Lesson 1, «Что изучает история?»: found a query-selection defect. The shared wiki key `Historical_method` triggered a hardcoded Thucydides query in both the main-image fallback and gallery, although the lesson is about historical method and sources. Removed that override; the curated per-lesson `imageQuery` now remains first, with the generic key/title only as fallbacks.
+- Lesson 2, «Хронология и историческое время»: public Commons discovery confirms that broad world-history timelines exist, but a generic world-history timeline is only a candidate, not proof of a good instructional image. Prefer clearly readable chronological diagrams/calendars with a source and date; avoid self-published infographics that lack references as primary teaching evidence.
+- Lesson 3, «География и карта как источник»: Commons discovery finds trade-route maps, but these are not automatically suitable for a general lesson on reading maps. A map of Central Asian routes dated to the 13th century or a specific trade map may illustrate one example only; the gallery should prioritize maps with a clear legend, scale, region and date, and explain that they are examples rather than a general map of geography.
+
+Public search evidence checked for the first batch: Commons timeline entries and maps, including `Timeline of World History.png` (CC BY-SA 3.0, self-published overview with broad periodization) and `Map of Central Asia with trade routes and movements` (historical route map, not a general map-reading guide). This is a source-candidate review, not a claim that these exact files are the live gallery output; the runtime Wikimedia API could not be queried directly through the web viewer. Batch 1 code fix is on branch `audit-gallery-lessons-001-003` and adds CI guards against the Thucydides override.
