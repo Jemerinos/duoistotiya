@@ -622,6 +622,11 @@ function loadReaderGallery(l) {
     2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "timeline of world history"],
     3: ["historical atlas world map geography physical features", "world map rivers mountains geography", "historical atlas map continents regions", "old world map physical geography"]
   };
+  Object.assign(batchSpecificQueries, {
+    4: ["archaeological excavation stratigraphy pottery bones artifacts", "archaeological site excavation layers pottery", "ancient human remains archaeology museum", "archaeological artifacts in situ excavation"],
+    5: ["historical primary source letter diary charter manuscript", "medieval charter manuscript historical document", "historical diary handwritten letter archive", "primary source document wax seal parchment"],
+    6: ["historical propaganda poster political memory monument archive", "World War propaganda poster historical museum", "historical political poster archive", "monument commemorative plaque historical memory"]
+  });
   var queries = [
     l.imageQuery || "",
     ...(batchSpecificQueries[l.day] || [
