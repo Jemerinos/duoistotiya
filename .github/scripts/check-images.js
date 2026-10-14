@@ -324,6 +324,11 @@ async function liveAuditLessonQueries(range) {
       2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "timeline of world history"],
       3: ["historical atlas world map geography physical features", "world map rivers mountains geography", "historical atlas map continents regions", "old world map physical geography"]
     };
+    Object.assign(batchSpecificQueries, {
+    4: ["archaeological excavation stratigraphy soil section layers","archaeological excavation pottery bones tools in situ","archaeological assemblage flint tools animal remains excavation"],
+    5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription"],
+    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"]
+  });
     const queryList = [
       reading.imageSearch || "",
       ...(batchSpecificQueries[day] || [
@@ -336,7 +341,13 @@ async function liveAuditLessonQueries(range) {
     const topicTokens = Array.from(new Set((title + " " + wiki + " " + String(reading.imageSearch || "")).toLowerCase()
       .replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/)
       .filter(token => token.length >= 4 && !stopWords.has(token))));
-    const minimumScore = day >= 2 && day <= 3 ? 2 : 1;
+    const lessonAuditTerms = {
+      4: ["archaeolog", "excavation", "stratigraph", "pottery", "bone", "artifact", "flint", "skeleton", "burial", "layer", "trench", "remains"],
+      5: ["primary", "document", "charter", "manuscript", "letter", "diary", "papyrus", "tablet", "parchment", "seal", "inscription", "declaration"],
+      6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"]
+    };
+    topicTokens.push(...(lessonAuditTerms[day] || []));
+    const minimumScore = day >= 2 && day <= 6 ? 2 : 1;
     const seen = new Set(), families = new Set(), collected = [];
     function sourceFamily(raw) {
       const value = String(raw || "").toLowerCase().replace(/\([^)]*\)/g, " ")
@@ -370,6 +381,9 @@ async function liveAuditLessonQueries(range) {
         if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(file)) return null;
         if (day === 2 && /(genealog|souverain|family of|family tree|house of|dynasty|lineage|dukes|emperors to|kings of)/i.test(file)) return null;
         if (day === 3 && /\b(cover|covers|title page|contents|frontispiece)\b/i.test(file)) return null;
+        if (day === 4 && /(mosaic|medallion|portrait|sculpture|statue|artwork)/i.test(file) && !/(excavat|archaeolog|stratigraph|in situ|findid)/i.test(file)) return null;
+        if (day === 5 && /(fictional|novel|album|movie|film|fan art|comic|cartoon)/i.test(file)) return null;
+        if (day === 6 && /(uniform|clothing|helmet|side cap|malaria|health museum|medical exhibit|comic|cartoon)/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
         const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
         const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
@@ -394,9 +408,9 @@ async function liveAuditLessonQueries(range) {
       }))
     }));
     if (collected.length < 5) {
-      console.log("LIVE LESSON GALLERY NOTE " + JSON.stringify({
-        day, title, note: "Fewer than five usable supplemental files remain after relevance and type filters."
-      }));
+      const message = "Lesson " + day + " has only " + collected.length + " usable images after relevance and type filters; expected at least 5.";
+      console.log("LIVE LESSON GALLERY NOTE " + JSON.stringify({day, title, note: message}));
+      throw new Error(message);
     }
   }
 }
