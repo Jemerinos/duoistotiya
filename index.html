@@ -644,7 +644,8 @@ function loadReaderGallery(l) {
     var mime = String(info.mime || "").toLowerCase();
     if (!info.thumburl || !info.url || !info.descriptionurl) return false;
     if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(title)) return false;
-    if (l.day === 3 && /\b(title page|contents to|covers? to|front cover|book cover|table of contents)\b/i.test(title)) return false;
+    if (l.day === 2 && /\b(genealog|genealogical|genealogie|souverains|family tree|dynasty)\b/i.test(title)) return false;
+    if (l.day === 3 && /\b(cover|covers|title page|contents|frontispiece)\b/i.test(title)) return false;
     if (mime && mime.indexOf("image/") !== 0) return false;
     return true;
   }
