@@ -29,6 +29,18 @@ for (let i = 0; i < course.lessons.length; i++) {
 assert(missing.length === 0, "Lessons without an image/article route: " + missing.join("; "));
 assert(weakQueries.length === 0, "Image queries too generic to be useful: " + weakQueries.join("; "));
 
+function lessonImageQuery(title) {
+  const row = course.lessons.find(item => item[0] === title);
+  return String(row && row[6] && row[6].imageSearch || "");
+}
+assert(/evidence|source|document/i.test(lessonImageQuery("Что изучает история?")),
+  "Lesson 1 image query must represent historical evidence and sources");
+assert(/timeline|chronology/i.test(lessonImageQuery("Хронология и историческое время")),
+  "Lesson 2 image query must represent chronology or timelines");
+assert(/map|geography/i.test(lessonImageQuery("География и карта как источник")),
+  "Lesson 3 image query must represent maps or historical geography");
+
+
 for (let week = 1; week <= 26; week++) {
   const item = visuals[week];
   assert(item && typeof item.query === "string" && item.query.trim().length >= 8, "Missing descriptive background query for module " + week);
@@ -290,6 +302,71 @@ async function checkBackgroundQueries() {
     fileMatches + " pinned files verified; remaining candidates use article thumbnails or Commons search.");
 }
 
+
+async function liveAuditLessonQueries(range) {
+  const match = String(range || "").match(/^(\d+)-(\d+)$/);
+  assert(match, "Lesson audit range must look like 1-3");
+  const start = Number(match[1]), end = Number(match[2]);
+  assert(start >= 1 && end >= start && end <= 182, "Lesson audit range is outside the course");
+  const stopWords = new Set(("the and for with from into that this these those about image images photo photos photograph " +
+    "photographs historical history picture pictures painting paintings illustration illustrations museum archive " +
+    "ancient medieval modern early late century period old new source sources artifact artifacts").split(/\s+/));
+  for (let day = start; day <= end; day++) {
+    const row = course.lessons[day - 1];
+    assert(row && row[6] && row[6].imageSearch, "Lesson " + day + " has no curated image query");
+    const title = row[0], wiki = String(row[5] || ""), query = String(row[6].imageSearch || "").trim();
+    const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
+      encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime&iiurlwidth=500&format=json&origin=*";
+    const payload = await retry("Live Commons query for lesson " + day, async () => {
+      const response = await withTimeout(url, 15000);
+      if (response.status === 429 || response.status === 503) {
+        const error = new Error("Commons query for lesson " + day + " returned HTTP " + response.status);
+        error.retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after")) ?? 12000;
+        throw error;
+      }
+      assert(response.ok, "Commons query for lesson " + day + " returned HTTP " + response.status);
+      const data = await response.json();
+      assert(!data.error, "Commons query for lesson " + day + " returned API error");
+      return data;
+    });
+    const topicTokens = (title + " " + wiki + " " + query).toLowerCase()
+      .replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/)
+      .filter(token => token.length >= 4 && !stopWords.has(token));
+    const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
+    const candidates = pages.map(page => {
+      const info = page && page.imageinfo && page.imageinfo[0] || {};
+      const file = String(page && page.title || "").replace(/^File:/, "");
+      const mime = String(info.mime || "").toLowerCase();
+      if (!info.thumburl || !info.url || !info.descriptionurl) return null;
+      if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(file)) return null;
+      if (mime && mime.indexOf("image/") !== 0) return null;
+      const words = file.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
+      const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
+        word === token || (word.length >= 5 && token.length >= 5 &&
+          (word.indexOf(token) === 0 || token.indexOf(word) === 0))) ? 1 : 0), 0);
+      return score > 0 ? {file, score, mime: mime || "unspecified", source: info.descriptionurl} : null;
+    }).filter(Boolean);
+    const seen = new Set();
+    const unique = candidates.filter(item => {
+      if (seen.has(item.source)) return false;
+      seen.add(item.source);
+      return true;
+    }).sort((a,b) => b.score - a.score);
+    console.log("LIVE LESSON IMAGE QUERY " + JSON.stringify({
+      day, title, query, usableRelevantCandidates: unique.length,
+      topCandidates: unique.slice(0, 8).map(item => ({
+        file: item.file, score: item.score, mime: item.mime, source: item.source
+      }))
+    }));
+    if (unique.length < 5) {
+      console.log("LIVE LESSON QUERY NOTE " + JSON.stringify({
+        day, note: "The curated query returned fewer than five usable files; the gallery may need its broader fallback queries."
+      }));
+    }
+    if (day < end) await new Promise(resolve => setTimeout(resolve, 500));
+  }
+}
+
 async function onlineCheck() {
   const wikiUrl = "https://en.wikipedia.org/w/api.php?action=query&prop=pageimages%7Cinfo&piprop=name%7Cthumbnail%7Coriginal&pithumbsize=600&inprop=url&titles=Hammurabi&format=json&origin=*";
   const wikiData = await retry("Wikipedia Action API", async () => {
@@ -328,6 +405,8 @@ async function onlineCheck() {
     return { status: response.status, type };
   });
   console.log("Live image smoke test OK: Wikipedia Action API returned page data; Commons returned \"" + candidate.title + "\"; thumbnail returned " + imageResponse.status + " (" + imageResponse.type + ").");
+  const auditArg = process.argv.find(arg => arg.startsWith("--lesson-audit="));
+  if (auditArg) await liveAuditLessonQueries(auditArg.split("=")[1]);
 }
 
 if (process.argv.includes("--background-audit")) {
