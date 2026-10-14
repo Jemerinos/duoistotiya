@@ -306,64 +306,77 @@ async function checkBackgroundQueries() {
 async function liveAuditLessonQueries(range) {
   const match = String(range || "").match(/^(\d+)-(\d+)$/);
   assert(match, "Lesson audit range must look like 1-3");
-  const start = Number(match[1]), end = Number(match[2]);
-  assert(start >= 1 && end >= start && end <= 182, "Lesson audit range is outside the course");
+  const startDay = Number(match[1]), endDay = Number(match[2]);
+  assert(startDay >= 1 && endDay >= startDay && endDay <= 182, "Lesson audit range is outside the course");
   const stopWords = new Set(("the and for with from into that this these those about image images photo photos photograph " +
     "photographs historical history picture pictures painting paintings illustration illustrations museum archive " +
     "ancient medieval modern early late century period old new source sources artifact artifacts").split(/\s+/));
-  for (let day = start; day <= end; day++) {
-    const row = course.lessons[day - 1];
-    assert(row && row[6] && row[6].imageSearch, "Lesson " + day + " has no curated image query");
-    const title = row[0], wiki = String(row[5] || ""), query = String(row[6].imageSearch || "").trim();
-    const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
-      encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime&iiurlwidth=500&format=json&origin=*";
-    const payload = await retry("Live Commons query for lesson " + day, async () => {
-      const response = await withTimeout(url, 15000);
-      if (response.status === 429 || response.status === 503) {
-        const error = new Error("Commons query for lesson " + day + " returned HTTP " + response.status);
-        error.retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after")) ?? 12000;
-        throw error;
-      }
-      assert(response.ok, "Commons query for lesson " + day + " returned HTTP " + response.status);
-      const data = await response.json();
-      assert(!data.error, "Commons query for lesson " + day + " returned API error");
-      return data;
-    });
-    const topicTokens = (title + " " + wiki + " " + query).toLowerCase()
+  for (let day = startDay; day <= endDay; day++) {
+    const row = course.lessons[day - 1], reading = row && row[6] || {};
+    assert(row && reading.imageSearch, "Lesson " + day + " has no curated image query");
+    const title = String(row[0] || ""), wiki = String(row[5] || "");
+    const queryList = [
+      reading.imageSearch || "",
+      wiki.replace(/_/g, " ") + " historical image",
+      wiki.replace(/_/g, " ") + " museum archive artifact",
+      title + " historical photograph painting document",
+      title + " map monument primary source"
+    ].filter((query, index, all) => query && all.indexOf(query) === index);
+    const topicTokens = (title + " " + wiki + " " + String(reading.imageSearch || "")).toLowerCase()
       .replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/)
       .filter(token => token.length >= 4 && !stopWords.has(token));
-    const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
-    const candidates = pages.map(page => {
-      const info = page && page.imageinfo && page.imageinfo[0] || {};
-      const file = String(page && page.title || "").replace(/^File:/, "");
-      const mime = String(info.mime || "").toLowerCase();
-      if (!info.thumburl || !info.url || !info.descriptionurl) return null;
-      if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(file)) return null;
-      if (mime && mime.indexOf("image/") !== 0) return null;
-      const words = file.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
-      const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
-        word === token || (word.length >= 5 && token.length >= 5 &&
-          (word.indexOf(token) === 0 || token.indexOf(word) === 0))) ? 1 : 0), 0);
-      return score > 0 ? {file, score, mime: mime || "unspecified", source: info.descriptionurl} : null;
-    }).filter(Boolean);
-    const seen = new Set();
-    const unique = candidates.filter(item => {
-      if (seen.has(item.source)) return false;
-      seen.add(item.source);
-      return true;
-    }).sort((a,b) => b.score - a.score);
-    console.log("LIVE LESSON IMAGE QUERY " + JSON.stringify({
-      day, title, query, usableRelevantCandidates: unique.length,
-      topCandidates: unique.slice(0, 8).map(item => ({
-        file: item.file, score: item.score, mime: item.mime, source: item.source
+    const minimumScore = day >= 2 && day <= 3 ? 2 : 1;
+    const seen = new Set(), collected = [];
+    for (const query of queryList) {
+      const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
+        encodeURIComponent(query) + "&gsrnamespace=6&gsrlimit=30&prop=imageinfo&iiprop=url%7Cextmetadata%7Cmime&iiurlwidth=500&format=json&origin=*";
+      const payload = await retry("Live Commons query for lesson " + day, async () => {
+        const response = await withTimeout(url, 15000);
+        if (response.status === 429 || response.status === 503) {
+          const error = new Error("Commons query for lesson " + day + " returned HTTP " + response.status);
+          error.retryAfterMs = parseRetryAfterMs(response.headers.get("retry-after")) ?? 12000;
+          throw error;
+        }
+        assert(response.ok, "Commons query for lesson " + day + " returned HTTP " + response.status);
+        const data = await response.json();
+        assert(!data.error, "Commons query for lesson " + day + " returned API error");
+        return data;
+      });
+      const pages = payload.query && payload.query.pages ? Object.values(payload.query.pages) : [];
+      const candidates = pages.map(page => {
+        const info = page && page.imageinfo && page.imageinfo[0] || {};
+        const file = String(page && page.title || "").replace(/^File:/, "");
+        const mime = String(info.mime || "").toLowerCase();
+        if (!info.thumburl || !info.url || !info.descriptionurl) return null;
+        if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(file)) return null;
+        if (mime && mime.indexOf("image/") !== 0) return null;
+        const words = file.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
+        const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
+          word === token || (word.length >= 5 && token.length >= 5 &&
+            (word.indexOf(token) === 0 || token.indexOf(word) === 0))) ? 1 : 0), 0);
+        return score >= minimumScore ? {file, score, mime: mime || "unspecified", source: info.descriptionurl, query} : null;
+      }).filter(Boolean);
+      candidates.sort((a,b) => b.score - a.score);
+      candidates.forEach(item => {
+        if (!seen.has(item.source) && collected.length < 9) {
+          seen.add(item.source);
+          collected.push(item);
+        }
+      });
+      if (collected.length >= 9) break;
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    console.log("LIVE LESSON GALLERY AUDIT " + JSON.stringify({
+      day, title, queryList, minimumScore, candidateCount: collected.length,
+      candidates: collected.slice(0, 9).map(item => ({
+        file: item.file, score: item.score, mime: item.mime, query: item.query, source: item.source
       }))
     }));
-    if (unique.length < 5) {
-      console.log("LIVE LESSON QUERY NOTE " + JSON.stringify({
-        day, note: "The curated query returned fewer than five usable files; the gallery may need its broader fallback queries."
+    if (collected.length < 5) {
+      console.log("LIVE LESSON GALLERY NOTE " + JSON.stringify({
+        day, title, note: "Fewer than five usable supplemental files remain after relevance and type filters."
       }));
     }
-    if (day < end) await new Promise(resolve => setTimeout(resolve, 500));
   }
 }
 
