@@ -640,6 +640,7 @@ function loadReaderGallery(l) {
     if (mime && mime.indexOf("image/") !== 0) return false;
     return true;
   }
+  var minimumRelevanceScore = (l.day >= 2 && l.day <= 3) ? 2 : 1;
   function relevanceScore(raw) {
     var words = String(raw || "").toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
     return topicTokens.reduce(function(score, token) {
@@ -728,7 +729,7 @@ function loadReaderGallery(l) {
         if (!isUsableImage(page) || seen.has(info.descriptionurl)) return;
         var score = relevanceScore(raw);
         // A file must share a meaningful topic term; a MIME type alone is not enough.
-        if (score < 1) return;
+        if (score < minimumRelevanceScore) return;
         seen.add(info.descriptionurl);
         var ext = info.extmetadata || {};
         candidates.push({
