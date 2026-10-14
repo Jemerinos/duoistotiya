@@ -315,12 +315,19 @@ async function liveAuditLessonQueries(range) {
     const row = course.lessons[day - 1], reading = row && row[6] || {};
     assert(row && reading.imageSearch, "Lesson " + day + " has no curated image query");
     const title = String(row[0] || ""), wiki = String(row[5] || "");
+    const batchSpecificQueries = {
+      1: ["historical letter manuscript document", "handwritten letter historical document", "historical manuscript letter archive", "historical source inscription tablet manuscript"],
+      2: ["world history chronology timeline chart", "historical chronological table timeline", "world history timeline dates periods", "chronology chart ancient and modern history"],
+      3: ["historical atlas world map geography physical features", "world map rivers mountains geography", "historical atlas map continents regions", "old world map physical geography"]
+    };
     const queryList = [
       reading.imageSearch || "",
-      wiki.replace(/_/g, " ") + " historical image",
-      wiki.replace(/_/g, " ") + " museum archive artifact",
-      title + " historical photograph painting document",
-      title + " map monument primary source"
+      ...(batchSpecificQueries[day] || [
+        wiki.replace(/_/g, " ") + " historical image",
+        wiki.replace(/_/g, " ") + " museum archive artifact",
+        title + " historical photograph painting document",
+        title + " map monument primary source"
+      ])
     ].filter((query, index, all) => query && all.indexOf(query) === index);
     const topicTokens = Array.from(new Set((title + " " + wiki + " " + String(reading.imageSearch || "")).toLowerCase()
       .replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/)
@@ -357,6 +364,7 @@ async function liveAuditLessonQueries(range) {
         const description = String(ext.ImageDescription && ext.ImageDescription.value || "").replace(/<[^>]*>/g, " ");
         if (!info.thumburl || !info.url || !info.descriptionurl) return null;
         if (/\.(pdf|djvu?|epub|ogg|oga|opus|mp3|mp4|webm|wav|flac|zip|tar)$/i.test(file)) return null;
+        if (day === 3 && /\b(title page|contents to|covers? to|front cover|book cover|table of contents)\b/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
         const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
         const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
