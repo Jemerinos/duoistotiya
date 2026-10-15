@@ -360,14 +360,17 @@ async function liveAuditLessonQueries(range) {
       const value = String(raw || "").toLowerCase()
         .replace(/\([^)]*\)/g, " ")
         .replace(/[._]+/g, " ")
+        .replace(/\b(?:origowner|owner|rwlipack|richardwarrenlipack|earlypitman)[a-z0-9]*\b/g, " ")
         .replace(/\b\d{4}\b/g, " ")
         .replace(/\b\d{6,}\b/g, " ")
         .replace(/[^a-z0-9а-яё]+/gi, " ").replace(/\s+/g, " ").trim();
       const tokens = value.split(" ").map(token => token
         .replace(/^\d{1,2}[a-z]{3}\d{4}/, "")
-        .replace(/(page|pages|detail|details|upper|lower|top|bottom|left|right|center|centre|front|back|recto|verso|crop|cropped|scan|scanned|thumb|thumbnail|closeup|zoom|copy|duplicate)$/i, ""))
+        .replace(/(lowerdetail|upperdetail|topdetail|bottomdetail|centerdetail|centredetail|page|pages|detail|details|upper|lower|top|bottom|left|right|center|centre|front|back|recto|verso|crop|cropped|scan|scanned|thumb|thumbnail|closeup|zoom|copy|duplicate|text|transcript|transcription)$/i, "")
+        .replace(/testmony/,"testimony"))
         .filter(token => token.length > 2 && !/^\d+$/.test(token) &&
-          !/^(origowner|owner|rwlipack|richardwarrenlipack|earlypitman|findid|image|photo|photograph|picture|file|jpg|jpeg|png|gif|tif|tiff)$/i.test(token));
+          !/^(origowner|owner|rwlipack|richardwarrenlipack|earlypitman|findid|image|photo|photograph|picture|file|jpg|jpeg|png|gif|tif|tiff|pgs?|top|bottom|lower|upper|left|right|center|centre|front|back|recto|verso|detail|page|text|transcript|transcription)$/i.test(token));
+      if (tokens[0] && tokens[0].length >= 25) return tokens[0];
       return tokens.slice(0, 4).join(" ");
     }
     for (const query of queryList) {
