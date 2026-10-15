@@ -328,7 +328,10 @@ async function liveAuditLessonQueries(range) {
     Object.assign(batchSpecificQueries, {
     4: ["archaeological excavation stratigraphy soil section layers","archaeological excavation pottery bones tools in situ","archaeological assemblage flint tools animal remains excavation"],
     5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription","Magna Carta historical charter manuscript parchment","Declaration of Independence original document handwriting archive","historical treaty manuscript original signed document","archival collection historic handwritten letter paper document","ancient Egyptian papyrus manuscript text museum","historic legal deed parchment seal archive","primary historical source document manuscript letter signed scan"],
-    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"]
+    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"],
+    7: ["historical source manuscript document analysis", "historical handwritten charter letter archive scan", "ancient cuneiform tablet inscription museum", "medieval parchment charter manuscript seal archive"],
+    8: ["Homo sapiens Neanderthal Denisovan fossil skull museum", "Neanderthal cranium fossil scientific collection", "early Homo sapiens fossil skull Jebel Irhoud", "Denisovan fossil tooth human evolution museum"],
+    9: ["Paleolithic hunter gatherer stone tools Mesolithic artifacts museum", "Mesolithic microlith flint tools archaeological excavation", "Upper Paleolithic cave art prehistoric hunter gatherer", "hunter gatherer camp reconstruction archaeology museum"]
   });
     const queryList = [
       reading.imageSearch || "",
@@ -345,10 +348,13 @@ async function liveAuditLessonQueries(range) {
     const lessonAuditTerms = {
       4: ["archaeolog", "excavation", "stratigraph", "pottery", "bone", "artifact", "flint", "skeleton", "burial", "layer", "trench", "remains"],
       5: ["primary", "document", "charter", "manuscript", "letter", "diary", "papyrus", "tablet", "parchment", "seal", "inscription", "declaration"],
-      6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"]
+      6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"],
+      7: ["historical", "source", "manuscript", "document", "charter", "letter", "cuneiform", "tablet", "inscription", "parchment", "archive"],
+      8: ["homo", "sapiens", "neanderthal", "denisovan", "fossil", "skull", "cranium", "hominin", "evolution", "jebel", "tooth"],
+      9: ["paleolithic", "mesolithic", "hunter", "gatherer", "stone", "flint", "microlith", "cave", "prehistoric", "camp", "foraging"]
     };
     topicTokens.push(...(lessonAuditTerms[day] || []));
-    const minimumScore = day === 5 ? 1 : (day >= 2 && day <= 6 ? 2 : 1);
+    const minimumScore = day === 5 ? 1 : (day >= 2 && day <= 9 ? 2 : 1);
     const seen = new Set(), families = new Set(), collected = [];
     function sourceFamily(raw) {
       const value = String(raw || "").toLowerCase().replace(/\([^)]*\)/g, " ")
