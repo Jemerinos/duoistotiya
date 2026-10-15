@@ -357,10 +357,18 @@ async function liveAuditLessonQueries(range) {
     const minimumScore = day === 5 ? 1 : (day >= 2 && day <= 6 ? 2 : 1);
     const seen = new Set(), families = new Set(), collected = [];
     function sourceFamily(raw) {
-      const value = String(raw || "").toLowerCase().replace(/\([^)]*\)/g, " ")
-        .replace(/\b\d{6,}\b/g, " ").replace(/\b\d{4}\b/g, " ")
+      const value = String(raw || "").toLowerCase()
+        .replace(/\([^)]*\)/g, " ")
+        .replace(/[._]+/g, " ")
+        .replace(/\b\d{4}\b/g, " ")
+        .replace(/\b\d{6,}\b/g, " ")
         .replace(/[^a-z0-9а-яё]+/gi, " ").replace(/\s+/g, " ").trim();
-      return value.split(" ").slice(0, 7).join(" ");
+      const tokens = value.split(" ").map(token => token
+        .replace(/^\d{1,2}[a-z]{3}\d{4}/, "")
+        .replace(/(page|pages|detail|details|upper|lower|top|bottom|left|right|center|centre|front|back|recto|verso|crop|cropped|scan|scanned|thumb|thumbnail|closeup|zoom|copy|duplicate)$/i, ""))
+        .filter(token => token.length > 2 && !/^\d+$/.test(token) &&
+          !/^(origowner|owner|rwlipack|richardwarrenlipack|earlypitman|findid|image|photo|photograph|picture|file|jpg|jpeg|png|gif|tif|tiff)$/i.test(token));
+      return tokens.slice(0, 4).join(" ");
     }
     for (const query of queryList) {
       const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
