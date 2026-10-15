@@ -328,7 +328,10 @@ async function liveAuditLessonQueries(range) {
     Object.assign(batchSpecificQueries, {
     4: ["archaeological excavation stratigraphy soil section layers","archaeological excavation pottery bones tools in situ","archaeological assemblage flint tools animal remains excavation"],
     5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription","Magna Carta historical charter manuscript parchment","Declaration of Independence original document handwriting archive","historical treaty manuscript original signed document","archival collection historic handwritten letter paper document","ancient Egyptian papyrus manuscript text museum","historic legal deed parchment seal archive","primary historical source document manuscript letter signed scan"],
-    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"]
+    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"],
+    7: ["historical handwritten letter","medieval charter parchment","ancient cuneiform tablet","Rosetta Stone inscription","Code of Hammurabi stele","Magna Carta manuscript","ancient papyrus manuscript","Roman inscription stone","historic treaty document","primary source document archive"],
+    8: ["Neanderthal skull fossil","Homo sapiens skull fossil","Denisovan fossil remains","Homo erectus skull","human evolution fossil museum","hominin skull cast","Neanderthal reconstruction","prehistoric human skull","early human fossil archaeology","hominid fossil museum"],
+    9: ["Paleolithic stone tools","Mesolithic microlith tools","prehistoric flint tools","hunter gatherer reconstruction","Paleolithic cave painting","Upper Paleolithic camp","prehistoric settlement reconstruction","hunter gatherers archaeology","stone age hunting gathering","Paleolithic artifacts museum"]
   });
     const queryList = [
       reading.imageSearch || "",
@@ -345,16 +348,30 @@ async function liveAuditLessonQueries(range) {
     const lessonAuditTerms = {
       4: ["archaeolog", "excavation", "stratigraph", "pottery", "bone", "artifact", "flint", "skeleton", "burial", "layer", "trench", "remains"],
       5: ["primary", "document", "charter", "manuscript", "letter", "diary", "papyrus", "tablet", "parchment", "seal", "inscription", "declaration"],
-      6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"]
+      6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"],
+      7: ["historical", "primary", "source", "document", "manuscript", "letter", "archive", "charter", "tablet", "papyrus", "inscription", "parchment", "stele", "decree", "treaty", "rosetta", "hammurabi", "magna", "cuneiform"],
+      8: ["homo", "sapiens", "neanderthal", "denisovan", "hominin", "hominid", "fossil", "skull", "paleoanthropology", "pleistocene", "erectus", "mandible", "jawbone", "cranium", "remains", "human", "cast"],
+      9: ["paleolithic", "palaeolithic", "mesolithic", "hunter", "gatherer", "foraging", "stone", "tools", "flint", "microlith", "prehistoric", "camp", "subsistence", "cave", "shelter", "lithic", "scraper", "blade", "mammoth", "bison"]
     };
     topicTokens.push(...(lessonAuditTerms[day] || []));
     const minimumScore = day === 5 ? 1 : (day >= 2 && day <= 6 ? 2 : 1);
     const seen = new Set(), families = new Set(), collected = [];
     function sourceFamily(raw) {
-      const value = String(raw || "").toLowerCase().replace(/\([^)]*\)/g, " ")
-        .replace(/\b\d{6,}\b/g, " ").replace(/\b\d{4}\b/g, " ")
+      const value = String(raw || "").toLowerCase()
+        .replace(/\([^)]*\)/g, " ")
+        .replace(/[._]+/g, " ")
+        .replace(/\b(?:origowner|owner|rwlipack|richardwarrenlipack|earlypitman)[a-z0-9]*\b/g, " ")
+        .replace(/\b\d{4}\b/g, " ")
+        .replace(/\b\d{6,}\b/g, " ")
         .replace(/[^a-z0-9а-яё]+/gi, " ").replace(/\s+/g, " ").trim();
-      return value.split(" ").slice(0, 7).join(" ");
+      const tokens = value.split(" ").map(token => token
+        .replace(/^\d{1,2}[a-z]{3}\d{4}/, "")
+        .replace(/(lowerdetail|upperdetail|topdetail|bottomdetail|centerdetail|centredetail|page|pages|detail|details|upper|lower|top|bottom|left|right|center|centre|front|back|recto|verso|crop|cropped|scan|scanned|thumb|thumbnail|closeup|zoom|copy|duplicate|text|transcript|transcription)$/i, "")
+        .replace(/testmony/,"testimony"))
+        .filter(token => token.length > 2 && !/^\d+$/.test(token) &&
+          !/^(origowner|owner|rwlipack|richardwarrenlipack|earlypitman|findid|image|photo|photograph|picture|file|jpg|jpeg|png|gif|tif|tiff|pgs?|top|bottom|lower|upper|left|right|center|centre|front|back|recto|verso|detail|page|text|transcript|transcription)$/i.test(token));
+      if (tokens[0] && tokens[0].length >= 25) return tokens[0];
+      return tokens.slice(0, 4).join(" ");
     }
     for (const query of queryList) {
       const url = "https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=" +
@@ -385,6 +402,9 @@ async function liveAuditLessonQueries(range) {
         if (day === 4 && /(mosaic|medallion|portrait|sculpture|statue|artwork)/i.test(file) && !/(excavat|archaeolog|stratigraph|in situ|findid)/i.test(file)) return null;
         if (day === 5 && /(fictional|novel|album|movie|film|fan art|comic|cartoon)/i.test(file)) return null;
         if (day === 6 && /(uniform|clothing|helmet|side cap|malaria|health museum|medical exhibit|comic|cartoon)/i.test(file)) return null;
+        if (day === 7 && /(textbook cover|lesson plan|worksheet|classroom lesson|modern classroom)/i.test(file)) return null;
+        if (day === 8 && /(dinosaur|camel|oxydactylus|horse|bison|mammoth|elephant|cave lion|wolf|bear|gorilla|chimpanzee|orangutan|bonobo|toy|action figure|cartoon|comic|fantasy)/i.test(file)) return null;
+        if (day === 9 && /(hunting trophy|modern hunting rifle|big game hunting|hunter safety|hunting licence)/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
         const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
         const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
@@ -393,10 +413,11 @@ async function liveAuditLessonQueries(range) {
         return score >= minimumScore ? {file, score, mime: mime || "unspecified", source: info.descriptionurl, query} : null;
       }).filter(Boolean);
       candidates.sort((a,b) => b.score - a.score);
+      let addedFromQuery = 0;
       candidates.forEach(item => {
         const family = sourceFamily(item.file);
-        if (!seen.has(item.source) && !families.has(family) && collected.length < 9) {
-          seen.add(item.source); families.add(family); collected.push(item);
+        if (addedFromQuery < 2 && !seen.has(item.source) && !families.has(family) && collected.length < 9) {
+          seen.add(item.source); families.add(family); collected.push(item); addedFromQuery++;
         }
       });
       if (collected.length >= 9) break;
