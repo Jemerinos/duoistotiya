@@ -39,6 +39,12 @@ assert(/timeline|chronology/i.test(lessonImageQuery("Хронология и и�
   "Lesson 2 image query must represent chronology or timelines");
 assert(/map|geography/i.test(lessonImageQuery("География и карта как источник")),
   "Lesson 3 image query must represent maps or historical geography");
+assert(/paleolithic|cave|symbolic|beads/i.test(lessonImageQuery("Когнитивная революция: язык, символы и сотрудничество")),
+  "Lesson 10 image query must represent symbolic behaviour and Upper Paleolithic evidence");
+assert(/money|coin|flag|law|symbol/i.test(lessonImageQuery("Общие истории, нормы и большие сообщества")),
+  "Lesson 11 image query must represent shared institutions or symbols");
+assert(/prehistoric|burial|grave|ritual|archaeology/i.test(lessonImageQuery("Что археология может сказать о ранней религии?")),
+  "Lesson 12 image query must represent archaeological evidence for early ritual");
 assert(html.includes('if (l.day === 2 && /(genealog|souverain|family of|family tree|house of|dynasty|lineage|dukes|emperors to|kings of)/i.test(title))'),
   "Lesson 2 gallery must suppress genealogy-heavy matches");
 assert(html.includes('if (l.day === 3 && /\\b(cover|covers|title page|contents|frontispiece)\\b/i.test(title))'),
@@ -331,7 +337,10 @@ async function liveAuditLessonQueries(range) {
     6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"],
     7: ["historical handwritten letter","medieval charter parchment","ancient cuneiform tablet","Rosetta Stone inscription","Code of Hammurabi stele","Magna Carta manuscript","ancient papyrus manuscript","Roman inscription stone","historic treaty document","primary source document archive"],
     8: ["Neanderthal skull fossil","Homo sapiens skull fossil","Denisovan fossil remains","Homo erectus skull","human evolution fossil museum","hominin skull cast","Neanderthal reconstruction","prehistoric human skull","early human fossil archaeology","hominid fossil museum"],
-    9: ["Paleolithic stone tools","Mesolithic microlith tools","prehistoric flint tools","hunter gatherer reconstruction","Paleolithic cave painting","Upper Paleolithic camp","prehistoric settlement reconstruction","hunter gatherers archaeology","stone age hunting gathering","Paleolithic artifacts museum"]
+    9: ["Paleolithic stone tools","Mesolithic microlith tools","prehistoric flint tools","hunter gatherer reconstruction","Paleolithic cave painting","Upper Paleolithic camp","prehistoric settlement reconstruction","hunter gatherers archaeology","stone age hunting gathering","Paleolithic artifacts museum"],
+    10: ["Upper Paleolithic cave art","Paleolithic engraved bone object","prehistoric shell beads perforated ornaments","Paleolithic ivory figurine Lion Man","prehistoric hand stencil cave painting","Paleolithic ochre engraved Blombos cave","Upper Paleolithic animal painting Lascaux","Paleolithic carved figurine museum","prehistoric symbolic objects ochre beads"],
+    11: ["ancient coins currency money museum","ancient law code stone tablet","historical national flags banners symbols","medieval royal seals coat arms standard","ancient Roman coin emperor portrait","historical banknotes currency collection","Code of Hammurabi law stele","religious ritual objects symbols museum","national flag history public identity"],
+    12: ["prehistoric burial grave goods archaeology","Gobekli Tepe T shaped pillars ritual site","prehistoric figurine Neolithic archaeological find","Catalhoyuk burials shrine wall painting","Upper Paleolithic burial grave goods","ancient megalithic ritual site archaeology","prehistoric cave art ritual","Neolithic ritual objects figurines museum","prehistoric mortuary practices archaeology finds"]
   });
     const queryList = [
       reading.imageSearch || "",
@@ -351,7 +360,10 @@ async function liveAuditLessonQueries(range) {
       6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"],
       7: ["historical", "primary", "source", "document", "manuscript", "letter", "archive", "charter", "tablet", "papyrus", "inscription", "parchment", "stele", "decree", "treaty", "rosetta", "hammurabi", "magna", "cuneiform"],
       8: ["homo", "sapiens", "neanderthal", "denisovan", "hominin", "hominid", "fossil", "skull", "paleoanthropology", "pleistocene", "erectus", "mandible", "jawbone", "cranium", "remains", "human", "cast"],
-      9: ["paleolithic", "palaeolithic", "mesolithic", "hunter", "gatherer", "foraging", "stone", "tools", "flint", "microlith", "prehistoric", "camp", "subsistence", "cave", "shelter", "lithic", "scraper", "blade", "mammoth", "bison"]
+      9: ["paleolithic", "palaeolithic", "mesolithic", "hunter", "gatherer", "foraging", "stone", "tools", "flint", "microlith", "prehistoric", "camp", "subsistence", "cave", "shelter", "lithic", "scraper", "blade", "mammoth", "bison"],
+    10: ["paleolithic","palaeolithic","cave","beads","engraved","engravings","symbolic","ochre","shell","ivory","figurine","stencil","carving","blombos","lascaux","lion"],
+    11: ["money","coin","currency","flag","law","code","ritual","symbols","seal","emblem","banner","citizenship","kingdom","republic","banknote","institution"],
+    12: ["prehistoric","religion","ritual","burial","grave","goods","archaeology","shrine","temple","gobekli","catalhoyuk","figurine","altar","monolith","megalith","mortuary","offering"]
     };
     topicTokens.push(...(lessonAuditTerms[day] || []));
     const minimumScore = day === 5 ? 1 : (day >= 2 && day <= 6 ? 2 : 1);
@@ -405,6 +417,8 @@ async function liveAuditLessonQueries(range) {
         if (day === 7 && /(textbook cover|lesson plan|worksheet|classroom lesson|modern classroom)/i.test(file)) return null;
         if (day === 8 && /(dinosaur|camel|oxydactylus|horse|bison|mammoth|elephant|cave lion|wolf|bear|gorilla|chimpanzee|orangutan|bonobo|toy|action figure|cartoon|comic|fantasy)/i.test(file)) return null;
         if (day === 9 && /(hunting trophy|modern hunting rifle|big game hunting|hunter safety|hunting licence)/i.test(file)) return null;
+        if (day === 10 && /(modern art|contemporary art|modern classroom|digital art|video game|comic book)/i.test(file)) return null;
+        if (day === 12 && /(modern church|church interior|cathedral interior|mosque interior|christian worship service)/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
         const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
         const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
