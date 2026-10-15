@@ -413,10 +413,11 @@ async function liveAuditLessonQueries(range) {
         return score >= minimumScore ? {file, score, mime: mime || "unspecified", source: info.descriptionurl, query} : null;
       }).filter(Boolean);
       candidates.sort((a,b) => b.score - a.score);
+      let addedFromQuery = 0;
       candidates.forEach(item => {
         const family = sourceFamily(item.file);
-        if (!seen.has(item.source) && !families.has(family) && collected.length < 9) {
-          seen.add(item.source); families.add(family); collected.push(item);
+        if (addedFromQuery < 2 && !seen.has(item.source) && !families.has(family) && collected.length < 9) {
+          seen.add(item.source); families.add(family); collected.push(item); addedFromQuery++;
         }
       });
       if (collected.length >= 9) break;
