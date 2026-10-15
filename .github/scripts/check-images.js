@@ -328,7 +328,10 @@ async function liveAuditLessonQueries(range) {
     Object.assign(batchSpecificQueries, {
     4: ["archaeological excavation stratigraphy soil section layers","archaeological excavation pottery bones tools in situ","archaeological assemblage flint tools animal remains excavation"],
     5: ["medieval charter parchment wax seal historical document","historical handwritten letter diary manuscript archive","ancient cuneiform tablet papyrus manuscript inscription","Magna Carta historical charter manuscript parchment","Declaration of Independence original document handwriting archive","historical treaty manuscript original signed document","archival collection historic handwritten letter paper document","ancient Egyptian papyrus manuscript text museum","historic legal deed parchment seal archive","primary historical source document manuscript letter signed scan"],
-    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"]
+    6: ["World War propaganda recruitment poster archival collection","historical political propaganda poster museum archive","war memorial monument commemorative plaque public memory"],
+    7: ["historical primary source document provenance context archive manuscript","historical handwritten document letter diary archive collection","ancient primary source document clay tablet papyrus inscription","historical document facsimile archive exhibition manuscript","charter treaty historical source handwritten parchment"],
+    8: ["Homo sapiens Neanderthal Denisovan hominin fossil skull archaeology museum","Neanderthal skull fossil cast human evolution museum collection","early human species fossil remains archaeological discovery","Homo erectus Neanderthal Denisovan skull comparison paleoanthropology","Pleistocene hominin stone tools fossil archaeology"],
+    9: ["Paleolithic hunter gatherer daily life stone tools archaeology reconstruction","hunter gatherer camp prehistoric archaeology stone tools","Paleolithic flint tools microlith artifacts museum","prehistoric hunter gatherer subsistence foraging archaeological evidence","stone age hunter gatherers cave archaeology tools reconstruction"]
   });
     const queryList = [
       reading.imageSearch || "",
@@ -345,7 +348,10 @@ async function liveAuditLessonQueries(range) {
     const lessonAuditTerms = {
       4: ["archaeolog", "excavation", "stratigraph", "pottery", "bone", "artifact", "flint", "skeleton", "burial", "layer", "trench", "remains"],
       5: ["primary", "document", "charter", "manuscript", "letter", "diary", "papyrus", "tablet", "parchment", "seal", "inscription", "declaration"],
-      6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"]
+      6: ["propaganda", "poster", "monument", "memorial", "commemorative", "plaque", "political", "campaign", "memory", "recruitment"],
+      7: ["historical", "primary", "source", "document", "provenance", "manuscript", "letter", "archive", "charter", "tablet", "papyrus", "inscription"],
+      8: ["homo", "sapiens", "neanderthal", "denisovan", "hominin", "fossil", "skull", "paleoanthropology", "pleistocene", "erectus"],
+      9: ["paleolithic", "palaeolithic", "hunter", "gatherer", "foraging", "stone", "tools", "flint", "microlith", "prehistoric", "camp", "subsistence"]
     };
     topicTokens.push(...(lessonAuditTerms[day] || []));
     const minimumScore = day === 5 ? 1 : (day >= 2 && day <= 6 ? 2 : 1);
@@ -385,6 +391,9 @@ async function liveAuditLessonQueries(range) {
         if (day === 4 && /(mosaic|medallion|portrait|sculpture|statue|artwork)/i.test(file) && !/(excavat|archaeolog|stratigraph|in situ|findid)/i.test(file)) return null;
         if (day === 5 && /(fictional|novel|album|movie|film|fan art|comic|cartoon)/i.test(file)) return null;
         if (day === 6 && /(uniform|clothing|helmet|side cap|malaria|health museum|medical exhibit|comic|cartoon)/i.test(file)) return null;
+        if (day === 7 && /(textbook cover|lesson plan|worksheet|classroom lesson|modern classroom)/i.test(file)) return null;
+        if (day === 8 && /(dinosaur|gorilla|chimpanzee|orangutan|bonobo|toy|action figure|cartoon|comic|fantasy)/i.test(file)) return null;
+        if (day === 9 && /(hunting trophy|modern hunting rifle|big game hunting|hunter safety|hunting licence)/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
         const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
         const score = topicTokens.reduce((sum, token) => sum + (words.some(word =>
