@@ -403,7 +403,7 @@ async function liveAuditLessonQueries(range) {
         if (day === 5 && /(fictional|novel|album|movie|film|fan art|comic|cartoon)/i.test(file)) return null;
         if (day === 6 && /(uniform|clothing|helmet|side cap|malaria|health museum|medical exhibit|comic|cartoon)/i.test(file)) return null;
         if (day === 7 && /(textbook cover|lesson plan|worksheet|classroom lesson|modern classroom)/i.test(file)) return null;
-        if (day === 8 && /(dinosaur|gorilla|chimpanzee|orangutan|bonobo|toy|action figure|cartoon|comic|fantasy)/i.test(file)) return null;
+        if (day === 8 && /(dinosaur|camel|oxydactylus|horse|bison|mammoth|elephant|cave lion|wolf|bear|gorilla|chimpanzee|orangutan|bonobo|toy|action figure|cartoon|comic|fantasy)/i.test(file)) return null;
         if (day === 9 && /(hunting trophy|modern hunting rifle|big game hunting|hunter safety|hunting licence)/i.test(file)) return null;
         if (mime && mime.indexOf("image/") !== 0) return null;
         const words = (file + " " + description).toLowerCase().replace(/[^a-z0-9а-яё]+/gi, " ").split(/\s+/);
