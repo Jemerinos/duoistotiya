@@ -796,12 +796,14 @@ function loadReaderGallery(l) {
       });
       candidates.sort(function(a,b) { return b.score-a.score; });
       var families = new Set(collected.map(function(item) { return imageSourceFamily(item.raw); }));
+      var addedFromQuery = 0;
       candidates.forEach(function(item) {
-        if (collected.length >= MAX_READER_GALLERY_IMAGES) return;
+        if (collected.length >= MAX_READER_GALLERY_IMAGES || addedFromQuery >= 2) return;
         var family = imageSourceFamily(item.raw);
         if (families.has(family)) return;
         families.add(family);
         collected.push(item);
+        addedFromQuery++;
       });
       attempt(index + 1);
     }).catch(function() { attempt(index + 1); });
