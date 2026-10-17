@@ -71,7 +71,7 @@ jobs:
       - name: Check all lesson image routes and viewer behavior
         run: node .github/scripts/check-images.js
       - name: Smoke-test live Wikipedia/Commons API and one real thumbnail
-        run: node .github/scripts/check-images.js --online --lesson-audit=4-6
+        run: node .github/scripts/check-images.js --online --lesson-audit=7-9
 
   audit-backgrounds:
     if: github.event_name == 'workflow_dispatch'
