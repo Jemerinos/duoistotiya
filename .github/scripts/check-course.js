@@ -19,10 +19,11 @@ require("../../curriculum-glossary.js");
 require("../../curriculum-editor-model.js");
 const course = window.HISTORY_CURRICULUM;
 const editorModel = window.HISTORY_LESSON_MODEL;
+const assert = (ok, message) => { if (!ok) throw new Error(message); };
 assert(editorModel && editorModel.version === 1, "Expected normalized editor model version 1");
 assert(editorModel.weeks === course.weeks && editorModel.lessons.length === 182,
   "Normalized editor model must preserve the 26-week / 182-lesson course");
-const assert = (ok, message) => { if (!ok) throw new Error(message); };
+
 assert(course && course.weeks.length === 26, "Expected 26 course modules");
 assert(course.lessons.length === 182, "Expected 182 lessons");
 const enrichmentStats = window.HISTORY_ENRICHMENT_STATS;
