@@ -349,6 +349,15 @@ body,.shell{background:#FFFFFF;color:#111827}
 .reader-gallery-card img{background:#F3F4F6}
 .image-footnote strong,.image-footnote b,.reader h2,.reader-fact h3,.reader-gallery-head h3,.panel h3{color:#111827}
 .participant-source,.participant-search-link{color:#5B21B6}
+
+/* Shared lesson template v1: make the recap explicit and optional extras quiet. */
+.reader-explanation{scroll-margin-top:20px}
+.reader-recap{margin:26px 0 8px;padding:18px;border:1px solid #E5E7EB;border-radius:14px;background:#FFFFFF}
+.reader-recap h3{margin:5px 0 4px;color:var(--ink);font-size:20px;line-height:1.35}
+.reader-recap .reader-factgrid{margin-top:12px}
+.optional-practice,.optional-discussion{margin:14px 0;border:1px solid #E5E7EB;border-radius:12px;padding:0 14px;background:#FFFFFF}
+.optional-practice>summary,.optional-discussion>summary{cursor:pointer;padding:14px 0;color:#5B21B6;font-weight:700}
+.optional-practice[open],.optional-discussion[open]{padding-bottom:12px}
 </style></head>
 <body><div class="shell">
 <header class="top"><a class="brand" href="#" id="brand"><span class="mark">И</span><span><b>История вдвоём</b><small>учиться понимать прошлое</small></span></a><div class="topright"><button class="btn quiet" id="viewPageBackground" type="button" disabled aria-label="Увеличить фоновое историческое изображение">Посмотреть фон ↗</button><button class="btn quiet glossary-open" id="openGlossary" type="button" aria-haspopup="dialog" aria-controls="glossaryDialog">Глоссарий</button><span class="savehint">Прогресс сохраняется на этом устройстве</span><button class="btn quiet" id="export">Экспорт заметок ↗</button></div></header>
@@ -357,7 +366,7 @@ body,.shell{background:#FFFFFF;color:#111827}
 <div class="method"><div><span class="minutes">05 МИН</span><b>Вспоминаем</b><small>Вчерашняя тема</small></div><div><span class="minutes">10 МИН</span><b>Читаем</b><small>Учебный рассказ</small></div><div><span class="minutes">15 МИН</span><b>Разбираем источник</b><small>Карта, фото, документ</small></div><div><span class="minutes">10 МИН</span><b>Выбираем ответ</b><small>Тезис и факт</small></div><div><span class="minutes">10 МИН</span><b>Закрепляем</b><small>Термины и итог</small></div></div>
 <div class="sectionhead"><div><div class="eyebrow">По порядку</div><h2>Двадцать шесть глав истории</h2></div><span class="muted" id="nextLabel">Начните с первого занятия</span></div><div id="weeks" class="weeks"></div><div class="rule"><span>◎</span><div><strong>О подготовке к международным экзаменам</strong>Курс знакомит с навыками AP, IB и Cambridge: работой с источниками, сравнением и причинностью. Письменные форматы конкретного экзамена можно добавить отдельно. Программы экзаменов различаются, поэтому для реальной сдачи дополнительно выберите конкретный экзамен и сверяйте темы с его действующей спецификацией.</div></div><div class="rule"><span>✦</span><div><strong>Правило курса</strong>У каждого рассказа есть контекст, вопросы и направления для самостоятельной проверки. Для спорных тем сверяйте несколько независимых источников, включая документы эпохи.</div></div></section>
 <section id="lessonView" class="hidden"><div class="lessonbar"><button class="back" id="back">← Все главы</button><span class="chip" id="chapter"></span><span class="number" id="daynum"></span></div><div class="lessonhead"><div><div class="eyebrow" id="period"></div><h1 id="title"></h1><p class="lead" id="question"></p></div><div class="cover" id="cover"><span class="coveremoji" id="emoji">📜</span><img id="image" alt="Историческое изображение" hidden><span class="credit" id="credit">Историческое изображение</span></div></div>
-<section class="reader" id="reader">
+<section class="reader" id="reader" data-lesson-template="v1">
   <img id="epochBackgroundImage" class="epoch-preloader" alt="" aria-hidden="true" hidden>
   <div class="reader-toolbar"><span>ЧИТАЕМ · РАССМАТРИВАЕМ ИСТОЧНИК</span><span>5–8 МИНУТ</span></div>
   <div class="reader-intro">
@@ -371,14 +380,16 @@ body,.shell{background:#FFFFFF;color:#111827}
     </figure>
   </div>
   <hr class="reader-divider">
-  <div><div class="eyebrow">РАЗВЁРНУТОЕ ИЗЛОЖЕНИЕ</div><h2 class="reader-section-title">События, участники и причинные связи</h2><div class="reader-paragraph" id="readerIntro2"></div></div>
+  <section class="reader-explanation" data-lesson-section="explanation" aria-labelledby="lessonExplanationHeading">
+    <div class="eyebrow">РАЗВЁРНУТОЕ ОБЪЯСНЕНИЕ</div>
+    <h2 id="lessonExplanationHeading" class="reader-section-title">События, участники и причинные связи</h2>
+    <div class="reader-paragraph" id="readerIntro2"></div>
+  </section>
   <section class="map-study hidden" id="mapStudy" aria-live="polite">
   <div class="map-study-head"><div><div class="eyebrow">КАРТА И ГЕОГРАФИЯ</div><h3>Где происходила история</h3><p id="mapStudyIntro">Карта помогает увидеть регион, масштаб и границы. У каждой карты есть дата, автор и своя задача.</p></div><a id="mapStudySearch" class="map-search-link" href="https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&amp;search=historical%20map" target="_blank" rel="noopener noreferrer">Все результаты поиска ↗</a></div>
   <div class="map-study-grid" id="mapStudyGrid"><p class="map-study-status">Ищем исторические карты по теме урока…</p></div>
   <p class="map-study-note">Карта помогает ориентироваться, но её нужно проверять: сравнивайте легенду, дату, географический охват и подпись создателя.</p>
 </section>
-  <div class="reader-factgrid" id="readerFacts"></div>
-  <section class="reader-gallery hidden" id="readerGallery"><div class="reader-gallery-head"><div><div class="eyebrow">Посмотреть вблизи</div><h3>Ещё изображения и артефакты</h3><p class="muted">Дополнительные исторические изображения. Подпись описывает изображённый объект и его значение; сведения об авторе и дате можно проверить по ссылке.</p></div></div><div class="reader-gallery-grid" id="readerGalleryGrid"></div></section>
   <div class="reader-example" id="readerExample"></div>
   <section class="reader-lens hidden" id="readerLens"><div class="reader-lens-mark">S</div><div><div class="eyebrow">Дополнительная линза · Sapiens</div><h3>Как эта тема связана с большой историей человечества?</h3><p id="readerLensText"></p><div class="reader-lens-links"><a href="https://www.ynharari.com/book/sapiens/" target="_blank" rel="noopener noreferrer">О книге на сайте автора ↗</a><a href="https://www.si.edu/object/siris_sil_1040479" target="_blank" rel="noopener noreferrer">Содержание книги в каталоге Smithsonian ↗</a></div></div></section>
   <section class="reader-terms"><div class="eyebrow">Словарь урока</div><h3>Термины и определения</h3><div class="terms-grid" id="readerTerms"></div></section>
@@ -389,6 +400,12 @@ body,.shell{background:#FFFFFF;color:#111827}
       <article class="depth-card"><h4>Хронология и опорные данные</h4><div id="depthChronology"></div></article>
     </div>
     
+  </section>
+  <section class="reader-gallery hidden" id="readerGallery" data-lesson-section="images"><div class="reader-gallery-head"><div><div class="eyebrow">Посмотреть вблизи</div><h3>Ещё изображения и артефакты</h3><p class="muted">Дополнительные исторические изображения. Подпись описывает изображённый объект и его значение; сведения об авторе и дате можно проверить по ссылке.</p></div></div><div class="reader-gallery-grid" id="readerGalleryGrid"></div></section>
+  <section class="reader-recap" id="readerRecap" data-lesson-section="recap" aria-labelledby="readerRecapTitle">
+    <div class="eyebrow">КРАТКОЕ ПОВТОРЕНИЕ</div>
+    <h3 id="readerRecapTitle">Три опорных факта</h3>
+    <div class="reader-factgrid" id="readerFacts"></div>
   </section>
   <p class="reader-guideline">Важно: иллюстрация может быть создана позже описываемых событий. Мы будем смотреть на подпись, происхождение, дату и сопоставлять изображение с другими свидетельствами.</p>
 </section>
@@ -416,6 +433,7 @@ body,.shell{background:#FFFFFF;color:#111827}
     </div>
   </div>
 </section>
+<details class="optional-practice"><summary>Дополнительная экзаменационная практика — 3 задания (по желанию)</summary>
 <section class="exam-practice" id="examPractice">
   <div class="exam-practice-top"><div><div class="eyebrow">Экзаменационная практика · 3 выбора</div><h3>Выбери лучшее объяснение</h3><p class="muted">Навык дня: <strong id="examSkill"></strong>. Никаких сочинений: выбирай тезис, факт и подход к источнику.</p></div><div class="exam-badge">NOTICE<br><span>CHOOSE</span><br>LEARN</div></div>
   <div class="exam-prompt" id="examPrompt"></div>
@@ -423,13 +441,15 @@ body,.shell{background:#FFFFFF;color:#111827}
   <div class="exam-actions"><button class="btn primary" id="checkExam">Проверить ответы</button><span class="muted" id="examSaved">Выбери варианты и проверь результат</span></div>
   <div class="exam-rubric hidden" id="examRubric"></div>
 </section>
+</details>
+<details class="optional-discussion"><summary>Обсудить и сохранить заметки (по желанию)</summary>
 <div class="extras"><section class="panel"><div class="eyebrow">После чтения и заданий</div><h3>Вопросы для разговора</h3><p class="muted">Сначала ответьте по памяти, затем сравните свои объяснения.</p><div id="discussion"></div><button class="reveal" id="reveal">Показать ориентир для ответа ＋</button><div class="answer hidden" id="answer"></div></section><section class="panel"><div class="eyebrow">Ваша тетрадь</div><h3>Заметки на двоих</h3><p class="muted">Необязательно: сохраните мысль или вопрос, к которому захотите вернуться.</p><textarea class="notes" id="notes" placeholder="Что запомнили? С чем не согласны? Какой вопрос остался?"></textarea><div class="muted" id="notesstatus">Сохраняется автоматически</div></section></div>
-
-<details class="supplemental-panel"><summary>Источники и соседние занятия</summary>
+</details>
+<section class="quiz" id="knowledgeCheck" data-lesson-section="quiz"><div class="quizhead"><div><div class="eyebrow">Проверка знаний · 5 вопросов</div><h3>Что ты понял из урока?</h3><p class="muted">Пять коротких вопросов с выбором ответа. После проверки появятся правильные ответы и объяснения.</p></div><div class="score" id="score">— / 5</div></div><div id="quiz"></div><button class="btn primary" id="checkQuiz">Проверить ответы</button><span id="quizFeedback" class="muted"></span></section>
+<details class="supplemental-panel" data-lesson-section="sources"><summary>Источники и соседние занятия</summary>
 <section class="sources"><div class="eyebrow">Читать дальше</div><h3 style="font:500 25px Georgia,serif;margin:6px 0">Источники и проверка</h3><p class="muted">Начните со справочных материалов, затем поищите свидетельства эпохи. Ссылки ведут на тематические страницы или поиск по теме, а не заменяют критическую проверку.</p><div class="sourcegrid" id="sources"></div></section>
 <section class="lesson-connections" id="lessonConnections"><div class="eyebrow">Маршрут обучения</div><h3>Связь с соседними уроками</h3><p class="connection-bridge" id="connectionBridge"></p><div class="connection-grid" id="connectionGrid"></div></section>
 </details>
-<section class="quiz" id="knowledgeCheck"><div class="quizhead"><div><div class="eyebrow">Проверка знаний · 5 вопросов</div><h3>Что ты понял из урока?</h3><p class="muted">Пять коротких вопросов с выбором ответа. После проверки появятся правильные ответы и объяснения.</p></div><div class="score" id="score">— / 5</div></div><div id="quiz"></div><button class="btn primary" id="checkQuiz">Проверить ответы</button><span id="quizFeedback" class="muted"></span></section>
 <div class="finish"><div><b>Занятие завершено?</b><div class="muted">Отметка сохраняется в этом браузере.</div></div><button class="btn primary" id="complete">Отметить пройденным ✓</button></div><div class="endnav"><button class="exportlink" id="prevLesson">← Предыдущее</button><button class="exportlink" id="nextLesson">Следующее →</button></div></section>
 </main></div></div>
 <script src="curriculum.js"></script>
