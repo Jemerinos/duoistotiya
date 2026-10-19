@@ -38,6 +38,20 @@ for (const lesson of L) {
     assert(q.why, "Missing explanation at day " + lesson.day + ", q" + (i+1));
     generated++;
   }
+  const chronology = lesson.depth && Array.isArray(lesson.depth.chronology) ? lesson.depth.chronology : [];
+  const normalizedShort = value => {
+    let text = String(value || "").split(/(?<=[.!?])\\s+/).slice(0, 2).join(" ");
+    if (text.length > 200) text = text.slice(0, 197).replace(/\\s+\\S*$/, "") + "…";
+    return text;
+  };
+  assert(quiz[4].title.includes(lesson.title),
+    "The fifth question must be specific to day " + lesson.day + " (" + lesson.title + ")");
+  assert(quiz[4].why.includes(lesson.title),
+    "The fifth question explanation must refer to day " + lesson.day);
+  assert(chronology.some(item => normalizedShort(item) === quiz[4].fact),
+    "The fifth question must use lesson-specific chronology on day " + lesson.day);
+  assert(![lesson.summary, ...lesson.facts].some(item => normalizedShort(item) === quiz[4].fact),
+    "The fifth question must add a different learning point on day " + lesson.day);
   const exam = examQuestionSet(lesson);
   assert(exam.length === 3, "Expected 3 optional practice questions on day " + lesson.day);
   for (const [i, q] of exam.entries()) {
