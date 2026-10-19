@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   validate-site:
-    name: "1/3 — Структура и синтаксис"
+    name: "1/4 — Структура и синтаксис"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -49,7 +49,7 @@ jobs:
           node --check .github/scripts/check-images.js
 
   validate-course:
-    name: "2/3 — Данные курса и детализация"
+    name: "2/4 — Данные курса и детализация"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -58,7 +58,7 @@ jobs:
         run: node .github/scripts/check-course.js
 
   validate-activities:
-    name: "3/3 — Проверка вопросов и интерактивных заданий"
+    name: "3/4 — Проверка вопросов и интерактивных заданий"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

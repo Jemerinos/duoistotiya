@@ -15,12 +15,14 @@ required_log = [
     "## PATCH-015",
     "## PATCH-016",
     "## PATCH-017",
+    "## PATCH-018",
+    "Критерии готовности",
     "Критерии закрыты",
 ]
 required_state = [
     "# Состояние проекта",
     "Jemerinos/duoistotiya",
-    "## Рабочая точка — повторная проверка 2026-10-19",
+    "## Рабочая точка — повторная проверка 2026-10-20",
     "## Последний статус проекта",
     "## Текущее состояние по слоям",
     "## Итоги пяти этапов аудита",
@@ -47,6 +49,8 @@ for item in (
     "39309960292",
     "a004a33ba67061e223cc8d383aba53dd53d3eaf3",
     "39315175377",
+    "6e753cf59bea2e39813cef9f3b21380aceca3710",
+    "39316823390",
     "Publish validated site",
     "четыре обязательные проверки",
     "Не проведён построчный факт-чек",
@@ -62,6 +66,7 @@ for stale in (
     "audit-critical-fixes-20261019",
     "пока изменения не объединены",
     "PR и post-merge Pages ожидаются",
+    "Текущий повторный патч должен исправить регрессионный тест",
 ):
     if stale in active_state:
         raise SystemExit("Stale historical status leaked into active recovery summary: " + stale)
@@ -101,4 +106,17 @@ for item in (
 if "Критерии закрыты" not in current_audit:
     raise SystemExit("PATCHLOG.md must record closed acceptance criteria for the current audit.")
 
-print("Project recovery checks OK: active state is current, stale history is archived, and manual media audits do not block the standard publish gate.")
+# Keep the visible labels aligned with the four required validation/deploy gates.
+for label in (
+    'name: "1/4 — Структура и синтаксис"',
+    'name: "2/4 — Данные курса и детализация"',
+    'name: "3/4 — Проверка вопросов и интерактивных заданий"',
+    'name: "4/4 — Изображения и восстановление контекста"',
+):
+    if label not in workflow:
+        raise SystemExit("Workflow numbering does not match four required checks: " + label)
+
+if "четыре обязательные проверки" not in readme or "успеха всех трёх проверок" in readme:
+    raise SystemExit("README.md must describe four required checks and separate manual audits.")
+
+print("Project recovery checks OK: recovery state is current, workflow counts are aligned, and manual media audits do not block the standard publish gate.")
