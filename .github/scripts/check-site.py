@@ -94,6 +94,7 @@ template_steps = [
     ("topic", 'id="title"'),
     ("explanation", 'data-lesson-section="explanation"'),
     ("historical actors and chronology", 'id="lessonDepth"'),
+    ("historical maps after the explanation", 'id="mapStudy"'),
     ("images with context", 'data-lesson-section="images"'),
     ("brief recap", 'data-lesson-section="recap"'),
     ("exactly five-question knowledge check", 'data-lesson-section="quiz"'),
