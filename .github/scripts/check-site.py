@@ -17,7 +17,7 @@ for script in (
     "curriculum-enrichment-04.js", "curriculum-visuals.js",
     "curriculum-research.js", "curriculum-enrichment-apply.js",
     "curriculum-participants.js", "curriculum-participant-sources.js",
-    "curriculum-glossary.js"
+    "curriculum-glossary.js", "curriculum-editor-model.js"
 ):
     if f'<script src="{script}"></script>' not in html:
         raise SystemExit(f"index.html must load {script}")
@@ -32,7 +32,7 @@ script_order = [
     "curriculum-enrichment-04.js", "curriculum-visuals.js",
     "curriculum-research.js", "curriculum-participants.js",
     "curriculum-participant-sources.js", "curriculum-enrichment-apply.js",
-    "curriculum-glossary.js"
+    "curriculum-glossary.js", "curriculum-editor-model.js"
 ]
 script_positions = [html.index(f'<script src="{name}"></script>') for name in script_order]
 for name in script_order:
