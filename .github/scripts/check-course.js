@@ -16,8 +16,14 @@ require("../../curriculum-participants.js");
 require("../../curriculum-participant-sources.js");
 require("../../curriculum-enrichment-apply.js");
 require("../../curriculum-glossary.js");
+require("../../curriculum-editor-model.js");
 const course = window.HISTORY_CURRICULUM;
+const editorModel = window.HISTORY_LESSON_MODEL;
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
+assert(editorModel && editorModel.version === 1, "Expected normalized editor model version 1");
+assert(editorModel.weeks === course.weeks && editorModel.lessons.length === 182,
+  "Normalized editor model must preserve the 26-week / 182-lesson course");
+
 assert(course && course.weeks.length === 26, "Expected 26 course modules");
 assert(course.lessons.length === 182, "Expected 182 lessons");
 const enrichmentStats = window.HISTORY_ENRICHMENT_STATS;
@@ -36,6 +42,21 @@ const titles = new Set();
 const depths = [];
 for (let i = 0; i < course.lessons.length; i++) {
   const row = course.lessons[i], day = i + 1, week = course.weeks[Math.floor(i / 7)];
+  const normalized = editorModel.lessons[i];
+  assert(normalized.id === "lesson-" + String(day).padStart(3, "0") &&
+    normalized.day === day && normalized.week === Math.floor(i / 7) + 1,
+    "Unstable normalized lesson identity/order at day " + day);
+  assert(normalized.title === row[0] && normalized.question === row[2] &&
+    normalized.summary === row[3] && normalized.facts === row[4] &&
+    normalized.reading === row[6] && normalized.depth === row[6].depth,
+    "Normalized model does not preserve legacy fields at day " + day);
+  assert(normalized.learning && normalized.learning.objective === row[2] &&
+    normalized.learning.chronology === row[6].depth.chronology &&
+    normalized.learning.facts === row[4] && normalized.assessment.knowledgeCheckFacts === row[4],
+    "Named editor sections do not map to runtime lesson data at day " + day);
+  assert(normalized.imageQuery === (row[6].imageQuery || row[6].imageSearch || row[0]),
+    "Normalized image query lost the curated legacy value at day " + day);
+
   assert(row[0] && row[1] && row[2] && row[2].endsWith("?") && row[3], "Missing basic fields on lesson " + day);
   assert(!titles.has(row[0]), "Duplicate lesson title: " + row[0]);
   titles.add(row[0]);

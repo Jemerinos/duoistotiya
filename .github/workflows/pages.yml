@@ -39,6 +39,7 @@ jobs:
           node --check curriculum-participants.js
           node --check curriculum-participant-sources.js
           node --check curriculum-glossary.js
+          node --check curriculum-editor-model.js
           node --check curriculum-visuals.js
           node --check .github/scripts/check-images.js
 
