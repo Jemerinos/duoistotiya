@@ -52,7 +52,7 @@ if "if: github.event_name == 'workflow_dispatch'" not in gallery_job or "--lesso
     raise SystemExit("Lessons 7–9 live gallery audit must remain available as a manual workflow-dispatch job.")
 
 for item in (
-    "HEAD main на старте заключительной регрессии",
+    "HEAD main до заключительного документационного закрытия",
     "Publish validated site",
     "39308129397",
     "Итоги пяти этапов аудита",
@@ -61,7 +61,7 @@ for item in (
     if item not in state:
         raise SystemExit("PROJECT_STATE.md is missing current audit evidence: " + item)
 
-if "**Статус:** в работе; заключительный PR." not in log:
-    raise SystemExit("PATCHLOG.md must mark final regression as in progress until its CI and deploy are confirmed.")
+if "**Статус:** ✅ основная работа выполнена" not in log:
+    raise SystemExit("PATCHLOG.md must record completion of the five-stage audit and the previously verified deploy.")
 
 print("Project recovery logs OK: current audit, source-of-truth limits and deployment evidence are documented.")
