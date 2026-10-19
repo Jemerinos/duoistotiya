@@ -108,7 +108,10 @@ if orphaned_enrichment:
 # Keep a single consistent, high-contrast reading-first palette and visible keyboard focus.
 if '<meta name="theme-color" content="#FFFFFF">' not in html:
     raise SystemExit("Browser theme color must match the white reading-first canvas")
-theme_layer = html.rsplit("/* Stable high-priority theme and contrast layer. */", 1)[-1].split("</style>", 1)[0]
+theme_marker = "/* Stable high-priority theme and contrast layer. Keep legacy components aligned with the reading-first purple theme. */"
+if html.count(theme_marker) != 1:
+    raise SystemExit("Expected exactly one stable high-priority theme marker")
+theme_layer = html.split(theme_marker, 1)[1].split("</style>", 1)[0]
 for token in ("--ink:#111827", "--muted:#4B5563", "--green:#6D28D9",
               ".lesson-link.active{background:#EDE9FE;color:#5B21B6}",
               "button:focus-visible", "outline:3px solid #7C3AED"):
