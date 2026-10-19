@@ -51,4 +51,17 @@ gallery_job = workflow[gallery_start:background_start]
 if "if: github.event_name == 'workflow_dispatch'" not in gallery_job or "--lesson-audit=7-9" not in gallery_job:
     raise SystemExit("Lessons 7–9 live gallery audit must remain available as a manual workflow-dispatch job.")
 
-print("Project recovery logs OK: patch algorithm, active patch, current branch/PR, criteria and next task are documented.")
+for item in (
+    "HEAD main на старте заключительной регрессии",
+    "Publish validated site",
+    "39308129397",
+    "Итоги пяти этапов аудита",
+    "Открытые границы аудита",
+):
+    if item not in state:
+        raise SystemExit("PROJECT_STATE.md is missing current audit evidence: " + item)
+
+if "**Статус:** в работе; заключительный PR." not in log:
+    raise SystemExit("PATCHLOG.md must mark final regression as in progress until its CI and deploy are confirmed.")
+
+print("Project recovery logs OK: current audit, source-of-truth limits and deployment evidence are documented.")
