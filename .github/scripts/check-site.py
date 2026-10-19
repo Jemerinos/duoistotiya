@@ -128,13 +128,44 @@ def contrast(foreground, background):
     a, b = sorted((luminance(foreground), luminance(background)), reverse=True)
     return (a + 0.05) / (b + 0.05)
 
-for foreground, background, label in (
-    ("#111827", "#FFFFFF", "body text"),
-    ("#4B5563", "#FFFFFF", "muted text"),
-    ("#5B21B6", "#FFFFFF", "accent links"),
-):
+def declared_hex(selector, property_name):
+    """Read the actual CSS value for one selector/property in the final theme layer."""
+    values = []
+    for match in re.finditer(r"([^{}]+)\{([^{}]*)\}", theme_layer):
+        selector_group = match.group(1).strip()
+        if selector_group.startswith("@"):
+            continue
+        selectors = [part.strip() for part in selector_group.split(",") if part.strip()]
+        if selector not in selectors:
+            continue
+        declaration = re.search(
+            rf"(?:^|;)\s*{re.escape(property_name)}\s*:\s*(#[0-9A-Fa-f]{{6}})\b",
+            match.group(2),
+        )
+        if declaration:
+            values.append(declaration.group(1).upper())
+    if len(values) != 1:
+        raise SystemExit(
+            f"Expected one explicit {property_name} color for {selector!r} "
+            f"in the final theme layer; found {len(values)}"
+        )
+    return values[0]
+
+
+contrast_pairs = (
+    ("body", "color", "body", "background", "main text"),
+    (".linktext small", "color", ".side", "background", "muted sidebar text"),
+    (".hero p", "color", ".hero", "background", "introductory text"),
+    (".lesson-link.active", "color", ".lesson-link.active", "background", "active lesson link"),
+    (".btn.primary", "color", ".btn.primary", "background", "primary button text"),
+)
+for foreground_selector, foreground_property, background_selector, background_property, label in contrast_pairs:
+    foreground = declared_hex(foreground_selector, foreground_property)
+    background = declared_hex(background_selector, background_property)
     ratio = contrast(foreground, background)
     if ratio < 4.5:
-        raise SystemExit(f"Contrast too low for {label}: {ratio:.2f}:1")
+        raise SystemExit(
+            f"Contrast too low for {label}: {ratio:.2f}:1 ({foreground} on {background})"
+        )
 
 print(f"Site structure OK: {len(ids)} unique IDs; 50-minute lesson; epoch banner, depth blocks and one five-question check.")
