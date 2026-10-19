@@ -34,9 +34,9 @@ if "Статус:" not in log or "Статус:" not in state and "Текуще�
 
 workflow_path = root / ".github" / "workflows" / "pages.yml"
 workflow = workflow_path.read_text(encoding="utf-8")
-media_start = workflow.find("  validate-media:\\n")
-gallery_start = workflow.find("  audit-gallery:\\n")
-background_start = workflow.find("  audit-backgrounds:\\n")
+media_start = workflow.find("  validate-media:")
+gallery_start = workflow.find("  audit-gallery:")
+background_start = workflow.find("  audit-backgrounds:")
 if min(media_start, gallery_start, background_start) < 0:
     raise SystemExit("Workflow must separate stable media smoke test and manual gallery audit.")
 if "--lesson-audit=" in workflow[media_start:gallery_start]:
