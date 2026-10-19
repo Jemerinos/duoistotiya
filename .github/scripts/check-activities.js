@@ -40,8 +40,8 @@ for (const lesson of L) {
   }
   const chronology = lesson.depth && Array.isArray(lesson.depth.chronology) ? lesson.depth.chronology : [];
   const normalizedShort = value => {
-    let text = String(value || "").split(/(?<=[.!?])\\s+/).slice(0, 2).join(" ");
-    if (text.length > 200) text = text.slice(0, 197).replace(/\\s+\\S*$/, "") + "…";
+    let text = String(value || "").split(/(?<=[.!?])\s+/).slice(0, 2).join(" ");
+    if (text.length > 200) text = text.slice(0, 197).replace(/\s+\S*$/, "") + "…";
     return text;
   };
   assert(quiz[4].title.includes(lesson.title),
