@@ -210,7 +210,7 @@ const avgTerms = depths.reduce((sum, d) => sum + d.terms.length, 0) / depths.len
 const peopleCoverage = depths.filter(d => d.people.length > 0).length;
 const groupsCoverage = depths.filter(d => d.groups.length > 0).length;
 
-const templatePilotDays = [1, 91, 182];
+const templatePilotDays = [1, 17, 160];
 const templatePilots = templatePilotDays.map(day => editorModel.lessons[day - 1]);
 assert(new Set(templatePilots.map(x => x.week)).size === 3,
   "Template pilots must cover early, middle and final course modules");
