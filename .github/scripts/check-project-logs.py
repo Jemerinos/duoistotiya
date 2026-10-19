@@ -83,7 +83,7 @@ for prerequisite in ("validate-site", "validate-course", "validate-activities", 
     if prerequisite not in deploy_job.split("steps:", 1)[0]:
         raise SystemExit("Publish job must depend on required check: " + prerequisite)
 
-if "## PATCH-017" not in log or "в работе" not in log:
-    raise SystemExit("PATCHLOG.md must contain the current audit plan/status.")
+if "## PATCH-017" not in log or "План исправлений" not in log or "Критерии готовности" not in log:
+    raise SystemExit("PATCHLOG.md must contain the current audit plan and acceptance criteria.")
 
 print("Project recovery checks OK: active state is current, stale history is archived, and manual media audits do not block the standard publish gate.")
