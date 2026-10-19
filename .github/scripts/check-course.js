@@ -209,4 +209,25 @@ console.log("Rendered narrative audit: " + narrativeLengths.length + " lessons; 
 const avgTerms = depths.reduce((sum, d) => sum + d.terms.length, 0) / depths.length;
 const peopleCoverage = depths.filter(d => d.people.length > 0).length;
 const groupsCoverage = depths.filter(d => d.groups.length > 0).length;
+
+const templatePilotDays = [1, 91, 182];
+const templatePilots = templatePilotDays.map(day => editorModel.lessons[day - 1]);
+assert(new Set(templatePilots.map(x => x.week)).size === 3,
+  "Template pilots must cover early, middle and final course modules");
+for (const lesson of templatePilots) {
+  assert(lesson.id && lesson.title && lesson.period && lesson.question && lesson.summary,
+    "Template pilot has incomplete topic fields at day " + lesson.day);
+  assert(Array.isArray(lesson.facts) && lesson.facts.length === 3 && lesson.facts.every(Boolean),
+    "Template pilot must have exactly three recap facts at day " + lesson.day);
+  assert(lesson.learning && lesson.learning.detailedText === lesson.detailedText &&
+    lesson.detailedText.length >= 220,
+    "Template pilot is missing its displayed explanation at day " + lesson.day);
+  assert(lesson.depth && lesson.depth.people && lesson.depth.chronology.length >= 3 &&
+    lesson.depth.causes.length >= 1 && lesson.depth.consequences.length >= 1,
+    "Template pilot has incomplete actors/chronology/causality at day " + lesson.day);
+  assert(lesson.media && lesson.media.query && lesson.researchSources.length >= 2,
+    "Template pilot is missing image/search context or starting sources at day " + lesson.day);
+}
+console.log("Shared lesson template data pilots OK: " +
+  templatePilots.map(x => "day " + x.day + " (module " + x.week + "): " + x.title).join("; "));
 console.log("Course data OK: 26 modules, 182 readings, 182 chronology/causality/source frameworks, " + participantStats.lessons + " curated participant lessons, " + participantStats.addedPeople + " added people entries, " + participantSourceStats.withDirectSource + " with individually curated references / " + participantSourceStats.people + " with source pathways, and " + glossary.entries.length + " glossary entries. Actor coverage: " + peopleCoverage + "/182; social-group coverage: " + groupsCoverage + "/182. Average terms per lesson: " + avgTerms.toFixed(1) + ".");
