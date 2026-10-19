@@ -48,7 +48,6 @@ for item in (
     "449f6baff5d0c9e19368f33d449be5d212536562",
     "39309960292",
     "a004a33ba67061e223cc8d383aba53dd53d3eaf3",
-    "39315175377",
     "6e753cf59bea2e39813cef9f3b21380aceca3710",
     "39316823390",
     "Publish validated site",
