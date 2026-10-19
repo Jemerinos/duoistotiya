@@ -496,7 +496,7 @@ Public search evidence checked for the first batch: Commons timeline entries and
 
 ## PATCH-016 — Финальная регрессия и восстановление контекста (2026-10-19)
 
-**Статус:** в работе; заключительный PR.
+**Статус:** ✅ основная работа выполнена; PR #19 слит, all four required checks and `Publish validated site` succeeded on main commit `f971ae0e9e631efaf8e3a1eac13d9851be1c916c`. This PR #20 only closes final tracking; its own post-merge deploy must be checked separately.
 
 **Цель**
 Закрыть пять этапов аудита единым проверяемым состоянием проекта; убрать устаревшие указания на старую ветку, старый PR и неподтверждённый статус публикации из начала `PROJECT_STATE.md`.
@@ -521,4 +521,12 @@ Public search evidence checked for the first batch: Commons timeline entries and
 2. `PATCHLOG.md` содержит сводку всех пяти этапов и открытые ограничения.
 3. Все обязательные checks заключительного PR проходят.
 4. После merge заключительного PR успешно завершается job `Publish validated site` на новом main commit.
+
+
+
+### PATCH-016 — дополнительная проверка после merge PR #19
+
+- PR #19 (заключительная регрессия и восстановление контекста) слит в main commit `f971ae0e9e631efaf8e3a1eac13d9851be1c916c`.
+- GitHub Actions run [39309158896](https://github.com/Jemerinos/duoistotiya/actions/runs/39309158896): jobs `1/3`, `2/3`, `3/3`, `4/4` и `Publish validated site` — все завершились `success`.
+- Пять этапов функциональной работы завершены. PR #20 — последняя уборка отчётности; не считать публикацию его собственного commit подтверждённой до следующей проверки Actions.
 
