@@ -6,10 +6,10 @@
 
 - **Репозиторий:** `Jemerinos/duoistotiya`
 - **Основная ветка:** `main`
-- **HEAD main на старте заключительной регрессии:** `58f8290e7d51065f3544dc48e18c909cb2647903` — PR #18, нормализованная модель 182 занятий.
+- **HEAD main до заключительного документационного закрытия:** `f971ae0e9e631efaf8e3a1eac13d9851be1c916c` — PR #19, итоговая регрессия и восстановительный контекст.
 - **Завершённые PR этого аудита:** [#15 — публикация](https://github.com/Jemerinos/duoistotiya/pull/15), [#16 — тема/контраст](https://github.com/Jemerinos/duoistotiya/pull/16), [#17 — вопросы квиза](https://github.com/Jemerinos/duoistotiya/pull/17), [#18 — модель урока](https://github.com/Jemerinos/duoistotiya/pull/18).
-- **Активная ветка:** `audit-phase-5-final-regression-and-recovery`; здесь только финальные журналы и проверка полноты аудита.
-- **Последний подтверждённый Pages deploy до заключительной правки журналов:** GitHub Actions run [39308129397](https://github.com/Jemerinos/duoistotiya/actions/runs/39308129397), commit `58f8290e7d51065f3544dc48e18c909cb2647903`, job `Publish validated site` — **success**. После слияния финального PATCH-016 проверить новую публикацию отдельно.
+- **Рабочая точка:** заключительный отчётный PR #20, только документация; функциональные изменения пяти этапов уже слиты.
+- **Последний подтверждённый Pages deploy:** GitHub Actions run [39309158896](https://github.com/Jemerinos/duoistotiya/actions/runs/39309158896), commit `f971ae0e9e631efaf8e3a1eac13d9851be1c916c`, job `Publish validated site` — **success**. В этом run четыре обязательные CI jobs также success.
 - **Курс:** 26 недель / 182 занятия. В главном учебном экране остаётся чтение с тематическими материалами и ровно 5 вопросами с выбором ответа.
 - **Текущий фокус:** заключительная регрессия, достоверная запись состояния и проверка Pages после финального merge. Не начинать массовый рефакторинг/переписывание исторических материалов в том же патче.
 
@@ -264,8 +264,9 @@
 - На этом commit все четыре обязательные CI jobs и job `Publish validated site` завершились успешно. Action run: [39308129397](https://github.com/Jemerinos/duoistotiya/actions/runs/39308129397).
 
 ### PATCH-016 — финальный аудит
-- Активная ветка: `audit-phase-5-final-regression-and-recovery`; текущая задача — обновить восстановительный статус и прогнать финальные проверки.
-- После слияния PATCH-016 проверить все четыре обязательные CI jobs и новый main deploy отдельно.
+- PR #19 слит в main commit `f971ae0e9e631efaf8e3a1eac13d9851be1c916c`.
+- Run [39309158896](https://github.com/Jemerinos/duoistotiya/actions/runs/39309158896): все четыре обязательные CI jobs success, а `Publish validated site` success.
+- Функциональная работа по пяти этапам завершена; этот PR только закрывает отчётность и проверку статуса.
 - **Не считать исторические записи в старых разделах этого файла активными инструкциями**: это журнал прежних этапов, их SHA, PR и незавершённые пункты могли устареть.
 
 ## Итоги пяти этапов аудита — 2026-10-19
