@@ -15,6 +15,7 @@ required_log = [
     "## PATCH-015",
     "## PATCH-016",
     "## PATCH-017",
+    "## PATCH-018",
     "Критерии закрыты",
 ]
 required_state = [
@@ -53,6 +54,14 @@ for item in (
 ):
     if item not in active_state:
         raise SystemExit("Active recovery summary is missing current audit evidence: " + item)
+for item in (
+    "standardize-lesson-template-20261020",
+    "LESSON_TEMPLATE_V1.md",
+    "пять обязательных вопросов",
+):
+    if item not in active_state:
+        raise SystemExit("Active recovery summary is missing current lesson-template context: " + item)
+
 for stale in (
     "content-research-pass-1",
     "Draft PR #1",
