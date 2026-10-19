@@ -71,6 +71,18 @@ jobs:
       - name: Check all lesson image routes and viewer behavior
         run: node .github/scripts/check-images.js
       - name: Smoke-test live Wikipedia/Commons API and one real thumbnail
+        run: node .github/scripts/check-images.js --online
+
+
+  audit-gallery:
+    if: github.event_name == 'workflow_dispatch'
+    name: "Ручной live-аудит галереи уроков 7–9"
+    needs: [validate-media]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Audit live Wikimedia candidates for lessons 7–9
         run: node .github/scripts/check-images.js --online --lesson-audit=7-9
 
   audit-backgrounds:

@@ -394,3 +394,27 @@ PATCH-010: PR #5 объединён коммитом e090a8961ff900249c3a692f08a
 - Lesson 3, «География и карта как источник»: Commons discovery finds trade-route maps, but these are not automatically suitable for a general lesson on reading maps. A map of Central Asian routes dated to the 13th century or a specific trade map may illustrate one example only; the gallery should prioritize maps with a clear legend, scale, region and date, and explain that they are examples rather than a general map of geography.
 
 Public search evidence checked for the first batch: Commons timeline entries and maps, including `Timeline of World History.png` (CC BY-SA 3.0, self-published overview with broad periodization) and `Map of Central Asia with trade routes and movements` (historical route map, not a general map-reading guide). This is a source-candidate review, not a claim that these exact files are the live gallery output; the runtime Wikimedia API could not be queried directly through the web viewer. Batch 1 code fix is on branch `audit-gallery-lessons-001-003` and adds CI guards against the Thucydides override.
+
+
+---
+
+## PATCH-012 — Стабилизация публикации GitHub Pages (2026-10-19)
+
+**Статус:** исправление подготовлено в ветке `fix-pages-publish-gate-20261019`; проверки CI и публикация Pages ещё не подтверждены.
+
+**Что было проверено**
+- Аудит галерей уроков 1–3, 4–6 и 7–9 уже находится в `main`: PR #8, #10 и #14 закрыты слиянием.
+- В `.github/workflows/pages.yml` обязательный job `validate-media` запускал не только короткий smoke-test Wikimedia, но и полный `--lesson-audit=7-9`.
+- Этот аудит намеренно падает, если хотя бы по одному уроку найдено меньше пяти подходящих файлов. Поэтому ограничение Wikimedia API, временная нехватка результатов или более строгий фильтр релевантности могли блокировать публикацию сайта, даже когда базовая проверка API и миниатюры работала.
+
+**Исправление**
+- Обязательная проверка публикации выполняет только `node .github/scripts/check-images.js --online`: доступность API Wikimedia и загрузку одной реальной миниатюры.
+- Подробный аудит уроков 7–9 перенесён в отдельный job `audit-gallery`, запускаемый только вручную через `workflow_dispatch`.
+- В `.github/scripts/check-project-logs.py` добавлена регрессионная проверка: обычная проверка публикации не должна включать `--lesson-audit`, а ручной аудит обязан оставаться доступным.
+- Контент и результаты аудита не объявляются заново проверенными этим изменением. Код аудитов PR #8, #10 и #14 уже слит; этот patch меняет только надёжность публикации и защиту от повторения блокера.
+
+**Критерии завершения**
+1. Четыре обязательные проверки CI завершаются успешно на PR HEAD.
+2. Проверено, что у `validate-media` остался только короткий online smoke-test, а аудит 7–9 доступен отдельно вручную.
+3. После слияния отдельно подтверждён успешный workflow на `main` с job `Publish validated site`.
+4. До такого подтверждения не сообщать, что новая версия сайта опубликована.
