@@ -16,9 +16,9 @@ required_log = [
 required_state = [
     "# Состояние проекта",
     "Jemerinos/duoistotiya",
-    "content-research-pass-1",
-    "https://github.com/Jemerinos/duoistotiya/pull/1",
-    "Рецепт восстановления после перезапуска",
+    "## Рабочая точка",
+    "## Последний статус проекта",
+    "Ветка активной работы",
     "Следующая задача",
 ]
 for item in required_log:
