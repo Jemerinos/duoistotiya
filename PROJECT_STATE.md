@@ -7,6 +7,7 @@
 - **Репозиторий:** Jemerinos/duoistotiya.
 - **Основная ветка:** main.
 - **Текущая рабочая ветка:** `standardize-lesson-template-20261020`; изменения шаблона ещё не объединены в `main` и не публикуются напрямую.
+- **Открытый PR шаблона:** [#23](https://github.com/Jemerinos/duoistotiya/pull/23). Run [39329746355](https://github.com/Jemerinos/duoistotiya/actions/runs/39329746355) подтвердил четыре обязательные проверки на предыдущем кодовом HEAD; после записи результатов нужно проверить и новый HEAD.
 - **Контракт нового шаблона:** `LESSON_TEMPLATE_V1.md`; обязательный маршрут заканчивается пятью проверочными вопросами и источниками.
 - **Исходный HEAD для этого этапа:** `6e753cf59bea2e39813cef9f3b21380aceca3710`. Последний подтверждённый deploy baseline остаётся run [39315175377](https://github.com/Jemerinos/duoistotiya/actions/runs/39315175377) на `a004a33ba67061e223cc8d383aba53dd53d3eaf3`; код интерфейса после baseline не менялся до этого шаблонного патча.
 - **Предыдущий проверенный baseline:** commit `449f6baff5d0c9e19368f33d449be5d212536562`, run [39309960292](https://github.com/Jemerinos/duoistotiya/actions/runs/39309960292). Он был успешен, но в нём ещё не было исправлений этого повторного аудита.
