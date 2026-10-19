@@ -31,4 +31,18 @@ if "PATCHLOG.md" not in readme or "PROJECT_STATE.md" not in readme:
     raise SystemExit("README.md must point contributors to both durable project context files")
 if "Статус:" not in log or "Статус:" not in state and "Текущее состояние" not in state:
     raise SystemExit("Patch log or recovery state has no explicit status/context")
+
+workflow_path = root / ".github" / "workflows" / "pages.yml"
+workflow = workflow_path.read_text(encoding="utf-8")
+media_start = workflow.find("  validate-media:\\n")
+gallery_start = workflow.find("  audit-gallery:\\n")
+background_start = workflow.find("  audit-backgrounds:\\n")
+if min(media_start, gallery_start, background_start) < 0:
+    raise SystemExit("Workflow must separate stable media smoke test and manual gallery audit.")
+if "--lesson-audit=" in workflow[media_start:gallery_start]:
+    raise SystemExit("Publish validation must not depend on the rate-limited lesson gallery audit.")
+gallery_job = workflow[gallery_start:background_start]
+if "if: github.event_name == 'workflow_dispatch'" not in gallery_job or "--lesson-audit=7-9" not in gallery_job:
+    raise SystemExit("Lessons 7–9 live gallery audit must remain available as a manual workflow-dispatch job.")
+
 print("Project recovery logs OK: patch algorithm, active patch, current branch/PR, criteria and next task are documented.")
