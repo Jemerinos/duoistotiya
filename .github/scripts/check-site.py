@@ -75,7 +75,8 @@ required = [
     'function describeHistoricalImage(l,rawTitle,metadata,kind)', 'Фукидид',
 '<details class="supplemental-panel"',
     '--green:#6D28D9', '--ink:#111827', 'mobileNavToggle',
-    'function quickQuizSet(l)', 'function examQuestionSet(l)'
+    'function quickQuizSet(l)', 'function examQuestionSet(l)',
+    'var L=window.HISTORY_LESSON_MODEL.lessons'
 ]
 for token in required:
     if token not in html:
