@@ -29,6 +29,11 @@ jobs:
         run: |
           node --check /tmp/site-inline.js
           node --check curriculum.js
+          node --check curriculum-details-01.js
+          node --check curriculum-details-02.js
+          node --check curriculum-details-03.js
+          node --check curriculum-details-04.js
+          node --check curriculum-details-apply.js
           node --check curriculum-depth.js
           node --check curriculum-enrichment-01.js
           node --check curriculum-enrichment-02.js
