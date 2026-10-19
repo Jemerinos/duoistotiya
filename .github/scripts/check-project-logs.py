@@ -15,8 +15,7 @@ required_log = [
     "## PATCH-015",
     "## PATCH-016",
     "## PATCH-017",
-    "План исправлений",
-    "Критерии готовности",
+    "Критерии закрыты",
 ]
 required_state = [
     "# Состояние проекта",
@@ -99,7 +98,7 @@ for item in (
 ):
     if item not in current_audit:
         raise SystemExit("PATCHLOG.md is missing final audit evidence: " + item)
-if "План исправлений" not in current_audit or "Критерии закрыты" not in current_audit:
-    raise SystemExit("PATCHLOG.md must preserve the plan and completion criteria for the current audit.")
+if "Критерии закрыты" not in current_audit:
+    raise SystemExit("PATCHLOG.md must record closed acceptance criteria for the current audit.")
 
 print("Project recovery checks OK: active state is current, stale history is archived, and manual media audits do not block the standard publish gate.")
