@@ -15,8 +15,7 @@ required_log = [
     "## PATCH-015",
     "## PATCH-016",
     "## PATCH-017",
-    "План исправлений",
-    "Критерии готовности",
+    "Критерии закрыты",
 ]
 required_state = [
     "# Состояние проекта",
@@ -46,6 +45,8 @@ active_state = state.split(archive_marker, 1)[0]
 for item in (
     "449f6baff5d0c9e19368f33d449be5d212536562",
     "39309960292",
+    "a004a33ba67061e223cc8d383aba53dd53d3eaf3",
+    "39315175377",
     "Publish validated site",
     "четыре обязательные проверки",
     "Не проведён построчный факт-чек",
@@ -58,6 +59,9 @@ for stale in (
     "Не сливать Draft PR и не публиковать Pages без отдельного решения",
     "39308129397",
     "HEAD main до заключительного документационного закрытия",
+    "audit-critical-fixes-20261019",
+    "пока изменения не объединены",
+    "PR и post-merge Pages ожидаются",
 ):
     if stale in active_state:
         raise SystemExit("Stale historical status leaked into active recovery summary: " + stale)
@@ -83,7 +87,18 @@ for prerequisite in ("validate-site", "validate-course", "validate-activities", 
     if prerequisite not in deploy_job.split("steps:", 1)[0]:
         raise SystemExit("Publish job must depend on required check: " + prerequisite)
 
-if "## PATCH-017" not in log or "План исправлений" not in log or "Критерии готовности" not in log:
-    raise SystemExit("PATCHLOG.md must contain the current audit plan and acceptance criteria.")
+current_audit = log.split("## PATCH-017", 1)[1].split("\n## ", 1)[0] if "## PATCH-017" in log else ""
+for item in (
+    "✅ исправлено",
+    "39315022401",
+    "39315175377",
+    "a004a33ba67061e223cc8d383aba53dd53d3eaf3",
+    "Publish validated site",
+    "Историческая точность 182 текстов",
+):
+    if item not in current_audit:
+        raise SystemExit("PATCHLOG.md is missing final audit evidence: " + item)
+if "Критерии закрыты" not in current_audit:
+    raise SystemExit("PATCHLOG.md must record closed acceptance criteria for the current audit.")
 
 print("Project recovery checks OK: active state is current, stale history is archived, and manual media audits do not block the standard publish gate.")
