@@ -104,4 +104,33 @@ if orphaned_enrichment:
         + ". Integrate and test them, or remove them instead of treating them as delivered."
     )
 
+
+# Keep a single consistent, high-contrast reading-first palette and visible keyboard focus.
+if '<meta name="theme-color" content="#FFFFFF">' not in html:
+    raise SystemExit("Browser theme color must match the white reading-first canvas")
+theme_layer = html.rsplit("/* Stable high-priority theme and contrast layer. */", 1)[-1].split("</style>", 1)[0]
+for token in ("--ink:#111827", "--muted:#4B5563", "--green:#6D28D9",
+              ".lesson-link.active{background:#EDE9FE;color:#5B21B6}",
+              "button:focus-visible", "outline:3px solid #7C3AED"):
+    if token not in theme_layer:
+        raise SystemExit("Missing accessible theme rule: " + token)
+
+def luminance(color):
+    channels = [int(color[i:i+2], 16) / 255 for i in (1, 3, 5)]
+    linear = [v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in channels]
+    return sum(c * w for c, w in zip(linear, (0.2126, 0.7152, 0.0722)))
+
+def contrast(foreground, background):
+    a, b = sorted((luminance(foreground), luminance(background)), reverse=True)
+    return (a + 0.05) / (b + 0.05)
+
+for foreground, background, label in (
+    ("#111827", "#FFFFFF", "body text"),
+    ("#4B5563", "#FFFFFF", "muted text"),
+    ("#5B21B6", "#FFFFFF", "accent links"),
+):
+    ratio = contrast(foreground, background)
+    if ratio < 4.5:
+        raise SystemExit(f"Contrast too low for {label}: {ratio:.2f}:1")
+
 print(f"Site structure OK: {len(ids)} unique IDs; 50-minute lesson; epoch banner, depth blocks and one five-question check.")

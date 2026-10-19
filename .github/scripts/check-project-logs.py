@@ -10,15 +10,16 @@ required_log = [
     "## Рабочий алгоритм",
     "## PATCH-001",
     "## PATCH-002",
+    "## PATCH-013",
     "Критерии готовности",
     "Исполнение",
 ]
 required_state = [
     "# Состояние проекта",
     "Jemerinos/duoistotiya",
-    "content-research-pass-1",
-    "https://github.com/Jemerinos/duoistotiya/pull/1",
-    "Рецепт восстановления после перезапуска",
+    "## Рабочая точка",
+    "## Последний статус проекта",
+    "Рабочая ветка",
     "Следующая задача",
 ]
 for item in required_log:
