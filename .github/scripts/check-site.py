@@ -89,6 +89,32 @@ for stale in ['Название файла в каталоге', 'Названи
 if html.index('id="knowledgeCheck"') < html.index('id="reader"'):
     raise SystemExit("Knowledge check must follow the lesson reading")
 
+# The lesson has one shared reading-first route. Keep the required sections in order.
+template_steps = [
+    ("topic", 'id="title"'),
+    ("explanation", 'data-lesson-section="explanation"'),
+    ("historical actors and chronology", 'id="lessonDepth"'),
+    ("historical maps after the explanation", 'id="mapStudy"'),
+    ("images with context", 'data-lesson-section="images"'),
+    ("brief recap", 'data-lesson-section="recap"'),
+    ("exactly five-question knowledge check", 'data-lesson-section="quiz"'),
+    ("sources", 'data-lesson-section="sources"'),
+]
+template_positions = []
+for label, token in template_steps:
+    position = html.find(token)
+    if position < 0:
+        raise SystemExit("Shared lesson template is missing " + label + ": " + token)
+    template_positions.append(position)
+if template_positions != sorted(template_positions):
+    raise SystemExit("Lesson template order changed: topic → explanation → actors/chronology → images → recap → five questions → sources")
+if 'data-lesson-template="v1"' not in html:
+    raise SystemExit("The common lesson reader must declare template version v1")
+if '<details class="optional-practice">' not in html or '<details class="optional-discussion">' not in html:
+    raise SystemExit("Optional exam practice and discussion must not obscure the core five-question route")
+if html.count('id="knowledgeCheck"') != 1 or html.count('id="quiz"') != 1:
+    raise SystemExit("Expected exactly one required five-question quiz container per lesson")
+
 if "glossary-dialog" not in html or "@media(max-width:700px)" not in html:
     raise SystemExit("Glossary dialog or mobile layout is missing")
 
