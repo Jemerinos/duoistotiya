@@ -4,7 +4,7 @@
 
 ## Рабочая точка — повторная проверка 2026-10-19
 
-**Актуальная задача на 2026-10-20:** убрать универсальные заголовки в уроках. PR #27 открыт; проверки реализации прошли успешно (run 39473953788). Публикация не выполнялась, PR не слит.
+**Актуальная задача на 2026-10-20:** PR #27 содержит PATCH-020 (тематический заголовок/вопрос каждого урока) и PATCH-021 (шесть проверенных источников и адресные пояснения к совпадающим изображениям уроков 4–6). Четыре обязательные CI-проверки итогового HEAD прошли успешно в run [39481968418](https://github.com/Jemerinos/duoistotiya/actions/runs/39481968418). PR открыт; публичный сайт не обновлён этой веткой.
 
 - **Репозиторий:** Jemerinos/duoistotiya.
 - **Основная ветка:** main.
@@ -13,18 +13,18 @@
 - **Исправления повторного аудита:** PR [#21](https://github.com/Jemerinos/duoistotiya/pull/21) слит 2026-10-19; merge commit `a004a33ba67061e223cc8d383aba53dd53d3eaf3`.
 - **Последний подтверждённый Pages deploy до PR #25:** run [39315175377](https://github.com/Jemerinos/duoistotiya/actions/runs/39315175377) на commit `a004a33ba67061e223cc8d383aba53dd53d3eaf3`. Все четыре обязательные проверки и `Publish validated site` завершились `success`; два ручных live-аудита были `skipped` штатно.
 - **Открытый PR #4:** содержит отдельные инструкции/skills и старое предложение по лимиту галереи; не слит, не является частью сайта в main и не влияет на опубликованное состояние.
-- **Текущий фокус:** устранить повторяющиеся шаблонные заголовки в читательском блоке. В PR #27 `index.html` выводит название конкретного урока и его учебный вопрос; обязательные проверки реализации прошли успешно в run 39473953788. PR #27 не слит, поэтому эти изменения ещё не опубликованы. PR #26 с автоматизированными пояснениями к изображениям уже слит, но это не заменяет ручную проверку исторической точности каждой иллюстрации.
+- **Текущий фокус:** проверить и принять PATCH-020/021 в PR #27 после просмотра результатов. `index.html` выводит тему и вопрос конкретного занятия; исследовательский слой `curriculum-research-foundations.js` добавляет шесть прямых источников для уроков 4–6 и пять адресных правил пояснения изображений. Все четыре обязательные CI jobs на HEAD `29be11d7c52e15c99c18230e4a41b1c2777101be` прошли в run 39481968418; `Publish validated site` был штатно пропущен, потому что PR не слит. Не считать изменения опубликованными до отдельного merge и подтверждённого Pages deploy. Ручная редакторская проверка каждого изображения остаётся отдельной задачей.
 
 ## Последний статус проекта
 
-- PR #26 объединён commit `fe391a746e36b21fdc3d000e59efd71d3047c1da`; run [39471331756](https://github.com/Jemerinos/duoistotiya/actions/runs/39471331756) завершился `success`, включая четыре обязательные проверки и `Publish validated site`. Два ручных live-аудита были штатно пропущены. PR #27 для тематических заголовков находится на ветке `fix-lesson-outline-topic-20261020`; обязательные проверки реализации прошли в run [39473953788](https://github.com/Jemerinos/duoistotiya/actions/runs/39473953788), `Publish validated site` штатно пропущен, так как PR не слит.
+- PR #26 объединён commit `fe391a746e36b21fdc3d000e59efd71d3047c1da`; run [39471331756](https://github.com/Jemerinos/duoistotiya/actions/runs/39471331756) завершился `success`, включая четыре обязательные проверки и `Publish validated site`. PR #27 на ветке `fix-lesson-outline-topic-20261020` включает PATCH-020/021. Итоговый run [39481968418](https://github.com/Jemerinos/duoistotiya/actions/runs/39481968418) подтвердил успех четырёх обязательных jobs; два ручных media-аудита и `Publish validated site` штатно пропущены. PR остаётся открытым, поэтому live deploy новых правок не подтверждён.
 - Два ручных live-аудита (галерея уроков 7–9 и 26 фонов) были пропущены по условию `workflow_dispatch`; это ожидаемо и не считается прохождением редакторской проверки.
 - Не подтверждено автоматическими тестами: историческая истинность каждой формулировки; редакторская релевантность каждого изображения; гарантированное наличие 5–10 релевантных картинок в каждом динамическом результате.
 
 ## Текущее состояние по слоям
 
 - **Учебная программа:** `curriculum.js` — 26 модулей/182 занятия; детализация в `curriculum-details-01.js` … `curriculum-details-04.js`, `curriculum-details-apply.js`, `curriculum-depth.js` и `curriculum-enrichment-*.js`.
-- **Исследования и справочные данные:** `curriculum-research.js`, `curriculum-participants.js`, `curriculum-participant-sources.js`, `curriculum-glossary.js`.
+- **Исследования и справочные данные:** `curriculum-research.js`, новый `curriculum-research-foundations.js` (источники и адресные media notes для дней 4–6), `curriculum-participants.js`, `curriculum-participant-sources.js`, `curriculum-glossary.js`.
 - **Медиа:** `curriculum-visuals.js`, загрузчики и viewer в `index.html`, проверки в `.github/scripts/check-images.js`. Результат поискового API — кандидат, не доказательство релевантности.
 - **Нормализованная модель:** `curriculum-editor-model.js` создаёт `window.HISTORY_LESSON_MODEL`; основной интерфейс должен читать `L` из этой модели.
 - **Обязательные проверки:** `.github/scripts/check-site.py`, `check-course.js`, `check-activities.js`, `check-images.js`, `check-project-logs.py`; Pages workflow — `.github/workflows/pages.yml`.
