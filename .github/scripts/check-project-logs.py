@@ -42,6 +42,8 @@ archive_marker = "## Архив исторических снимков (не т
 if state.count(archive_marker) != 1:
     raise SystemExit("PROJECT_STATE.md must have one explicit historical archive boundary")
 active_state = state.split(archive_marker, 1)[0]
+if "Текущий повторный патч должен исправить регрессионный тест" in active_state:
+    raise SystemExit("Active recovery summary still describes the completed CSS test fix as pending.")
 for item in (
     "449f6baff5d0c9e19368f33d449be5d212536562",
     "39309960292",
