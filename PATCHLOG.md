@@ -683,7 +683,7 @@ Public search evidence checked for the first batch: Commons timeline entries and
 
 ## PATCH-024 — исследовательские материалы для уроков 15–24
 
-**База:** `6a302ad7e6ac1a58c933507da9c42c5a69e1a45a`. **Ветка:** `lesson-research-15-24-20261020`. **Статус:** первый CI выявил синтаксическую ошибку в границе массива и проверку устаревшего заголовка PROJECT_STATE; исправление внесено, повторный CI ожидается.
+**База:** `6a302ad7e6ac1a58c933507da9c42c5a69e1a45a`. **Ветка:** `lesson-research-15-24-20261020`. **Статус:** ✅ опубликовано. Первый CI выявил синтаксическую ошибку в границе массива и несовместимость заголовка PROJECT_STATE; оба исправления внесены. Затем все четыре обязательные jobs прошли в run [39497281124](https://github.com/Jemerinos/duoistotiya/actions/runs/39497281124), PR #28 слит в commit `3f7a08259805b40be590c86effcffb5a9005e553`, а Pages deploy завершился `success` в run [39497399798](https://github.com/Jemerinos/duoistotiya/actions/runs/39497399798). Live-файл проверен: 42 источника и 23 заметки.
 
 - 15 «Почему возникло земледелие?»: Britannica и OpenStax.
 - 16 «Плодородный полумесяц и первые деревни»: The Met и Britannica.
@@ -698,6 +698,6 @@ Public search evidence checked for the first batch: Commons timeline entries and
 
 Добавлено 20 источников и 10 контекстных заметок; вместе с PATCH-021–023 ожидается 42 источника и 23 заметки для уроков 4–24. Тест проверяет точные названия, статистику, источники и существующие проверки изображений.
 
-- [ ] Все обязательные CI jobs.
-- [ ] Merge и Pages deploy.
+- [x] Все четыре обязательные CI jobs завершились `success`.
+- [x] PR #28 слит; Pages deploy подтверждён, live-файл проверен.
 - [ ] Ручной аудит реальных динамических изображений и лицензий остаётся отдельным.
