@@ -79,12 +79,12 @@ assert(/function loadEpochBackground\(l\)[\s\S]*?l\.imageQuery/.test(html),
 assert(!/Historical_method.{0,80}Thucydides/.test(html), "A generic historical-method lesson must not be hardwired to Thucydides as its image subject");
 assert(!/Thucydides Peloponnesian War/.test(html), "Gallery fallback must not replace the lesson query with an unrelated named person");
 assert(/collected\.slice\(0, MAX_READER_GALLERY_IMAGES\)/.test(html), "Gallery must cap the number of supplemental images");
-assert(/function localizedGalleryImage\\(l, rawTitle, rawDescription, forcedKind\\)/.test(html), "Every image caption must use the selected file title and metadata");
-assert(/function localizedImageFileTitle/.test(html) && /function transliterateCaptionWord/.test(html), "Unmapped Commons file titles must be converted into readable Russian subjects");
-assert(/localizedGalleryImage\\(l, item\\.raw, item\\.imageDescription\\)/.test(html), "Gallery captions must receive metadata belonging to the selected image");
-assert(/imageDescription: description/.test(html), "Gallery records must retain the description belonging to each image");
-assert(/Зачем это изображение важно:/.test(html) && /Зачем она здесь:/.test(html), "Primary and gallery captions must explain why the specific image appears in the lesson");
-assert(!/Материал подобран по теме занятия/.test(html) && !/Подпись появится при загрузке изображения/.test(html), "Generic caption wishes or placeholders must not remain as user-facing captions");
+assert(html.includes("function localizedGalleryImage(l, rawTitle, rawDescription, forcedKind)"), "Every image caption must use the selected file title and metadata");
+assert(html.includes("function localizedImageFileTitle") && html.includes("function transliterateCaptionWord"), "Unmapped Commons file titles must be converted into readable Russian subjects");
+assert(html.includes("localizedGalleryImage(l, item.raw, item.imageDescription)"), "Gallery captions must receive metadata belonging to the selected image");
+assert(html.includes("imageDescription: description"), "Gallery records must retain the description belonging to each image");
+assert(html.includes("Зачем это изображение важно:") && html.includes("Зачем она здесь:"), "Primary and gallery captions must explain why the specific image appears in the lesson");
+assert(!html.includes("Материал подобран по теме занятия") && !html.includes("Подпись появится при загрузке изображения"), "Generic caption wishes or placeholders must not remain as user-facing captions");
 assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
   "Raw English Wikimedia ImageDescription must never be rendered as the pupil-facing caption");
 assert(/localizedLicenseLabel/.test(html), "Image licence labels must be localized into Russian");
@@ -106,8 +106,8 @@ assert(/function isUsableEpochImage\(page,info\)/.test(html),
 assert(/el\("viewPageBackground"\)\.addEventListener\("click"/.test(html),
   "Background viewer control must open the source for the selected epoch");
 
-assert(/localizedGalleryImage\\(l, p\\.title\\.replace\\(\/\^File:\/,""\), cleanAttribution\\(ext\\.ImageDescription/.test(html), "Primary image captions must inspect the corresponding Commons image description");
-assert(/imageNote\\.description\+" "\+imageNote\\.why/.test(html), "Clickable module backgrounds must open with a concrete caption and lesson relevance");
+assert(html.includes('localizedGalleryImage(l,p.title.replace(/^File:/,""),cleanAttribution(ext.ImageDescription&&ext.ImageDescription.value))'), "Primary module backgrounds must interpret the matching Commons file description");
+assert(html.includes('imageNote.description+" "+imageNote.why'), "Clickable module backgrounds must open with a concrete caption and lesson relevance");
 console.log("Image checks OK: 182/182 lesson routes, 26 backgrounds, 5–10 total image target, Russian captions and licences, original-source links, zoom/pan/close viewer.");
 
 /* Optional live smoke test. This checks the endpoints and one returned image, not all 182
