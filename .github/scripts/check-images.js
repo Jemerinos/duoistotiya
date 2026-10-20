@@ -91,8 +91,8 @@ assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
 
 const foundationStats = window.HISTORY_FOUNDATION_RESEARCH_STATS;
 const foundationNotes = window.HISTORY_FOUNDATION_IMAGE_NOTES || [];
-assert(foundationStats && foundationStats.addedSourceCount === 22 && foundationStats.imageNoteCount === 13,
-  "Foundation research must define fourteen sources and nine lesson-specific image notes");
+assert(foundationStats && foundationStats.addedSourceCount === 42 && foundationStats.imageNoteCount === 23,
+  "Foundation research must define 42 sources and 23 lesson-specific image notes");
 for (const [day, title] of [
   [4, "Археология и естественно-научные методы"],
   [5, "Первичные и вторичные источники"],
@@ -104,7 +104,17 @@ for (const [day, title] of [
   [11, "Общие истории, нормы и большие сообщества"],
   [12, "Что археология может сказать о ранней религии?"],
   [13, "Гёбекли-Тепе: ритуал до полного перехода к земледелию?"],
-  [14, "Религия: социальная функция, вера и историческое доказательство"]
+  [14, "Религия: социальная функция, вера и историческое доказательство"],
+  [15, "Почему возникло земледелие?"],
+  [16, "Плодородный полумесяц и первые деревни"],
+  [17, "Шумерские города и клинопись"],
+  [18, "Вавилон и законы Хаммурапи"],
+  [19, "Древний Египет и Нил"],
+  [20, "Ремесло, торговля и бронзовый век"],
+  [21, "Практикум 3: сравнить речные цивилизации"],
+  [22, "Хараппа и Мохенджо-Даро"],
+  [23, "Ведийский мир и социальная иерархия"],
+  [24, "Шан и Чжоу: власть, ритуал и бронза"]
 ]) {
   const row = course.lessons[day - 1];
   assert(row && row[0] === title, "Research pack is attached to the exact lesson title on day " + day);
