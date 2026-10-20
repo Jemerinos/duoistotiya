@@ -3,6 +3,7 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
 global.window = {};
 require("../../curriculum.js");
 require("../../curriculum-visuals.js");
+require("../../curriculum-research-foundations.js");
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -87,6 +88,37 @@ assert(html.includes("Зачем это изображение важно:") && 
 assert(!html.includes("Материал подобран по теме занятия") && !html.includes("Подпись появится при загрузке изображения"), "Generic caption wishes or placeholders must not remain as user-facing captions");
 assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
   "Raw English Wikimedia ImageDescription must never be rendered as the pupil-facing caption");
+
+const foundationStats = window.HISTORY_FOUNDATION_RESEARCH_STATS;
+const foundationNotes = window.HISTORY_FOUNDATION_IMAGE_NOTES || [];
+assert(foundationStats && foundationStats.addedSourceCount === 6 && foundationStats.imageNoteCount === 5,
+  "Foundation research must define six sources and five lesson-specific image notes");
+for (const [day, title] of [
+  [4, "Археология и естественно-научные методы"],
+  [5, "Первичные и вторичные источники"],
+  [6, "Пропаганда, память и спорные события"]
+]) {
+  const row = course.lessons[day - 1];
+  assert(row && row[0] === title, "Foundation source pack is attached to the expected lesson on day " + day);
+  const sources = row[6] && row[6].researchSources;
+  assert(Array.isArray(sources) && sources.length >= 2,
+    "Lesson " + day + " must expose at least two direct research sources");
+  assert(sources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc),
+    "Lesson " + day + " research sources need titles, secure URLs and explanatory descriptions");
+}
+assert(foundationNotes.some(note => note.day === 4 && note.sourceUrl === "https://www.nps.gov/articles/000/what-is-archeological-context.htm"),
+  "Archaeology image notes must include a method source");
+assert(foundationNotes.some(note => note.day === 5 && note.sourceUrl === "https://www.loc.gov/programs/teachers/getting-started-with-primary-sources/finding/"),
+  "Primary-source image notes must include an archive research guide");
+assert(foundationNotes.some(note => note.day === 6 && note.sourceUrl === "https://encyclopedia.ushmm.org/content/en/article/nazi-propaganda-and-censorship"),
+  "Propaganda image notes must include a documented historical case");
+assert(html.includes('<script src="curriculum-research-foundations.js"></script>'),
+  "The researched lesson source pack must load before the editor model");
+assert(html.includes("var curatedNotes=Array.isArray(window.HISTORY_FOUNDATION_IMAGE_NOTES)"),
+  "Caption selection must prefer a matching lesson-specific evidence note");
+assert(html.includes("Проверить исторический контекст ↗") && html.includes("n.sourceUrl"),
+  "Research-backed image notes must link to their contextual source");
+
 assert(/localizedLicenseLabel/.test(html), "Image licence labels must be localized into Russian");
 assert(/pointerdown/.test(html) && /pointermove/.test(html) && /scrollLeft=imagePanState/.test(html),
   "Zoomed images must support pointer drag-to-pan");
