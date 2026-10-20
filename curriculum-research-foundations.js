@@ -171,7 +171,7 @@
 
   window.HISTORY_FOUNDATION_IMAGE_NOTES = [
     {
-      day: 5,
+      day: 4,
       re: /stratigraph|excavation layers|archaeological context|archaeological section|soil section|стратиграф|археологическ.*сло|разрез раскопа/i,
       title: "Археологический разрез и последовательность слоёв",
       description: "Расположение слоя и его связь с соседними находками помогают выстраивать относительную последовательность событий и проверять контекст предмета. Если слой нарушен позднейшими раскопками или строительством, вывод только по глубине может оказаться неверным.",
@@ -179,7 +179,7 @@
       sourceUrl: "https://www.nps.gov/articles/000/what-is-archeological-context.htm"
     },
     {
-      day: 5,
+      day: 4,
       re: /obsidian|flint tool|stone tool|projectile point|stone artifact|наконечник|обсидиан|каменн(?:ое орудие|ый инструмент)/i,
       title: "Каменное орудие как археологическое свидетельство",
       description: "Форма и материал могут подсказать технологию изготовления и возможное использование, но сами по себе не раскрывают весь образ жизни создателей. Важны место находки, слой, соседние предметы и лабораторные данные.",
@@ -187,7 +187,7 @@
       sourceUrl: "https://www.nps.gov/articles/000/what-is-archeological-context.htm"
     },
     {
-      day: 6,
+      day: 5,
       re: /primary source|historical document|charter|manuscript|letter|diary|newspaper|archive|первичн.*источник|историческ.*документ|рукопис|хартия|письмо|дневник|газета|архив/i,
       title: "Документ как свидетельство своего времени",
       description: "Изучайте документ через происхождение и контекст: кто его создал, когда, для кого и с какой целью. Первичный источник может быть близок к событию, но отражает ограниченную позицию автора и не доказывает автоматически, что таков был опыт всего общества.",
@@ -195,7 +195,7 @@
       sourceUrl: "https://www.loc.gov/programs/teachers/getting-started-with-primary-sources/finding/"
     },
     {
-      day: 7,
+      day: 6,
       re: /propaganda|political poster|election poster|political cartoon|book burning|censorship|political rally|wartime poster|агитационн.*плакат|пропаганд|цензур|сожжен.*книг|сожжение книг|агитплакат/i,
       title: "Пропагандистское изображение и его аудитория",
       description: "Плакат или политическое изображение не просто отражает события: оно пытается убедить определённую аудиторию. Слоганы, символы, выбранные герои и образ противника показывают, какую реакцию хотел вызвать автор; сообщение нужно проверять по независимым свидетельствам.",
@@ -203,7 +203,7 @@
       sourceUrl: "https://encyclopedia.ushmm.org/content/en/article/nazi-propaganda-and-censorship"
     },
     {
-      day: 7,
+      day: 6,
       re: /memorial|commemorat|monument to|historical memory|memory of|памятник|мемориал|увековеч|историческ.*памят/i,
       title: "Памятник и общественная память",
       description: "Памятник отражает не только прошлое, но и выбор общества или власти — что именно помнить и как представлять участников событий. Дата установки, надписи, заказчики и последующие изменения могут отличаться от времени самого события.",
@@ -211,7 +211,7 @@
       sourceUrl: "https://www.bpb.de/themen/medien-journalismus/krieg-in-den-medien/130699/methoden-der-kriegspropaganda/"
     },
     {
-      day: 8,
+      day: 7,
       re: /primary source|historical document|charter|manuscript|letter|diary|newspaper|archive|historical source|первичн.*источник|историческ.*документ|рукопис|хартия|письмо|дневник|газета|архив|разбор источника/i,
       title: "Разбор исторического источника: автор, цель и ограничения",
       description: "Для анализа документа важно установить, кто его создал, когда, для какой аудитории и с какой целью. Отдельно различайте то, что прямо сказано или изображено, и вывод, который вы делаете на основе свидетельства.",
@@ -219,7 +219,7 @@
       sourceUrl: "https://www.inquirygroup.org/history-lessons"
     },
     {
-      day: 9,
+      day: 8,
       re: /cave art|prehistoric art|symbolic behavior|engraved ochre|bead necklace|shell beads|ritual site|пещерн.*искусств|наскальн.*рис|символическ.*поведен|гравиров.*охр|бусы из раковин|ритуальн.*мест/i,
       title: "Символический предмет и пределы археологической интерпретации",
       description: "Украшения, гравировки и изображения могут свидетельствовать о символическом поведении, но их точное значение часто неизвестно. Археологи сравнивают контекст находки, повторяемость мотивов, датировку и другие независимые данные, прежде чем предлагать объяснение.",
