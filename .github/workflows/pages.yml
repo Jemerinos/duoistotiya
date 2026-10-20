@@ -40,6 +40,7 @@ jobs:
           node --check curriculum-enrichment-03.js
           node --check curriculum-enrichment-04.js
           node --check curriculum-research.js
+          node --check curriculum-research-foundations.js
           node --check curriculum-enrichment-apply.js
           node --check curriculum-participants.js
           node --check curriculum-participant-sources.js
