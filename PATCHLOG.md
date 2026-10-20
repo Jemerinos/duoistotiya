@@ -630,23 +630,23 @@ Public search evidence checked for the first batch: Commons timeline entries and
 
 ## PATCH-022 — Следующие уроки 7–10: практикум и ранняя история человека (2026-10-20)
 
-**Статус:** исправление нумерации внесено после обнаружения ошибки автоматической проверкой; новый CI для финального HEAD ожидается. PR #27 открыт; публикация не выполнялась.
+**Статус:** фактическая структура уроков уточнена по `course.lessons`; номер и ожидаемое название исправлены. CI повторно проверяется после последнего коммита. PR #27 открыт; публикация не выполнялась.
 
-**Задача**
-- Добавить источники и адресные подписи для уроков 7–10: «Практикум 1: разбор источника», «Homo sapiens: язык, мифы и религия», «Homo sapiens и другие человеческие виды», «Повседневность охотников-собирателей».
-- Сверить фактические записи `course.lessons`, а не путать название модуля «Как историки узнают прошлое» с отдельным занятием.
-- Сохранить ссылки и на оригинал изображения, и на отдельный материал о его историческом/методическом контексте.
+**Важное уточнение структуры курса**
+- «Homo sapiens: язык, мифы и религия» — название модуля, а не отдельного урока.
+- Фактические следующие четыре занятия: день 7 — «Практикум 1: разбор источника»; день 8 — «Homo sapiens и другие человеческие виды»; день 9 — «Повседневность охотников-собирателей»; день 10 — «Когнитивная революция: язык, символы и сотрудничество».
+- В предыдущих запусках автоматическая проверка поймала неверную привязку заголовка и ошибки синтаксиса. Все они исправлены; зелёным считать только новый запуск после последнего исправления.
 
 **Источники, исследованные Firecrawl**
 - Урок 7: [Digital Inquiry Group — History Lessons / Reading Like a Historian](https://www.inquirygroup.org/history-lessons) и [Library of Congress — Finding Primary Sources](https://www.loc.gov/programs/teachers/getting-started-with-primary-sources/finding/). Методика анализа происхождения, контекста, сопоставления и внимательного чтения; многие готовые уроки DIG посвящены истории США.
-- Урок 8: [Smithsonian Human Origins Program — Behavior](https://humanorigins.si.edu/evidence/behavior) и [научная статья о раннем символическом поведении Homo sapiens](https://pmc.ncbi.nlm.nih.gov/articles/PMC7060673/). Подписи не выдают гипотезы о верованиях за установленные факты.
-- Урок 9: [Smithsonian — Ancient DNA and Neanderthals](https://humanorigins.si.edu/evidence/genetics/ancient-dna-and-neanderthals) и [Natural History Museum, London — исследование о смешении неандертальцев и Homo sapiens](https://www.nhm.ac.uk/discover/news/2024/december/neanderthals-homo-sapiens-interbred-within-past-50000-years.html). Различаются генетические данные, ископаемые останки и интерпретации.
-- Урок 10: [Human Relations Area Files, Yale University — Hunter-Gatherers](https://hraf.yale.edu/ehc/summaries/hunter-gatherers) и [научный обзор о сообществах охотников-собирателей](https://pmc.ncbi.nlm.nih.gov/articles/PMC5875731/). Современные сообщества не рассматриваются как неизменённые «окна» в доисторию.
-- Уроки 4–6 сохраняют предыдущие материалы NPS/Smithsonian, Library of Congress/National Archives и USHMM/bpb.
+- Урок 8: [Smithsonian — Ancient DNA and Neanderthals](https://humanorigins.si.edu/evidence/genetics/ancient-dna-and-neanderthals) и [Natural History Museum, London — исследование о смешении неандертальцев и Homo sapiens](https://www.nhm.ac.uk/discover/news/2024/december/neanderthals-homo-sapiens-interbred-within-past-50000-years.html). Различаются генетические данные, ископаемые останки и интерпретации.
+- Урок 9: [Human Relations Area Files, Yale University — Hunter-Gatherers](https://hraf.yale.edu/ehc/summaries/hunter-gatherers) и [научный обзор о сообществах охотников-собирателей](https://pmc.ncbi.nlm.nih.gov/articles/PMC5875731/). Современные группы не рассматриваются как неизменённые «окна» в доисторию.
+- Урок 10: [Smithsonian Human Origins Program — Behavior](https://humanorigins.si.edu/evidence/behavior) и [научная статья о раннем символическом поведении Homo sapiens](https://pmc.ncbi.nlm.nih.gov/articles/PMC7060673/). Подписи не выдают гипотезы о верованиях за установленные факты.
+- Уроки 4–6 сохраняют материалы NPS/Smithsonian, Library of Congress/National Archives и USHMM/bpb.
 
 **Изменённые файлы**
-- `curriculum-research-foundations.js`: источники привязаны по точному названию к фактическим урокам 4–10; 14 источников, 9 контекстных заметок.
-- `.github/scripts/check-images.js`: регрессионные проверки подтверждают названия уроков 4–10, количество источников, адресные заметки и ссылки.
+- `curriculum-research-foundations.js`: источники привязаны по точному названию к фактическим урокам 4–10; 14 источников и 9 контекстных заметок.
+- `.github/scripts/check-images.js`: регрессионные проверки подтверждают фактические названия уроков 4–10, количество источников, адресные заметки и ссылки.
 - `PATCHLOG.md`, `PROJECT_STATE.md`: фиксируют актуальную точку восстановления.
 
 **Критерии готовности**
