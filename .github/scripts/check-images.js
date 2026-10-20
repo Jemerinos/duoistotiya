@@ -91,7 +91,7 @@ assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
 
 const foundationStats = window.HISTORY_FOUNDATION_RESEARCH_STATS;
 const foundationNotes = window.HISTORY_FOUNDATION_IMAGE_NOTES || [];
-assert(foundationStats && foundationStats.addedSourceCount === 14 && foundationStats.imageNoteCount === 9,
+assert(foundationStats && foundationStats.addedSourceCount === 22 && foundationStats.imageNoteCount === 13,
   "Foundation research must define fourteen sources and nine lesson-specific image notes");
 for (const [day, title] of [
   [4, "Археология и естественно-научные методы"],
@@ -100,7 +100,11 @@ for (const [day, title] of [
   [7, "Практикум 1: разбор источника"],
   [8, "Homo sapiens и другие человеческие виды"],
   [9, "Повседневность охотников-собирателей"],
-  [10, "Когнитивная революция: язык, символы и сотрудничество"]
+  [10, "Когнитивная революция: язык, символы и сотрудничество"],
+  [11, "Общие истории, нормы и большие сообщества"],
+  [12, "Что археология может сказать о ранней религии?"],
+  [13, "Гёбекли-Тепе: ритуал до полного перехода к земледелию?"],
+  [14, "Религия: социальная функция, вера и историческое доказательство"]
 ]) {
   const row = course.lessons[day - 1];
   assert(row && row[0] === title, "Research pack is attached to the exact lesson title on day " + day);
@@ -124,6 +128,14 @@ assert(foundationNotes.some(note => note.day === 8 && note.sourceUrl === "https:
   "Human-species image notes must include a source on ancient DNA and Neanderthals");
 assert(foundationNotes.some(note => note.day === 9 && note.sourceUrl === "https://hraf.yale.edu/ehc/summaries/hunter-gatherers"),
   "Hunter-gatherer image notes must include a source discussing limits of ethnographic analogy");
+assert(foundationNotes.some(note => note.day === 11 && note.sourceUrl === "https://humanorigins.si.edu/human-characteristics/social-life"),
+  "Social cooperation image notes must include the Smithsonian social-life source");
+assert(foundationNotes.some(note => note.day === 12 && note.sourceUrl === "https://pmc.ncbi.nlm.nih.gov/articles/PMC3272428/"),
+  "Early religion image notes must discuss the limits of material evidence");
+assert(foundationNotes.some(note => note.day === 13 && note.sourceUrl === "https://whc.unesco.org/en/list/1572/"),
+  "Göbekli Tepe image notes must include the UNESCO World Heritage source");
+assert(foundationNotes.some(note => note.day === 14 && note.sourceUrl === "https://plato.stanford.edu/entries/philosophy-religion/"),
+  "Religion evidence notes must distinguish historical practice from philosophical belief");
 assert(html.includes('<script src="curriculum-research-foundations.js"></script>'),
   "The researched lesson source pack must load before the editor model");
 assert(html.includes("var curatedNotes=Array.isArray(window.HISTORY_FOUNDATION_IMAGE_NOTES)"),
