@@ -76,13 +76,17 @@ required = [
 '<details class="supplemental-panel"',
     '--green:#6D28D9', '--ink:#111827', 'mobileNavToggle',
     'function quickQuizSet(l)', 'function examQuestionSet(l)',
+    'id="readerSectionTitle"', 'id="readerObjective"',
+    'el("readerHeading").textContent="Главная тема: "+l.title',
+    'el("readerSectionTitle").textContent="Что будем изучать"',
+    'el("readerObjective").textContent=l.question?"Вопрос занятия: "+l.question:"Тема занятия: "+l.title',
     'var L=window.HISTORY_LESSON_MODEL.lessons'
 ]
 for token in required:
     if token not in html:
         raise SystemExit("Missing feature: " + token)
 
-for stale in ['Название файла в каталоге', 'Название файла:', 'Имя файла', 'Иллюстрация к уроку «']:
+for stale in ['Название файла в каталоге', 'Название файла:', 'Имя файла', 'Иллюстрация к уроку «', 'События, участники и причинные связи</h2>', '"События, участники и их значение"']:
     if stale in html:
         raise SystemExit("Obsolete generic/file caption remains: " + stale)
 

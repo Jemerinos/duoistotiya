@@ -3,6 +3,7 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
 global.window = {};
 require("../../curriculum.js");
 require("../../curriculum-visuals.js");
+require("../../curriculum-research-foundations.js");
 
 const fs = require("node:fs");
 const path = require("node:path");
@@ -87,6 +88,61 @@ assert(html.includes("Зачем это изображение важно:") && 
 assert(!html.includes("Материал подобран по теме занятия") && !html.includes("Подпись появится при загрузке изображения"), "Generic caption wishes or placeholders must not remain as user-facing captions");
 assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
   "Raw English Wikimedia ImageDescription must never be rendered as the pupil-facing caption");
+
+const foundationStats = window.HISTORY_FOUNDATION_RESEARCH_STATS;
+const foundationNotes = window.HISTORY_FOUNDATION_IMAGE_NOTES || [];
+assert(foundationStats && foundationStats.addedSourceCount === 22 && foundationStats.imageNoteCount === 13,
+  "Foundation research must define fourteen sources and nine lesson-specific image notes");
+for (const [day, title] of [
+  [4, "Археология и естественно-научные методы"],
+  [5, "Первичные и вторичные источники"],
+  [6, "Пропаганда, память и спорные события"],
+  [7, "Практикум 1: разбор источника"],
+  [8, "Homo sapiens и другие человеческие виды"],
+  [9, "Повседневность охотников-собирателей"],
+  [10, "Когнитивная революция: язык, символы и сотрудничество"],
+  [11, "Общие истории, нормы и большие сообщества"],
+  [12, "Что археология может сказать о ранней религии?"],
+  [13, "Гёбекли-Тепе: ритуал до полного перехода к земледелию?"],
+  [14, "Религия: социальная функция, вера и историческое доказательство"]
+]) {
+  const row = course.lessons[day - 1];
+  assert(row && row[0] === title, "Research pack is attached to the exact lesson title on day " + day);
+  const sources = row[6] && row[6].researchSources;
+  assert(Array.isArray(sources) && sources.length >= 2,
+    "Lesson " + day + " must expose at least two direct research sources");
+  assert(sources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc),
+    "Lesson " + day + " research sources need titles, secure URLs and explanatory descriptions");
+}
+assert(foundationNotes.some(note => note.day === 4 && note.sourceUrl === "https://www.nps.gov/articles/000/what-is-archeological-context.htm"),
+  "Archaeology image notes must be attached to lesson 4 and include a method source");
+assert(foundationNotes.some(note => note.day === 5 && note.sourceUrl === "https://www.loc.gov/programs/teachers/getting-started-with-primary-sources/finding/"),
+  "Primary-source image notes must be attached to lesson 5 and include an archive research guide");
+assert(foundationNotes.some(note => note.day === 6 && note.sourceUrl === "https://encyclopedia.ushmm.org/content/en/article/nazi-propaganda-and-censorship"),
+  "Propaganda image notes must be attached to lesson 6 and include a documented historical case");
+assert(foundationNotes.some(note => note.day === 7 && note.sourceUrl === "https://www.inquirygroup.org/history-lessons"),
+  "Source-analysis workshop notes must include a historical-thinking method source");
+assert(foundationNotes.some(note => note.day === 10 && note.sourceUrl === "https://humanorigins.si.edu/evidence/behavior"),
+  "Symbolic behavior image notes must include a Smithsonian evidence source");
+assert(foundationNotes.some(note => note.day === 8 && note.sourceUrl === "https://humanorigins.si.edu/evidence/genetics/ancient-dna-and-neanderthals"),
+  "Human-species image notes must include a source on ancient DNA and Neanderthals");
+assert(foundationNotes.some(note => note.day === 9 && note.sourceUrl === "https://hraf.yale.edu/ehc/summaries/hunter-gatherers"),
+  "Hunter-gatherer image notes must include a source discussing limits of ethnographic analogy");
+assert(foundationNotes.some(note => note.day === 11 && note.sourceUrl === "https://humanorigins.si.edu/human-characteristics/social-life"),
+  "Social cooperation image notes must include the Smithsonian social-life source");
+assert(foundationNotes.some(note => note.day === 12 && note.sourceUrl === "https://pmc.ncbi.nlm.nih.gov/articles/PMC3272428/"),
+  "Early religion image notes must discuss the limits of material evidence");
+assert(foundationNotes.some(note => note.day === 13 && note.sourceUrl === "https://whc.unesco.org/en/list/1572/"),
+  "Göbekli Tepe image notes must include the UNESCO World Heritage source");
+assert(foundationNotes.some(note => note.day === 14 && note.sourceUrl === "https://plato.stanford.edu/entries/philosophy-religion/"),
+  "Religion evidence notes must distinguish historical practice from philosophical belief");
+assert(html.includes('<script src="curriculum-research-foundations.js"></script>'),
+  "The researched lesson source pack must load before the editor model");
+assert(html.includes("var curatedNotes=Array.isArray(window.HISTORY_FOUNDATION_IMAGE_NOTES)"),
+  "Caption selection must prefer a matching lesson-specific evidence note");
+assert(html.includes("Проверить исторический контекст ↗") && html.includes("n.sourceUrl"),
+  "Research-backed image notes must link to their contextual source");
+
 assert(/localizedLicenseLabel/.test(html), "Image licence labels must be localized into Russian");
 assert(/pointerdown/.test(html) && /pointermove/.test(html) && /scrollLeft=imagePanState/.test(html),
   "Zoomed images must support pointer drag-to-pan");
