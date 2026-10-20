@@ -98,9 +98,9 @@ for (const [day, title] of [
   [5, "Первичные и вторичные источники"],
   [6, "Пропаганда, память и спорные события"],
   [7, "Практикум 1: разбор источника"],
-  [8, "Homo sapiens: язык, мифы и религия"],
-  [9, "Homo sapiens и другие человеческие виды"],
-  [10, "Повседневность охотников-собирателей"]
+  [8, "Homo sapiens и другие человеческие виды"],
+  [9, "Повседневность охотников-собирателей"],
+  [10, "Когнитивная революция: язык, символы и сотрудничество"]
 ]) {
   const row = course.lessons[day - 1];
   assert(row && row[0] === title, "Research pack is attached to the exact lesson title on day " + day);
@@ -118,11 +118,11 @@ assert(foundationNotes.some(note => note.day === 6 && note.sourceUrl === "https:
   "Propaganda image notes must be attached to lesson 6 and include a documented historical case");
 assert(foundationNotes.some(note => note.day === 7 && note.sourceUrl === "https://www.inquirygroup.org/history-lessons"),
   "Source-analysis workshop notes must include a historical-thinking method source");
-assert(foundationNotes.some(note => note.day === 8 && note.sourceUrl === "https://humanorigins.si.edu/evidence/behavior"),
+assert(foundationNotes.some(note => note.day === 10 && note.sourceUrl === "https://humanorigins.si.edu/evidence/behavior"),
   "Symbolic behavior image notes must include a Smithsonian evidence source");
-assert(foundationNotes.some(note => note.day === 9 && note.sourceUrl === "https://humanorigins.si.edu/evidence/genetics/ancient-dna-and-neanderthals"),
+assert(foundationNotes.some(note => note.day === 8 && note.sourceUrl === "https://humanorigins.si.edu/evidence/genetics/ancient-dna-and-neanderthals"),
   "Human-species image notes must include a source on ancient DNA and Neanderthals");
-assert(foundationNotes.some(note => note.day === 10 && note.sourceUrl === "https://hraf.yale.edu/ehc/summaries/hunter-gatherers"),
+assert(foundationNotes.some(note => note.day === 9 && note.sourceUrl === "https://hraf.yale.edu/ehc/summaries/hunter-gatherers"),
   "Hunter-gatherer image notes must include a source discussing limits of ethnographic analogy");
 assert(html.includes('<script src="curriculum-research-foundations.js"></script>'),
   "The researched lesson source pack must load before the editor model");
