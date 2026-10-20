@@ -91,27 +91,36 @@ assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
 
 const foundationStats = window.HISTORY_FOUNDATION_RESEARCH_STATS;
 const foundationNotes = window.HISTORY_FOUNDATION_IMAGE_NOTES || [];
-assert(foundationStats && foundationStats.addedSourceCount === 6 && foundationStats.imageNoteCount === 5,
-  "Foundation research must define six sources and five lesson-specific image notes");
+assert(foundationStats && foundationStats.addedSourceCount === 12 && foundationStats.imageNoteCount === 8,
+  "Foundation research must define twelve sources and eight lesson-specific image notes");
 for (const [day, title] of [
-  [4, "Археология и естественно-научные методы"],
-  [5, "Первичные и вторичные источники"],
-  [6, "Пропаганда, память и спорные события"]
+  [5, "Археология и естественно-научные методы"],
+  [6, "Первичные и вторичные источники"],
+  [7, "Пропаганда, память и спорные события"],
+  [8, "Практикум 1: разбор источника"],
+  [9, "Homo sapiens: язык, мифы и религия"],
+  [10, "Homo sapiens и другие человеческие виды"]
 ]) {
   const row = course.lessons[day - 1];
-  assert(row && row[0] === title, "Foundation source pack is attached to the expected lesson on day " + day);
+  assert(row && row[0] === title, "Research pack is attached to the exact lesson title on day " + day);
   const sources = row[6] && row[6].researchSources;
   assert(Array.isArray(sources) && sources.length >= 2,
     "Lesson " + day + " must expose at least two direct research sources");
   assert(sources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc),
     "Lesson " + day + " research sources need titles, secure URLs and explanatory descriptions");
 }
-assert(foundationNotes.some(note => note.day === 4 && note.sourceUrl === "https://www.nps.gov/articles/000/what-is-archeological-context.htm"),
-  "Archaeology image notes must include a method source");
-assert(foundationNotes.some(note => note.day === 5 && note.sourceUrl === "https://www.loc.gov/programs/teachers/getting-started-with-primary-sources/finding/"),
-  "Primary-source image notes must include an archive research guide");
-assert(foundationNotes.some(note => note.day === 6 && note.sourceUrl === "https://encyclopedia.ushmm.org/content/en/article/nazi-propaganda-and-censorship"),
-  "Propaganda image notes must include a documented historical case");
+assert(foundationNotes.some(note => note.day === 5 && note.sourceUrl === "https://www.nps.gov/articles/000/what-is-archeological-context.htm"),
+  "Archaeology image notes must be attached to lesson 5 and include a method source");
+assert(foundationNotes.some(note => note.day === 6 && note.sourceUrl === "https://www.loc.gov/programs/teachers/getting-started-with-primary-sources/finding/"),
+  "Primary-source image notes must be attached to lesson 6 and include an archive research guide");
+assert(foundationNotes.some(note => note.day === 7 && note.sourceUrl === "https://encyclopedia.ushmm.org/content/en/article/nazi-propaganda-and-censorship"),
+  "Propaganda image notes must be attached to lesson 7 and include a documented historical case");
+assert(foundationNotes.some(note => note.day === 8 && note.sourceUrl === "https://www.inquirygroup.org/history-lessons"),
+  "Source-analysis workshop notes must include a historical-thinking method source");
+assert(foundationNotes.some(note => note.day === 9 && note.sourceUrl === "https://humanorigins.si.edu/evidence/behavior"),
+  "Symbolic behavior image notes must include a Smithsonian evidence source");
+assert(foundationNotes.some(note => note.day === 10 && note.sourceUrl === "https://humanorigins.si.edu/evidence/genetics/ancient-dna-and-neanderthals"),
+  "Human-species image notes must include a source on ancient DNA and Neanderthals");
 assert(html.includes('<script src="curriculum-research-foundations.js"></script>'),
   "The researched lesson source pack must load before the editor model");
 assert(html.includes("var curatedNotes=Array.isArray(window.HISTORY_FOUNDATION_IMAGE_NOTES)"),
