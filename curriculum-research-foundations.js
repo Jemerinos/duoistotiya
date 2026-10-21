@@ -10,6 +10,66 @@
 
   var packs = [
     {
+      day: 1,
+      expectedTitle: "Что изучает история?",
+      sources: [
+        {
+          type: "УНИВЕРСИТЕТСКИЙ МЕТОД ИСТОРИИ",
+          title: "UCLA Department of History — Primary & Secondary Sources",
+          url: "https://history.ucla.edu/primary-secondary-sources/",
+          desc: "Кратко объясняет отличие первичных и вторичных источников. Используйте классификацию в зависимости от конкретного вопроса, а не как шкалу от «плохого» к «хорошему».",
+          lang: "Английский"
+        },
+        {
+          type: "АРХИВНО-МЕТОДИЧЕСКОЕ РУКОВОДСТВО",
+          title: "Library of Congress — Getting Started with Primary Sources",
+          url: "https://www.loc.gov/programs/teachers/getting-started-with-primary-sources/",
+          desc: "Практический разбор того, как выявлять точку зрения автора, контекст, аудиторию и ограничения первичного источника. Примеры в основном американские; метод можно применять к другим эпохам.",
+          lang: "Английский"
+        }
+      ]
+    },
+    {
+      day: 2,
+      expectedTitle: "Хронология и историческое время",
+      sources: [
+        {
+          type: "НАУЧНАЯ СТАТЬЯ",
+          title: "PNAS / PMC — The importance of year zero in interdisciplinary studies of climate and history",
+          url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC7776855/",
+          desc: "Объясняет отсутствие нулевого года в традиционном летосчислении и показывает, как ошибки календарного пересчёта влияют на сопоставление исторических и естественно-научных дат.",
+          lang: "Английский"
+        },
+        {
+          type: "ИСТОРИКО-КУЛЬТУРНЫЙ ОБЗОР",
+          title: "World History Encyclopedia — The Origin & History of the BCE/CE Dating System",
+          url: "https://www.worldhistory.org/article/1041/the-origin--history-of-the-bcece-dating-system/",
+          desc: "Описывает происхождение и применение обозначений BCE/CE и отсутствие нулевого года в традиционной системе. Для технического вопроса пересчёта сверяйтесь также с научной публикацией о хронологии.",
+          lang: "Английский"
+        }
+      ]
+    },
+    {
+      day: 3,
+      expectedTitle: "География и карта как источник",
+      sources: [
+        {
+          type: "АРХИВ И ИСТОРИЧЕСКАЯ КАРТОГРАФИЯ",
+          title: "Library of Congress — Maps From The World Digital Library",
+          url: "https://www.loc.gov/classroom-materials/maps-from-the-world-digital-library/",
+          desc: "Подборка исторических карт разных мест и эпох. Материал помогает изучать, что картограф выделял и как карта отражает представления своего времени.",
+          lang: "Английский"
+        },
+        {
+          type: "УЧЕБНЫЙ ОБЗОР",
+          title: "OpenStax — World History, Volume 1: Introduction",
+          url: "https://openstax.org/books/world-history-volume-1/pages/1-introduction",
+          desc: "Вводит в исторический метод и контекст ранних обществ. Используйте вместе с конкретной картой: дата, масштаб, легенда и цель создателя требуют отдельной проверки.",
+          lang: "Английский"
+        }
+      ]
+    },
+    {
       day: 4,
       expectedTitle: "Археология и естественно-научные методы",
       sources: [
@@ -87,6 +147,13 @@
           desc: "Помогает находить первичные материалы и учитывать их происхождение. Для практикума полезно требовать от ученика не просто пересказ, а указание автора, даты, аудитории и ограничения свидетельства.",
           lang: "Английский"
         }
+        {
+          type: "МУЗЕЙНАЯ КАРТОЧКА ПЕРВИЧНОГО ПАМЯТНИКА",
+          title: "Musée du Louvre — The Code of Hammurabi",
+          url: "https://www.louvre.fr/en/the-code-of-hammurabi",
+          desc: "Официальная карточка стелы, созданной при Хаммурапи в XVIII веке до н. э.; помогает проверять датировку и материальный контекст используемого примера.",
+          lang: "Английский"
+        },
       ]
     },
     {
@@ -107,6 +174,13 @@
           desc: "Научная работа рассматривает развитие раннего символического поведения по археологическим данным. Используйте её как исследовательскую интерпретацию конкретных свидетельств, а не как доказательство единственной причины возникновения языка или религии.",
           lang: "Английский"
         }
+        {
+          type: "МУЗЕЙНАЯ КОЛЛЕКЦИЯ",
+          title: "Smithsonian Human Origins Program — Blombos Ocher Plaque",
+          url: "https://humanorigins.si.edu/evidence/behavior/recording-information/blombos-ocher-plaque",
+          desc: "Описывает гравированную охру из пещеры Бломбос возрастом примерно 77–75 тысяч лет. Находка показывает намеренное нанесение узора, но не устанавливает его точный смысл.",
+          lang: "Английский"
+        },
       ]
     },
     {
@@ -127,6 +201,13 @@
           desc: "Материал музея о научных данных по времени контактов и смешения популяций. Это изложение конкретного исследования; детали датировок следует соотносить с первичной публикацией и последующими работами.",
           lang: "Английский"
         }
+        {
+          type: "МУЗЕЙНАЯ НАУКА",
+          title: "Smithsonian Human Origins Program — Our species arose at least 300,000 years ago",
+          url: "https://humanorigins.si.edu/research/whats-hot-human-origins/our-species-arose-least-300000-years-ago",
+          desc: "Поясняет, почему останки из Джебель-Ирхуд в Марокко датируют примерно 300 тысячами лет назад и как находки поддерживают африканское происхождение Homo sapiens.",
+          lang: "Английский"
+        },
       ]
     },
     {
@@ -147,6 +228,13 @@
           desc: "Научный обзор показывает, как этнографические наблюдения и археология помогают изучать мобильность, разделение пищи и повседневную жизнь, а также где аналогии между современными и древними группами ограничены.",
           lang: "Английский"
         }
+        {
+          type: "АКАДЕМИЧЕСКИЙ ОБЗОР АРХЕОЛОГИИ",
+          title: "Columbia University — The Natufian Culture in the Levant, Threshold to the Origins of Agriculture",
+          url: "https://www.columbia.edu/itc/anthropology/v1007/baryo.pdf",
+          desc: "Разбирает поздние общества охотников-собирателей Леванта, долговременные поселения и переходные стратегии до широкого распространения земледелия. Выводы относятся к конкретному региону.",
+          lang: "Английский"
+        },
       ]
     },
     {
