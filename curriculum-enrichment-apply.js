@@ -39,10 +39,33 @@
     if(effects.length)blocks.push(effects.join(" "));
     var facts=uniqueSentences(row[4]||[],seen,3,"Факт: ");
     if(facts.length)blocks.push(facts.join(" "));
-    // Named people already have dedicated biography cards in the reader.
-    // Do not copy shared biography text into multiple lesson narratives.
-    // Glossary terms and social groups already have dedicated cards below the reading.
-    // Keep them out of the narrative to avoid duplicating the same module-wide definitions.
+    function words(text){return String(text||"").trim().split(/\s+/).filter(Boolean).length;}
+    function clause(value){return String(value||"").replace(/\s+/g," ").replace(/[.!?]+/g,";").replace(/[;,]+\s*$/,"").trim();}
+    function appendIfShort(values,max,prefix){
+      if(words(base+" "+blocks.join(" "))>=200)return;
+      var candidates=uniqueSentences(values,seen,max,prefix),picked=[],projected=words(base+" "+blocks.join(" "));
+      for(var i=0;i<candidates.length&&projected<200;i++){
+        picked.push(candidates[i]);projected+=words(candidates[i]);
+      }
+      if(picked.length)blocks.push(picked.join(" "));
+    }
+    // Most concepts already appear in the base reading or a dedicated card.
+    // Only add people/groups/terms when the core narrative plus concrete evidence is too short.
+    var people=(depth.people||[]).slice(0,4).map(function(person){
+      var name=clause(person.name),role=clause(person.role),why=clause(person.why);
+      return name && role ? name+" — "+role+(why?"; значение: "+why:"")+"." : "";
+    }).filter(Boolean);
+    appendIfShort(people,4,"Персоналии: ");
+    var groups=(depth.groups||[]).map(function(group){
+      var name=clause(group.name),description=clause(group.description);
+      return name && description ? name+" — "+description+"." : "";
+    }).filter(Boolean);
+    appendIfShort(groups,3,"Группы: ");
+    var terms=(depth.terms||[]).filter(function(term){return Array.isArray(term)&&term[0]&&term[1]})
+      .slice(0,5).map(function(term){
+        return clause(term[0])+" — "+clause(term[1])+".";
+      });
+    appendIfShort(terms,5,"Термины: ");
     return blocks.join("\n\n");
   }
   course.lessons.forEach(function(row,index){
