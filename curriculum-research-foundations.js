@@ -200,7 +200,7 @@
           url: "https://www.nhm.ac.uk/discover/news/2024/december/neanderthals-homo-sapiens-interbred-within-past-50000-years.html",
           desc: "Материал музея о научных данных по времени контактов и смешения популяций. Это изложение конкретного исследования; детали датировок следует соотносить с первичной публикацией и последующими работами.",
           lang: "Английский"
-        }
+        },
         {
           type: "МУЗЕЙНАЯ НАУКА",
           title: "Smithsonian Human Origins Program — Our species arose at least 300,000 years ago",
@@ -227,7 +227,7 @@
           url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC5875731/",
           desc: "Научный обзор показывает, как этнографические наблюдения и археология помогают изучать мобильность, разделение пищи и повседневную жизнь, а также где аналогии между современными и древними группами ограничены.",
           lang: "Английский"
-        }
+        },
         {
           type: "АКАДЕМИЧЕСКИЙ ОБЗОР АРХЕОЛОГИИ",
           title: "Columbia University — The Natufian Culture in the Levant, Threshold to the Origins of Agriculture",
