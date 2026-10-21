@@ -48,18 +48,8 @@
     }).filter(Boolean);
     actors=uniqueSentences(actors,seen,4,"Персоналии: ");
     if(actors.length)blocks.push(actors.join(" "));
-    var groups=(depth.groups||[]).map(function(group){
-      var name=clause(group.name),description=clause(group.description);
-      return name && description ? name+" — "+description+"." : "";
-    }).filter(Boolean);
-    groups=uniqueSentences(groups,seen,2,"Группы: ");
-    if(groups.length)blocks.push(groups.join(" "));
-    var terms=(depth.terms||[]).filter(function(term){return Array.isArray(term)&&term[0]&&term[1]})
-      .slice(0,4).map(function(term){
-        return clause(term[0])+" — "+clause(term[1])+".";
-      });
-    terms=uniqueSentences(terms,seen,4,"Термины: ");
-    if(terms.length)blocks.push(terms.join(" "));
+    // Glossary terms and social groups already have dedicated cards below the reading.
+    // Keep them out of the narrative to avoid duplicating the same module-wide definitions.
     return blocks.join("\n\n");
   }
   course.lessons.forEach(function(row,index){
