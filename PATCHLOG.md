@@ -730,6 +730,8 @@ Public search evidence checked for the first batch: Commons timeline entries and
 **Область работ**
 - `curriculum-details-01.js`: авторские тексты уроков 1–10.
 - `curriculum-enrichment-01.js`: адресные примеры-дополнения к тем же урокам.
+- `curriculum-research-foundations.js`: прямые источники к основным примерам первых 10 уроков.
+- `.github/scripts/check-course.js`: контроль объёма и отсутствия дословных повторов между рассказом и дополнением.
 - `PATCHLOG.md`, `PROJECT_STATE.md`: журнал и точка восстановления.
 
 **Критерии готовности**
