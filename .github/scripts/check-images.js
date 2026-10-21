@@ -91,7 +91,7 @@ assert(!/description:cleanAttribution\(ext\.ImageDescription/.test(html),
 
 const foundationStats = window.HISTORY_FOUNDATION_RESEARCH_STATS;
 const foundationNotes = window.HISTORY_FOUNDATION_IMAGE_NOTES || [];
-assert(foundationStats && foundationStats.addedSourceCount === 42 && foundationStats.imageNoteCount === 23,
+assert(foundationStats && foundationStats.addedSourceCount === 52 && foundationStats.imageNoteCount === 23,
   "Foundation research must define 42 sources and 23 lesson-specific image notes");
 for (const [day, title] of [
   [4, "Археология и естественно-научные методы"],

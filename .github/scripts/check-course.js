@@ -12,6 +12,7 @@ require("../../curriculum-enrichment-02.js");
 require("../../curriculum-enrichment-03.js");
 require("../../curriculum-enrichment-04.js");
 require("../../curriculum-research.js");
+require("../../curriculum-research-foundations.js");
 require("../../curriculum-participants.js");
 require("../../curriculum-participant-sources.js");
 require("../../curriculum-enrichment-apply.js");
@@ -241,6 +242,34 @@ for (const check of firstTenKnowledgeChecks) {
   const themeMentions = text.match(/\bтем(?:а|ы|е|у|ой|ах|ами)\b/giu) || [];
   assert(themeMentions.length <= 5,
     "First-ten editorial audit: word «тема» is repeated " + themeMentions.length + " times on day " + check.day);
+}
+
+/* The raw authored narrative must itself be complete; a long generated supplement must not hide a thin base paragraph. */
+const authoredTexts = window.HISTORY_LESSON_DETAILS || {};
+const detailSupplements = window.HISTORY_LESSON_DEEPENING || {};
+const foundationStats = window.HISTORY_FOUNDATION_RESEARCH_STATS;
+assert(foundationStats && foundationStats.version === 3 &&
+  [1,2,3,4,5,6,7,8,9,10].every(day => foundationStats.lessons.includes(day)),
+  "The first ten readings must each have a lesson-specific research-source pack");
+for (let day = 1; day <= 10; day++) {
+  const authored = String(authoredTexts[day] || "").trim();
+  const supplement = String(detailSupplements[day] || "").trim();
+  const authoredWords = authored.split(/\s+/).filter(Boolean).length;
+  const supplementWords = supplement.split(/\s+/).filter(Boolean).length;
+  assert(authoredWords >= 180 && authoredWords <= 300,
+    "First-ten authored reading must be 180–300 words, got " + authoredWords + " on day " + day);
+  assert(supplementWords >= 40 && supplementWords <= 110,
+    "First-ten specific example must be 40–110 words, got " + supplementWords + " on day " + day);
+  const baseSentences = new Set(splitSentences(authored).map(sentenceKey).filter(key => key.length >= 65));
+  const exactDupes = splitSentences(supplement).filter(sentence => {
+    const key = sentenceKey(sentence);
+    return key.length >= 65 && baseSentences.has(key);
+  });
+  assert(exactDupes.length === 0,
+    "First-ten reading and supplemental example repeat identical long sentences on day " + day + ": " + exactDupes.join(" | "));
+  const sources = (course.lessons[day - 1][6] || {}).researchSources || [];
+  assert(sources.length >= 2 && sources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc),
+    "First-ten lesson must have directly usable research sources on day " + day);
 }
 for (let i = 0; i < course.lessons.length; i++) {
   const text = String(course.lessons[i][6].detailedText || "");
