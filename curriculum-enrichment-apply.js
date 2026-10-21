@@ -29,13 +29,13 @@
     var depth=meta.depth||{},seen=new Set(),base=String(meta.detailedText||"");
     base.split(/(?<=[.!?])\s+(?=[А-ЯЁA-Z«„0-9])/u).forEach(function(sentence){var k=key(sentence);if(k.length>=45)seen.add(k)});
     var blocks=[];
-    var dates=uniqueSentences(depth.chronology,seen,4,"Хронология: ");
+    var dates=uniqueSentences(depth.chronology,seen,6,"Хронология: ");
     if(dates.length)blocks.push(dates.join(" "));
-    var causes=uniqueSentences(depth.causes,seen,3,"Причины: ");
+    var causes=uniqueSentences(depth.causes,seen,4,"Причины: ");
     if(causes.length)blocks.push(causes.join(" "));
-    var development=uniqueSentences(depth.development,seen,3,"Развитие событий: ");
+    var development=uniqueSentences(depth.development,seen,4,"Развитие событий: ");
     if(development.length)blocks.push(development.join(" "));
-    var effects=uniqueSentences(depth.consequences,seen,3,"Последствия: ");
+    var effects=uniqueSentences(depth.consequences,seen,4,"Последствия: ");
     if(effects.length)blocks.push(effects.join(" "));
     var facts=uniqueSentences(row[4]||[],seen,3,"Факт: ");
     if(facts.length)blocks.push(facts.join(" "));
