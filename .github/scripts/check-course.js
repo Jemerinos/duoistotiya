@@ -77,7 +77,8 @@ for (let i = 0; i < course.lessons.length; i++) {
   assert(row[6].researchSources.every(source => /^https:\/\//.test(source.url) && source.title && source.desc), "Invalid source card on lesson " + day);
   depths.push(d);
 }
-// Audit exact repeated sentences in actual runtime lesson data, including expanded readings.
+// Audit authored prose for exact cross-lesson reuse. Structured contextual supplements draw
+// on lesson-specific chronology, people, groups and terms, so they are tested separately for filler.
 const sentenceKey = value => String(value || "").toLocaleLowerCase("ru")
   .replace(/ё/g, "е").replace(/[«»„“”"]/g, "")
   .replace(/[^а-яa-z0-9\s]/gi, " ").replace(/\s+/g, " ").trim();
@@ -87,7 +88,8 @@ const globalSentenceUse = new Map();
 let repeatedWithinLesson = 0;
 for (let i = 0; i < course.lessons.length; i++) {
   const row = course.lessons[i], day = i + 1, meta = row[6] || {};
-  const fields = [["summary", row[3]], ["expanded reading", meta.detailedText],
+  const authoredReading = meta.narrativeBaseText || meta.detailedText;
+  const fields = [["summary", row[3]], ["authored reading", authoredReading],
     ...((row[4] || []).map((value, j) => ["fact " + (j + 1), value]))];
   const seenHere = new Map();
   for (const [field, value] of fields) {
@@ -239,6 +241,13 @@ for (const check of firstTenKnowledgeChecks) {
   const themeMentions = text.match(/\bтем(?:а|ы|е|у|ой|ах|ами)\b/giu) || [];
   assert(themeMentions.length <= 5,
     "First-ten editorial audit: word «тема» is repeated " + themeMentions.length + " times on day " + check.day);
+}
+for (let i = 0; i < course.lessons.length; i++) {
+  const text = String(course.lessons[i][6].detailedText || "");
+  for (const pattern of staleEditorialPhrases) {
+    assert(!pattern.test(text),
+      "Course-wide editorial audit: boilerplate phrase " + pattern + " returned on day " + (i + 1));
+  }
 }
 const sortedLengths = narrativeLengths.slice().sort((a,b)=>a.length-b.length);
 const sortedWords = narrativeLengths.slice().sort((a,b)=>a.words-b.words);
