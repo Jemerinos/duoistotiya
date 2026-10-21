@@ -78,6 +78,9 @@
     meta.detailedTextVersion=Math.max(meta.detailedTextVersion||1,2);
     meta.enrichmentVersion=1;
     if(meta.narrativeAssemblyVersion!==1){
+      // Keep the authored reading separate for exact-duplicate checks; contextual supplements
+      // may deliberately repeat a core term or a person's background across related lessons.
+      meta.narrativeBaseText=String(meta.detailedText).trim();
       var contextual=assembleContext(row,meta);
       if(contextual){
         meta.detailedText=String(meta.detailedText).trim()+"\n\n"+contextual;
