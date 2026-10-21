@@ -200,6 +200,46 @@ const tooShortNarratives = narrativeLengths.filter(x => x.words < 180);
 assert(tooShortNarratives.length === 0,
   "Runtime lesson narratives shorter than 180 words after contextual assembly: " +
   tooShortNarratives.map(x => x.day + " (" + x.words + ")").join(", "));
+
+/* Editorial regression: the first ten readings must contain historical knowledge, not repeated prompts about the lesson itself. */
+const firstTenKnowledgeChecks = [
+  { day: 1, label: "Фукидид как пример работы историка", tests: [/Фукидид/i, /431.?–.?404|431.?—.?404|431\s*[-–—]\s*404/i] },
+  { day: 2, label: "хронология и отсутствие нулевого года", tests: [/нулев(?:ого)? года/i, /периодизац/i] },
+  { day: 3, label: "конкретные географические примеры", tests: [/Тигр/i, /Евфрат/i, /Нил/i] },
+  { day: 4, label: "археологические методы", tests: [/радиоуглерод/i, /стратиграф/i] },
+  { day: 5, label: "сопоставление первичных и вторичных источников", tests: [/первичн/i, /вторичн/i, /независим/i] },
+  { day: 6, label: "пропаганда и публичная память на историческом примере", tests: [/пропаганд/i, /Август/i] },
+  { day: 7, label: "пошаговый анализ документа", tests: [/автор/i, /аудитор/i, /цель/i] },
+  { day: 8, label: "африканское происхождение Homo sapiens и контакты видов", tests: [/Африк/i, /неандерталь/i, /денисов/i] },
+  { day: 9, label: "разнообразие охотников-собирателей", tests: [/охот/i, /собират/i, /ландшафт|ресурс|сезон/i] },
+  { day: 10, label: "символическое поведение и границы интерпретации", tests: [/символ/i, /Ласко|пещер/i, /гипотез|интерпретац/i] }
+];
+const staleEditorialPhrases = [
+  /в хронологии темы/iu,
+  /для объяснения темы/iu,
+  /в ходе темы/iu,
+  /последстви[еяй].{0,45}важн.{0,20}темы/iu,
+  /для проверки вывода по теме/iu,
+  /в контексте занятия/iu,
+  /значение для этой темы/iu,
+  /для понимания занятия/iu,
+  /для темы\s*[«"]/iu
+];
+for (const check of firstTenKnowledgeChecks) {
+  const row = course.lessons[check.day - 1];
+  const text = String(row && row[6] && row[6].detailedText || "");
+  for (const pattern of check.tests) {
+    assert(pattern.test(text),
+      "First-ten editorial audit: missing " + check.label + " (pattern " + pattern + ") on day " + check.day);
+  }
+  for (const pattern of staleEditorialPhrases) {
+    assert(!pattern.test(text),
+      "First-ten editorial audit: boilerplate phrase " + pattern + " returned on day " + check.day);
+  }
+  const themeMentions = text.match(/\bтем(?:а|ы|е|у|ой|ах|ами)\b/giu) || [];
+  assert(themeMentions.length <= 5,
+    "First-ten editorial audit: word «тема» is repeated " + themeMentions.length + " times on day " + check.day);
+}
 const sortedLengths = narrativeLengths.slice().sort((a,b)=>a.length-b.length);
 const sortedWords = narrativeLengths.slice().sort((a,b)=>a.words-b.words);
 const below250 = narrativeLengths.filter(x => x.words < 250).length;
