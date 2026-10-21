@@ -39,15 +39,8 @@
     if(effects.length)blocks.push(effects.join(" "));
     var facts=uniqueSentences(row[4]||[],seen,3,"Факт: ");
     if(facts.length)blocks.push(facts.join(" "));
-    function clause(value){return String(value||"").trim().replace(/[.!?]+$/,"");}
-    var actors=(depth.people||[]).slice(0,4).map(function(person){
-      var parts=[person.name,person.role,person.why].filter(Boolean).map(clause);
-      if(!parts.length)return "";
-      if(parts.length===1)return parts[0]+".";
-      return parts[0]+" — "+parts[1]+(parts[2]?"; значение: "+parts[2]:"")+".";
-    }).filter(Boolean);
-    actors=uniqueSentences(actors,seen,4,"Персоналии: ");
-    if(actors.length)blocks.push(actors.join(" "));
+    // Named people already have dedicated biography cards in the reader.
+    // Do not copy shared biography text into multiple lesson narratives.
     // Glossary terms and social groups already have dedicated cards below the reading.
     // Keep them out of the narrative to avoid duplicating the same module-wide definitions.
     return blocks.join("\n\n");
