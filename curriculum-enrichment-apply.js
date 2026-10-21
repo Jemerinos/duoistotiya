@@ -19,44 +19,53 @@
         seen.add(k);
         // The contextual prefix keeps common evidence labels from becoming identical
         // sentences across dozens of different lessons.
-        out.push((prefix||"") + sentence);
+        // Add a concise label once per block, never once per sentence.
+      out.push((out.length===0?(prefix||""):"") + sentence);
       });
     });
     return out;
   }
   function assembleContext(row,meta){
-    var depth=meta.depth||{},seen=new Set(),base=String(meta.detailedText||""),title=String(row[0]||"это занятие");
+    var depth=meta.depth||{},seen=new Set(),base=String(meta.detailedText||"");
     base.split(/(?<=[.!?])\s+(?=[А-ЯЁA-Z«„0-9])/u).forEach(function(sentence){var k=key(sentence);if(k.length>=45)seen.add(k)});
     var blocks=[];
-    var dates=uniqueSentences(depth.chronology,seen,4,"В хронологии темы «"+title+"» важно отметить: ");
+    var dates=uniqueSentences(depth.chronology,seen,6,"Хронология: ");
     if(dates.length)blocks.push(dates.join(" "));
-    var causes=uniqueSentences(depth.causes,seen,3,"Для объяснения темы «"+title+"» существенная предпосылка такова: ");
+    var causes=uniqueSentences(depth.causes,seen,4,"Причины: ");
     if(causes.length)blocks.push(causes.join(" "));
-    var development=uniqueSentences(depth.development,seen,3,"В ходе темы «"+title+"» развитие событий описывает следующий шаг: ");
+    var development=uniqueSentences(depth.development,seen,4,"Развитие событий: ");
     if(development.length)blocks.push(development.join(" "));
-    var effects=uniqueSentences(depth.consequences,seen,3,"Одно из последствий, важных для темы «"+title+"»: ");
+    var effects=uniqueSentences(depth.consequences,seen,4,"Последствия: ");
     if(effects.length)blocks.push(effects.join(" "));
-    var facts=uniqueSentences(row[4]||[],seen,3,"Для проверки вывода по теме «"+title+"» полезен факт: ");
+    var facts=uniqueSentences(row[4]||[],seen,3,"Факт: ");
     if(facts.length)blocks.push(facts.join(" "));
-    var actors=(depth.people||[]).slice(0,4).map(function(person){
-      var parts=[String(person.name||""),String(person.role||""),String(person.why||"")].filter(Boolean);
-      return "В контексте занятия «"+title+"» "+parts[0]+": "+parts.slice(1).join(" Значение для этой темы: ").replace(/[.!?]+\s*/g,"; ").replace(/[;,\s]+$/,"")+".";
+    function words(text){return String(text||"").trim().split(/\s+/).filter(Boolean).length;}
+    function clause(value){return String(value||"").replace(/\s+/g," ").replace(/[.!?]+/g,";").replace(/[;,]+\s*$/,"").trim();}
+    function appendIfShort(values,max,prefix){
+      if(words(base+" "+blocks.join(" "))>=200)return;
+      var candidates=uniqueSentences(values,seen,max,prefix),picked=[],projected=words(base+" "+blocks.join(" "));
+      for(var i=0;i<candidates.length&&projected<200;i++){
+        picked.push(candidates[i]);projected+=words(candidates[i]);
+      }
+      if(picked.length)blocks.push(picked.join(" "));
+    }
+    // Most concepts already appear in the base reading or a dedicated card.
+    // Only add people/groups/terms when the core narrative plus concrete evidence is too short.
+    var people=(depth.people||[]).slice(0,4).map(function(person){
+      var name=clause(person.name),role=clause(person.role),why=clause(person.why);
+      return name && role ? name+" — "+role+(why?"; значение: "+why:"")+"." : "";
     }).filter(Boolean);
-    actors=uniqueSentences(actors,seen,4,"");
-    if(actors.length)blocks.push(actors.join(" "));
+    appendIfShort(people,4,"Персоналии: ");
     var groups=(depth.groups||[]).map(function(group){
-      return "Для темы «"+title+"» группа «"+String(group.name||"")+"» важна так: "+
-        String(group.description||"").replace(/[.!?]+\s*/g,"; ").replace(/[;,\s]+$/,"")+".";
-    });
-    groups=uniqueSentences(groups,seen,2,"");
-    if(groups.length)blocks.push(groups.join(" "));
+      var name=clause(group.name),description=clause(group.description);
+      return name && description ? name+" — "+description+"." : "";
+    }).filter(Boolean);
+    appendIfShort(groups,3,"Группы: ");
     var terms=(depth.terms||[]).filter(function(term){return Array.isArray(term)&&term[0]&&term[1]})
-      .slice(0,4).map(function(term){
-        return "Для понимания занятия «"+title+"» термин «"+String(term[0])+"» означает: "+
-          String(term[1]).replace(/[.!?]+\s*/g,"; ").replace(/[;,\s]+$/,"")+".";
+      .slice(0,5).map(function(term){
+        return clause(term[0])+" — "+clause(term[1])+".";
       });
-    terms=uniqueSentences(terms,seen,4,"");
-    if(terms.length)blocks.push(terms.join(" "));
+    appendIfShort(terms,5,"Термины: ");
     return blocks.join("\n\n");
   }
   course.lessons.forEach(function(row,index){
@@ -69,6 +78,9 @@
     meta.detailedTextVersion=Math.max(meta.detailedTextVersion||1,2);
     meta.enrichmentVersion=1;
     if(meta.narrativeAssemblyVersion!==1){
+      // Keep the authored reading separate for exact-duplicate checks; contextual supplements
+      // may deliberately repeat a core term or a person's background across related lessons.
+      meta.narrativeBaseText=String(meta.detailedText).trim();
       var contextual=assembleContext(row,meta);
       if(contextual){
         meta.detailedText=String(meta.detailedText).trim()+"\n\n"+contextual;
