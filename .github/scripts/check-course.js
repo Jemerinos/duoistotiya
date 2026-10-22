@@ -228,6 +228,30 @@ const staleEditorialPhrases = [
   /для понимания занятия/iu,
   /для темы\s*[«"]/iu
 ];
+const firstTenLeadChecks = [
+  {day:1, pattern:/Надёжный вывод связывает конкретный источник/i},
+  {day:2, pattern:/Периодизация условна/i},
+  {day:3, pattern:/Историческую карту нужно читать/i},
+  {day:4, pattern:/Радиоуглеродный анализ/i},
+  {day:5, pattern:/Вторичные исследования сопоставляют свидетельства/i},
+  {day:6, pattern:/Политическая память отбирает героев/i},
+  {day:7, pattern:/с независимым свидетельством/i},
+  {day:8, pattern:/неандертальцами и денисовцами/i},
+  {day:9, pattern:/Мобильность давала гибкость/i},
+  {day:10, pattern:/не точно датированный единичный скачок/i}
+];
+for (const check of firstTenLeadChecks) {
+  const row = course.lessons[check.day - 1];
+  const summary = String(row && row[3] || "");
+  assert(check.pattern.test(summary),
+    "First-ten visible lead was not synchronized with the revised reading on day " + check.day);
+  assert(summary.split(/\\s+/).filter(Boolean).length <= 60,
+    "First-ten visible lead should be concise (<=60 words) on day " + check.day);
+  for (const pattern of staleEditorialPhrases) {
+    assert(!pattern.test(summary),
+      "First-ten visible lead contains editorial boilerplate " + pattern + " on day " + check.day);
+  }
+}
 for (const check of firstTenKnowledgeChecks) {
   const row = course.lessons[check.day - 1];
   const text = String(row && row[6] && row[6].detailedText || "");
