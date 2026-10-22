@@ -245,7 +245,7 @@ for (const check of firstTenLeadChecks) {
   const summary = String(row && row[3] || "");
   assert(check.pattern.test(summary),
     "First-ten visible lead was not synchronized with the revised reading on day " + check.day);
-  assert(summary.split(/\\s+/).filter(Boolean).length <= 60,
+  assert(summary.split(/\s+/).filter(Boolean).length <= 60,
     "First-ten visible lead should be concise (<=60 words) on day " + check.day);
   for (const pattern of staleEditorialPhrases) {
     assert(!pattern.test(summary),
